@@ -1,105 +1,118 @@
 const cloud = require('wx-server-sdk');
 
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+// =========================================================
+// PK 胜率榜（物化缓存版）
+// 与 getLeaderboard 共享 leaderboards/pk 物化文档：胜率聚合成本高
+// （每次要全量扫已结算 PK），由 getLeaderboard 在缓存过期时惰性重建，
+// 本函数只读缓存并补充“我的排名/追赶/趋势”，单次调用零聚合开销。
+// 响应契约与旧版一致（winRate 为整数百分比、含 rate/avatarUrl）。
+// =========================================================
 const db = cloud.database();
 const _ = db.command;
+
+const CACHE_TTL_MS = (Number(process.env.LEADERBOARD_CACHE_MINUTES) || 10) * 60 * 1000;
+const LIMIT = 50;
 
 function todayKey() {
   return new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
 }
 
-// PK 榜最少场次门槛：胜率榜至少 5 场才计入，避免 1 胜 0 负刷榜首
-const MIN_GAMES = 5;
-
-// 分页拉取全部已结算 PK，避免 500 条截断导致榜单失真
-async function fetchAllSettledPks() {
-  const out = [];
+// 读 leaderboards/pk 缓存；过期则由 getLeaderboard 侧重建（本函数只读，
+// 若读到过期数据也先返回，保证一次请求不触发两次全量聚合）
+async function loadPkCache() {
+  try {
+    const doc = (await db.collection('leaderboards').doc('pk').get()).data;
+    if (doc && doc.list) return doc;
+  } catch (e) { /* 尚无缓存 */ }
+  // 缓存缺失：退化为全量聚合一次（首访冷启动）
+  const stats = {};
   let skip = 0;
-  const PAGE = 100;
   while (true) {
     const res = await db.collection('pks')
       .where({ status: 'settled' })
+      .field({ challengerId: true, opponentId: true, winnerId: true })
       .skip(skip)
-      .limit(PAGE)
+      .limit(100)
       .get();
-    out.push(...res.data);
-    if (res.data.length < PAGE) break;
-    skip += PAGE;
+    res.data.forEach(pk => {
+      [pk.challengerId, pk.opponentId].forEach(uid => {
+        if (!uid) return;
+        const s = stats[uid] || (stats[uid] = { wins: 0, total: 0 });
+        s.total += 1;
+        if (pk.winnerId === uid) s.wins += 1;
+      });
+    });
+    if (res.data.length < 100) break;
+    skip += 100;
   }
-  return out;
+  const ids = Object.keys(stats).filter(id => stats[id].total >= 5 && stats[id].wins > 0);
+  const nameMap = {};
+  if (ids.length) {
+    const uRes = await db.collection('users').where({ _id: _.in(ids) }).field({ nickname: true, avatarUrl: true }).get();
+    uRes.data.forEach(u => { nameMap[u._id] = { nickname: u.nickname || '预言新人', avatarUrl: u.avatarUrl || '' }; });
+  }
+  const list = ids
+    .map(id => ({
+      openid: id,
+      nickname: (nameMap[id] || {}).nickname || '预言新人',
+      avatarUrl: (nameMap[id] || {}).avatarUrl || '',
+      wins: stats[id].wins,
+      losses: stats[id].total - stats[id].wins,
+      total: stats[id].total,
+      winRate: stats[id].wins / stats[id].total
+    }))
+    .sort((a, b) => b.winRate - a.winRate)
+    .slice(0, 200);
+  return { list, total: list.length, updatedAt: Date.now() };
 }
 
 exports.main = async () => {
   try {
-    const allPks = await fetchAllSettledPks();
-    const stats = {};
-    allPks.forEach(pk => {
-      [pk.challengerId, pk.opponentId].forEach(uid => {
-        if (!uid) return;
-        if (!stats[uid]) stats[uid] = { wins: 0, losses: 0, total: 0 };
-        stats[uid].total += 1;
-        if (pk.winnerId === uid) stats[uid].wins += 1;
-        else stats[uid].losses += 1;
-      });
-    });
-
-    const users = db.collection('users');
-    const ids = Object.keys(stats).filter(id => stats[id].total >= MIN_GAMES);
-    const nameMap = {};
-    if (ids.length) {
-      const userRes = await users.where({ _id: _.in(ids) }).field({ nickname: true, avatar: true }).get();
-      userRes.data.forEach(u => { nameMap[u._id] = { nickname: u.nickname, avatar: u.avatar }; });
-    }
-
-    const limit = 50;
-    let list = ids
-      .map(id => ({
-        openid: id,
-        nickname: (nameMap[id] || {}).nickname || '预言新人',
-        avatar: (nameMap[id] || {}).avatar || '🔮',
-        wins: stats[id].wins,
-        losses: stats[id].losses,
-        total: stats[id].total,
-        rate: stats[id].wins / stats[id].total,
-        winRate: Math.round((stats[id].wins / stats[id].total) * 100)
-      }))
-      .sort((a, b) => b.rate - a.rate || b.wins - a.wins || a.total - b.total)
-      .slice(0, limit);
-
-    // 追赶提示：我的上一名
     const { OPENID } = cloud.getWXContext();
+    const cached = await loadPkCache();
+    const cachedList = cached.list || [];
+
+    let list = cachedList.slice(0, LIMIT).map((item, i) => ({
+      openid: item.openid,
+      nickname: item.nickname,
+      avatarUrl: item.avatarUrl || '',
+      wins: item.wins,
+      losses: item.losses,
+      total: item.total,
+      rate: item.winRate,
+      winRate: Math.round(item.winRate * 100),
+      rank: i + 1,
+      isMe: item.openid === OPENID
+    }));
+
+    // 我的追赶/入榜（基于物化数据，10 分钟内近似；比旧版省两次全量查询）
     const meIdx = list.findIndex(x => x.openid === OPENID);
     if (meIdx > 0) {
       const prev = list[meIdx - 1];
-      list[meIdx] = Object.assign({}, list[meIdx], {
-        gapToNext: Math.round((prev.rate - list[meIdx].rate) * 100)
-      });
+      list[meIdx] = Object.assign({}, list[meIdx], { gapToNext: Math.round((prev.rate - list[meIdx].rate) * 100) });
     } else if (meIdx === -1) {
-      // 我不在榜内：找所有已结算 PK 用户中排在我前面最近的一位
-      const myStats = stats[OPENID];
-      if (myStats && myStats.total >= MIN_GAMES) {
-        const myRate = myStats.wins / myStats.total;
-        const prev = ids
-          .filter(id => (stats[id].wins / stats[id].total) > myRate)
-          .map(id => stats[id].wins / stats[id].total)
-          .sort((a, b) => a - b)[0];
-        if (prev !== undefined) {
-          list.push({
-            openid: OPENID,
-            nickname: (nameMap[OPENID] || {}).nickname || '预言新人',
-            avatar: (nameMap[OPENID] || {}).avatar || '🔮',
-            wins: myStats.wins,
-            losses: myStats.losses,
-            total: myStats.total,
-            rate: myRate,
-            winRate: Math.round(myRate * 100),
-            isMe: true,
-            gapToNext: Math.round((prev - myRate) * 100)
-          });
-        }
+      const myEntry = cachedList.find(i => i.openid === OPENID);
+      if (myEntry) {
+        const myRate = myEntry.winRate;
+        const prevRate = cachedList
+          .filter(i => i.winRate > myRate)
+          .sort((a, b) => b.winRate - a.winRate)
+          .slice(-1)[0];
+        list.push({
+          openid: OPENID,
+          nickname: myEntry.nickname,
+          avatarUrl: myEntry.avatarUrl || '',
+          wins: myEntry.wins,
+          losses: myEntry.losses,
+          total: myEntry.total,
+          rate: myRate,
+          winRate: Math.round(myRate * 100),
+          rank: cachedList.findIndex(i => i.openid === OPENID) + 1,
+          isMe: true,
+          gapToNext: prevRate ? Math.round((prevRate.winRate - myRate) * 100) : 0
+        });
       }
     }
-    if (meIdx >= 0) list[meIdx] = Object.assign({}, list[meIdx], { isMe: true });
 
     // 排名变化：与最近一份历史快照对比
     const prevSnap = await db.collection('rank_snapshots')
@@ -111,16 +124,15 @@ exports.main = async () => {
     if (prevSnap.data.length) {
       prevSnap.data[0].rankings.forEach(r => { prevRankMap[r.openid] = r.rank; });
     }
-    list = list.map((item, i) => {
-      const rank = i + 1;
+    list = list.map(item => {
       const prev = prevRankMap[item.openid];
       let trend = '';
       if (prev !== undefined) {
-        trend = rank < prev ? 'up' : (rank > prev ? 'down' : 'same');
+        trend = item.rank < prev ? 'up' : (item.rank > prev ? 'down' : 'same');
       } else if (Object.keys(prevRankMap).length) {
         trend = 'new';
       }
-      return Object.assign({}, item, { rank, trend });
+      return Object.assign({}, item, { trend });
     });
 
     return { ok: true, list };

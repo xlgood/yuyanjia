@@ -1,4 +1,6 @@
 const cloud = require('wx-server-sdk');
+const https = require('https');
+const http = require('http');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
@@ -9,6 +11,43 @@ const SUBSCRIBE_ARBITRATION_TMPL = process.env.SUBSCRIBE_ARBITRATION_TMPL || '';
 
 // 结算锁超过该时长视为上次运行崩溃残留，允许下个定时周期接管重试
 const SETTLING_STALE_MS = 10 * 60 * 1000;
+
+// 运营告警：复用 lockMarkets 的 LOCK_WEBHOOK_URL / LOCK_WEBHOOK_TYPE，零新增配置
+const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL || process.env.LOCK_WEBHOOK_URL || '';
+const ALERT_WEBHOOK_TYPE = String(process.env.LOCK_WEBHOOK_TYPE || 'wecom').toLowerCase();
+
+function postWebhook(content) {
+  if (!ALERT_WEBHOOK_URL) return Promise.resolve(false);
+  let payload;
+  if (ALERT_WEBHOOK_TYPE === 'feishu') {
+    payload = { msg_type: 'text', content: { text: content } };
+  } else {
+    payload = { msgtype: 'text', text: { content } };
+  }
+  return new Promise(resolve => {
+    try {
+      const body = JSON.stringify(payload);
+      const url = new URL(ALERT_WEBHOOK_URL);
+      const lib = url.protocol === 'https:' ? https : http;
+      const req = lib.request({
+        hostname: url.hostname,
+        path: url.pathname + url.search,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+        timeout: 5000
+      }, res => {
+        res.resume();
+        res.on('end', () => resolve(true));
+      });
+      req.on('error', () => resolve(false));
+      req.on('timeout', () => { req.destroy(); resolve(false); });
+      req.write(body);
+      req.end();
+    } catch (e) {
+      resolve(false);
+    }
+  });
+}
 
 async function sendArbitrationNotify(openid, marketTitle, resultText) {
   if (!SUBSCRIBE_ARBITRATION_TMPL || !openid) return;
@@ -224,7 +263,12 @@ exports.main = async (event) => {
     if (target && target.status === 'pending' && target.endsAt && target.endsAt > Date.now()) {
       return { ok: false, err: '仲裁公示期未结束，暂不能结算' };
     }
-    return { ok: true, ...(await settleArbitrationId(arbId)) };
+    try {
+      return { ok: true, ...(await settleArbitrationId(arbId)) };
+    } catch (e) {
+      await postWebhook(`【预言大师·仲裁结算异常】仲裁 ${arbId} 结算抛错：${String(e.message || e).slice(0, 200)}`);
+      return { ok: false, err: e.message || '结算失败' };
+    }
   }
 
   // 批量：结算所有已过公示期的仲裁（定时触发器）
@@ -234,7 +278,12 @@ exports.main = async (event) => {
     .get();
   const results = [];
   for (const arb of res.data) {
-    results.push(await settleArbitrationId(arb._id));
+    try {
+      results.push(await settleArbitrationId(arb._id));
+    } catch (e) {
+      await postWebhook(`【预言大师·仲裁结算异常】仲裁 ${arb._id} 结算抛错：${String(e.message || e).slice(0, 200)}，下个周期自动重试`);
+      results.push({ settled: false, reason: 'exception', arbitrationId: arb._id });
+    }
   }
   return { ok: true, results };
 };

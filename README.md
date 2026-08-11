@@ -19,7 +19,10 @@
 - 运营后台：数据源注册表、发题（AI 起草判定条件）、批量发题、待判定/复核队列、看板；
 - AI 选题助手（`aiSuggestTopics`，支持 DeepSeek/千问/Kimi 联网搜索；入口当前按策略隐藏，配置好联网后恢复）；
 - 内容安全：微信 `msgSecCheck` + 本地敏感词表兜底（不再 fail-open）；
-- 工程：`wx-server-sdk` 锁定 4.0.2、首页分页/加载更多/骨架屏/竞态守卫、SDK 版本统一。
+- 工程：`wx-server-sdk` 锁定 4.0.2、首页分页/加载更多/骨架屏/竞态守卫、SDK 版本统一；
+- 性能：登录态 TTL 缓存（5 分钟）、荣誉检测节流（默认 10 分钟）、**榜单物化缓存**（`leaderboards` 集合，TTL 10 分钟，榜单查询不再全集合 count）、运营后台 7 页子包化（不进主包）；
+- 监控：结算/仲裁/自动判定异常自动推送企业微信/飞书（复用 `LOCK_WEBHOOK_URL`）；
+- 工程：git 基线已初始化（main 分支）、`scripts/deploy.sh` 一键上传云函数。
 
 **已测试**
 
@@ -29,10 +32,11 @@
 
 **待配置（代码已就绪，需要控制台操作）**
 
+- **数据库安全规则（上线安全底线）**：全部集合设「所有用户不可读写」，见 `database/security-rules.md`（含逐集合清单与验证方法）；另需新建 `leaderboards` 集合（榜单物化缓存）；
 - 跑一次 `migratePoints`（榜单净收益口径重算 + `inviteCount` 回填）；
 - 广告服务端回调：开通 HTTP 访问服务、流量主后台配置回调、创建 `ad_rewards` 集合、设置 `AD_SSV_*` 环境变量、`claimAdTask` 开 `AD_SSV_ENABLED=true`；
 - `lockMarkets` 运营通知：配置 `LOCK_WEBHOOK_URL`（企业微信/飞书）；
-- 可选环境变量：`DISPUTE_WINDOW_HOURS`（默认 5）、`LOCK_STALE_HOURS`（默认 24）。
+- 可选环境变量：`DISPUTE_WINDOW_HOURS`（默认 5）、`LOCK_STALE_HOURS`（默认 24）、`HONORS_CHECK_INTERVAL_MINUTES`（默认 10）、`LEADERBOARD_CACHE_MINUTES`（默认 10）、`ALERT_WEBHOOK_URL`（默认回退 `LOCK_WEBHOOK_URL`）。
 
 **待实现 / 待决策**
 
@@ -75,13 +79,18 @@
 │   ├── pages/              # 用户端 10 页
 │   └── subpackages/admin/  # 运营后台 7 页（子包，不计入主包体积）
 ├── cloudfunctions/         # 云开发后端（37 个云函数，wx-server-sdk 锁定 4.0.2）
-├── database/               # 集合设计文档 + markets 种子数据 + 判定规范示例
+├── database/               # 集合设计文档 + security-rules（安全规则）+ markets 种子数据 + 判定规范示例
 ├── docs/开发方案.md         # 完整开发方案（架构/状态机/测试/合规/路线）
 ├── docs/事件选题与自动判定方案.md  # 事件来源 / 判定条件规范 / 自动结算三层架构
 ├── docs/广告与变现说明.md    # 广告接入与合规
 ├── docs/部署检查清单.md      # 云开发部署步骤与上线前检查
 ├── docs/项目审查报告.md      # 全项目审查报告（含修复记录）
 ├── docs/prototype/         # 早期 HTML 原型存档（仅参考，与现 UI 已脱节）
+├── scripts/
+│   ├── deploy.sh           # 云函数一键上传（@cloudbase/cli，npm run deploy）
+│   ├── smoke-test.js       # 全链路冒烟测试
+│   └── check-compliance.js # 合规词表扫描
+├── package.json            # 部署/测试脚本入口
 └── project.config.json
 ```
 

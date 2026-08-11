@@ -27,6 +27,43 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+// 运营告警：复用 lockMarkets 的 LOCK_WEBHOOK_URL / LOCK_WEBHOOK_TYPE，零新增配置
+const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL || process.env.LOCK_WEBHOOK_URL || '';
+const ALERT_WEBHOOK_TYPE = String(process.env.LOCK_WEBHOOK_TYPE || 'wecom').toLowerCase();
+
+function postWebhook(content) {
+  if (!ALERT_WEBHOOK_URL) return Promise.resolve(false);
+  let payload;
+  if (ALERT_WEBHOOK_TYPE === 'feishu') {
+    payload = { msg_type: 'text', content: { text: content } };
+  } else {
+    payload = { msgtype: 'text', text: { content } };
+  }
+  return new Promise(resolve => {
+    try {
+      const body = JSON.stringify(payload);
+      const url = new URL(ALERT_WEBHOOK_URL);
+      const lib = url.protocol === 'https:' ? https : http;
+      const req = lib.request({
+        hostname: url.hostname,
+        path: url.pathname + url.search,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+        timeout: 5000
+      }, res => {
+        res.resume();
+        res.on('end', () => resolve(true));
+      });
+      req.on('error', () => resolve(false));
+      req.on('timeout', () => { req.destroy(); resolve(false); });
+      req.write(body);
+      req.end();
+    } catch (e) {
+      resolve(false);
+    }
+  });
+}
+
 // =========================================================
 // 适配器（原 adapters/ 目录，因 CLI 打包不支持子目录已内联，
 // 功能与拆分版本完全一致；GUI 部署两种写法均可）
@@ -149,6 +186,7 @@ exports.main = async () => {
 
     if (!adapter) {
       await flagManual(m._id, attempts, '无对应数据源适配器: ' + (spec && spec.dataSource && spec.dataSource.type));
+      await postWebhook(`【预言大师·判定告警】事件「${String(m.title || m._id).slice(0, 30)}」无对应数据源适配器，已转人工`);
       summary.manual.push(m._id);
       continue;
     }
@@ -186,6 +224,7 @@ exports.main = async () => {
         await db.collection('markets').doc(m._id).update({
           data: { needsManualReview: true, resolutionAttempts: attempts, updatedAt: db.serverDate() }
         });
+        await postWebhook(`【预言大师·判定告警】事件「${String(m.title || m._id).slice(0, 30)}」自动判定连续 ${attempts} 次失败，已转人工复核`);
         summary.manual.push(m._id);
       } else {
         await db.collection('markets').doc(m._id).update({

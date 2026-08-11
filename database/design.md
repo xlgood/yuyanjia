@@ -1,7 +1,7 @@
 # 数据库设计（微信云开发 · 云数据库）
 
-云开发环境创建后，需在控制台创建 10~11 个集合：`users`、`markets`、`bets`、`data_sources`、`resolution_logs`、`invites`、`pks`、`rank_snapshots`、`arbitrations`、`arbitration_votes`；启用激励广告服务端回调时另加 `ad_rewards`。
-集合权限建议全部设为「仅创建者可读写」，所有读写均通过云函数完成，客户端不直连数据库。
+云开发环境创建后，需在控制台创建 11~12 个集合：`users`、`markets`、`bets`、`data_sources`、`resolution_logs`、`invites`、`pks`、`rank_snapshots`、`leaderboards`、`arbitrations`、`arbitration_votes`；启用激励广告服务端回调时另加 `ad_rewards`。
+集合权限统一设为「所有用户不可读写」，所有读写均通过云函数完成，客户端不直连数据库（前端已确认零 `wx.cloud.database()` 调用）。逐集合规则与验证方法见 [security-rules.md](security-rules.md)。
 
 > 原 `disputes`（申诉）集合已被仲裁系统替代，不再创建/使用。
 
@@ -226,7 +226,20 @@
 
 建议索引：`arbitrationId`、`openid`。
 
-## 11. ad_rewards（激励广告服务端回调交易去重）
+## 11. leaderboards（榜单物化缓存）
+
+`getLeaderboard` / `pkLeaderboard` 惰性写入的 top 榜缓存（TTL 默认 10 分钟，`LEADERBOARD_CACHE_MINUTES` 可调），把「每次请求全集合 count + top N 拉取」降为「读缓存文档 + 2 次轻量 count」。
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `_id` | string | 榜单类型：streak / week / month / total / pk |
+| list | object[] | `[{ openid, nickname, avatarUrl, value }]`；pk 榜为 `[{ openid, nickname, avatarUrl, wins, losses, total, winRate }]` |
+| total | number | 上榜人数 |
+| updatedAt | number | 最近重建时间（CAS 并发写依据） |
+
+建议索引：无需额外索引（按 `_id` 单文档读写）。
+
+## 12. ad_rewards（激励广告服务端回调交易去重）
 
 启用「激励视频广告服务端奖励回调」后由 `adRewardCallback` 写入，按 `transaction_id` 去重，保证同一笔广告奖励只发放一次。
 

@@ -1,4 +1,6 @@
 const cloud = require('wx-server-sdk');
+const https = require('https');
+const http = require('http');
 
 // 管理员 openid（部署时在云函数环境变量配置 ADMIN_OPENIDS，逗号分隔；空 = 仅 Mock 可进后台）
 const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -12,6 +14,44 @@ const SUBSCRIBE_JUDGE_TMPL = process.env.SUBSCRIBE_JUDGE_TMPL || '';
 
 // 结算锁超过该时长视为上次运行崩溃残留，允许下个定时周期接管重试
 const SETTLING_STALE_MS = 10 * 60 * 1000;
+
+// 运营告警：复用 lockMarkets 的 LOCK_WEBHOOK_URL / LOCK_WEBHOOK_TYPE，
+// 零新增配置；未配置时静默跳过
+const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL || process.env.LOCK_WEBHOOK_URL || '';
+const ALERT_WEBHOOK_TYPE = String(process.env.LOCK_WEBHOOK_TYPE || 'wecom').toLowerCase();
+
+function postWebhook(content) {
+  if (!ALERT_WEBHOOK_URL) return Promise.resolve(false);
+  let payload;
+  if (ALERT_WEBHOOK_TYPE === 'feishu') {
+    payload = { msg_type: 'text', content: { text: content } };
+  } else {
+    payload = { msgtype: 'text', text: { content } };
+  }
+  return new Promise(resolve => {
+    try {
+      const body = JSON.stringify(payload);
+      const url = new URL(ALERT_WEBHOOK_URL);
+      const lib = url.protocol === 'https:' ? https : http;
+      const req = lib.request({
+        hostname: url.hostname,
+        path: url.pathname + url.search,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+        timeout: 5000
+      }, res => {
+        res.resume();
+        res.on('end', () => resolve(true));
+      });
+      req.on('error', () => resolve(false));
+      req.on('timeout', () => { req.destroy(); resolve(false); });
+      req.write(body);
+      req.end();
+    } catch (e) {
+      resolve(false);
+    }
+  });
+}
 
 async function sendJudgeNotify(openid, marketTitle, resultText, payoutText) {
   if (!SUBSCRIBE_JUDGE_TMPL || !openid) return;
@@ -162,6 +202,7 @@ async function settleOne(marketId) {
         r = await settleOneBet(market, bet, refundAll, totalPool, winningPool);
       } catch (e) {
         console.error('单注结算失败，等待下轮重试', marketId, bet._id, e.message || e);
+        await postWebhook(`【预言大师·结算异常】市场 ${marketId}（${market.title}）单注结算失败：${String(e.message || e).slice(0, 200)}，10 分钟后自动重试`);
         return { settled: false, reason: 'bet_settle_failed', marketId };
       }
       if (r.skipped) continue;

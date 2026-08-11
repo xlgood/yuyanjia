@@ -1,0 +1,12 @@
+{
+  "name": "yuyanjia-deploy",
+  "private": true,
+  "version": "1.0.0",
+  "description": "预言大师小程序 · 云函数部署工具（@cloudbase/cli 按需安装，不污染全局）",
+  "scripts": {
+    "deploy:login": "bash scripts/deploy.sh login",
+    "deploy": "bash scripts/deploy.sh deploy",
+    "deploy:all": "bash scripts/deploy.sh all",
+    "check": "node --check scripts/smoke-test.js && node scripts/smoke-test.js && node scripts/check-compliance.js"
+  }
+}
