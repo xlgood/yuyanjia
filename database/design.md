@@ -91,6 +91,7 @@
 | sourceOfTruth | string | 胜负判定标准与唯一数据源（铁证规范） |
 | deadline | number | 截止时间戳 |
 | yesPool / noPool | number | 双方能量池 |
+| totalPool | number | 冗余字段 = yesPool + noPool（表态/PK 收退注时原子维护；热门榜按此索引排序，存量数据用 `migratePoints` 回填） |
 | status | string | `open` 进行中 / `locked` 已锁定待判定 / `dispute_window` 判定公示 / `arbitration_window` 仲裁公示（临时）/ `resolved` 已结算 |
 | lockedAt | number | 锁定时间（截止时间到达时由 lockMarkets 写入） |
 | result | string/null | 官方判定：`YES` / `NO` |
@@ -108,6 +109,7 @@
 建议索引：
 - `status + deadline`（首页列表）
 - `category + status + deadline`（分类筛选）
+- `status + totalPool`（降序，热门榜排序——必须先建此索引，`getMarkets` 热门模式才可运行）
 
 ## 3. bets（表态记录）
 

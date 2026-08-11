@@ -2,9 +2,8 @@ const cloud = require('wx-server-sdk');
 
 // 管理员 openid（部署时在云函数环境变量配置 ADMIN_OPENIDS，逗号分隔；空 = 仅 Mock 可进后台）
 const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
-const CATEGORIES = ['影视娱乐', '科技数码', '游戏电竞', '体育竞技', '趣味民生', '财经宏观'];
-const OPERATORS = ['>=', '>', '<=', '<', '==', '!=', 'contains', 'in'];
-const TRANSFORMS = ['int', 'float', 'string'];
+// 业务常量单一来源：cloudfunctions/_shared/config.js（与前端 utils/constants.js 分类一致）
+const { CATEGORIES, OPERATORS, TRANSFORMS } = require('./common-config');
 
 // 二值化词：标题必须包含其一，保证结果非此即彼
 const BINARY_WORDS = ['是否', '能否', '会不会', '能不能', '有没有', '是否达到', '是否突破', '是否超过', '是否低于', '会不会突破', '是否赢得', '是否获胜'];
@@ -126,6 +125,7 @@ exports.main = async (event) => {
     deadline,
     yesPool: 0,
     noPool: 0,
+    totalPool: 0, // 冗余字段：热门榜按此索引排序（表态/PK 时原子维护）
     status: 'open',
     result: null,
     evidenceUrl: '',

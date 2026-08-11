@@ -20,8 +20,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-const AD_TASK_POINTS = 100;
-const AD_TASK_LIMIT = 3;
+// 业务常量单一来源：cloudfunctions/_shared/config.js
+const { AD_TASK_POINTS, AD_TASK_LIMIT } = require('./common-config');
 const TOKEN = process.env.AD_SSV_TOKEN || '';
 const ENCODING_AES_KEY = process.env.AD_SSV_ENCODING_AES_KEY || '';
 const REWARD_ITEM = process.env.AD_SSV_REWARD_ITEM || 'energy';

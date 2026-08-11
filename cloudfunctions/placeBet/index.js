@@ -4,9 +4,11 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-// 邀请奖励配置：三个函数（login/placeBet/inviteStats）共用同一组环境变量，缺省值保持一致
-const INVITER_POINTS = Number(process.env.INVITE_INVITER_POINTS) || 50;
-const INVITE_DAILY_CAP = Number(process.env.INVITE_DAILY_CAP) || 10;
+// 业务常量单一来源（cloudfunctions/_shared/config.js，npm run sync:common 同步）；
+// 邀请奖励支持环境变量覆盖（login/placeBet/inviteStats 共用）
+const { INVITE_INVITER_POINTS, INVITE_DAILY_CAP } = require('./common-config');
+const INVITER_POINTS = Number(process.env.INVITE_INVITER_POINTS) || INVITE_INVITER_POINTS;
+const DAILY_CAP = Number(process.env.INVITE_DAILY_CAP) || INVITE_DAILY_CAP;
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
@@ -65,7 +67,9 @@ exports.main = async (event) => {
       if (user.points < amount) throw new Error('能量不足');
 
       const poolField = choice === 'YES' ? 'yesPool' : 'noPool';
-      await marketRef.update({ data: { [poolField]: _.inc(amount), updatedAt: db.serverDate() } });
+      await marketRef.update({
+        data: { [poolField]: _.inc(amount), totalPool: _.inc(amount), updatedAt: db.serverDate() }
+      });
       await userRef.update({ data: { points: _.inc(-amount), updatedAt: db.serverDate() } });
 
       // 邀请裂变：被邀请人完成首次表态，邀请人获得奖励（每日上限防刷）
@@ -78,7 +82,7 @@ exports.main = async (event) => {
           const dailyUsed = inviter.inviteRewardDate === today ? (inviter.inviteRewardToday || 0) : 0;
           // 无论当日奖励额度是否用完，都计入累计有效邀请（邀请荣誉据此解锁）
           const inviterData = { inviteCount: _.inc(1), updatedAt: db.serverDate() };
-          if (dailyUsed < INVITE_DAILY_CAP) {
+          if (dailyUsed < DAILY_CAP) {
             Object.assign(inviterData, {
               points: _.inc(INVITER_POINTS),
               totalPoints: _.inc(INVITER_POINTS),

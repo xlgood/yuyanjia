@@ -1,9 +1,7 @@
 const cloud = require('wx-server-sdk');
 
-// 与前端 utils/constants.js 保持一致
-const CHECKIN_BASE_POINTS = 50;
-const CHECKIN_STREAK_BONUS = 10;
-const CHECKIN_STREAK_CAP = 7;
+// 业务常量单一来源：cloudfunctions/_shared/config.js（与前端 utils/constants.js 数值一致）
+const { CHECKIN_BASE_POINTS, CHECKIN_STREAK_BONUS, CHECKIN_STREAK_CAP } = require('./common-config');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();

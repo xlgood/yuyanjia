@@ -4,8 +4,8 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-const VOTE_BOND_MIN = 100;
-const ACTIVE_LIMIT = 1;
+// 业务常量单一来源：cloudfunctions/_shared/config.js
+const { VOTE_BOND_MIN, ACTIVE_ARBITRATION_LIMIT: ACTIVE_LIMIT } = require('./common-config');
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();

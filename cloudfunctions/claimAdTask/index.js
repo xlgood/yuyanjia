@@ -1,8 +1,7 @@
 const cloud = require('wx-server-sdk');
 
-// 与前端 utils/constants.js 保持一致
-const AD_TASK_POINTS = 100;
-const AD_TASK_LIMIT = 3;
+// 业务常量单一来源：cloudfunctions/_shared/config.js（与前端 utils/constants.js 数值一致）
+const { AD_TASK_POINTS, AD_TASK_LIMIT } = require('./common-config');
 // 严格模式：已接入微信广告「服务端奖励回调」（adRewardCallback）时置 true，
 // 领取动作只返回 pending，真正发能量由服务端回调完成，防止改包伪造观看记录
 const AD_SSV_ENABLED = String(process.env.AD_SSV_ENABLED || 'false') === 'true';

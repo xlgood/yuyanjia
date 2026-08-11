@@ -17,13 +17,20 @@
     "settledAt": null,
     "resolutionSpec": {
       "version": 1,
-      "dataSource": { "type": "manual", "provider": "猫眼专业版" },
-      "evidence": { "saveRawResponse": false, "saveScreenshot": true },
+      "dataSource": {
+        "type": "manual",
+        "provider": "猫眼专业版"
+      },
+      "evidence": {
+        "saveRawResponse": false,
+        "saveScreenshot": true
+      },
       "humanReadable": "以猫眼专业版 App 官方数据为准，截至 8 月 16 日 24:00 累计综合票房 ≥ 5.00 亿元则“预言成功”，否则“预言未成功”；数据缺失或事件未发生时能量原路退回。"
     },
     "resolutionMethod": "",
     "resolutionAttempts": 0,
-    "needsManualReview": false
+    "needsManualReview": false,
+    "totalPool": 2000
   },
   {
     "category": "科技数码",
@@ -43,13 +50,20 @@
     "settledAt": null,
     "resolutionSpec": {
       "version": 1,
-      "dataSource": { "type": "manual", "provider": "品牌官方发布会/官网售价页" },
-      "evidence": { "saveRawResponse": false, "saveScreenshot": true },
+      "dataSource": {
+        "type": "manual",
+        "provider": "品牌官方发布会/官网售价页"
+      },
+      "evidence": {
+        "saveRawResponse": false,
+        "saveScreenshot": true
+      },
       "humanReadable": "以品牌官方直播或官网售价页为准，8 月 13 日发布会正式亮相的下一代旗舰手机起步价 < 5999 元则“预言成功”，否则“预言未成功”；发布会取消时能量原路退回。"
     },
     "resolutionMethod": "",
     "resolutionAttempts": 0,
-    "needsManualReview": false
+    "needsManualReview": false,
+    "totalPool": 2000
   },
   {
     "category": "游戏电竞",
@@ -69,13 +83,20 @@
     "settledAt": null,
     "resolutionSpec": {
       "version": 1,
-      "dataSource": { "type": "manual", "provider": "LPL 官方赛事数据面板" },
-      "evidence": { "saveRawResponse": false, "saveScreenshot": true },
+      "dataSource": {
+        "type": "manual",
+        "provider": "LPL 官方赛事数据面板"
+      },
+      "evidence": {
+        "saveRawResponse": false,
+        "saveScreenshot": true
+      },
       "humanReadable": "以 LPL 官方赛事数据面板为准，8 月 12 日 19:00 第一局开局 15 分钟内击杀第一条大龙则“预言成功”，否则“预言未成功”；比赛未按时进行时能量原路退回。"
     },
     "resolutionMethod": "",
     "resolutionAttempts": 0,
-    "needsManualReview": false
+    "needsManualReview": false,
+    "totalPool": 1500
   },
   {
     "category": "体育竞技",
@@ -95,13 +116,20 @@
     "settledAt": null,
     "resolutionSpec": {
       "version": 1,
-      "dataSource": { "type": "manual", "provider": "NBA 官方赛后数据统计" },
-      "evidence": { "saveRawResponse": false, "saveScreenshot": true },
+      "dataSource": {
+        "type": "manual",
+        "provider": "NBA 官方赛后数据统计"
+      },
+      "evidence": {
+        "saveRawResponse": false,
+        "saveScreenshot": true
+      },
       "humanReadable": "以 NBA 官方赛后数据统计为准，8 月 13 日焦点战詹姆斯最终得分 ≥ 26 分则“预言成功”，否则“预言未成功”；比赛延期或取消时能量原路退回。"
     },
     "resolutionMethod": "",
     "resolutionAttempts": 0,
-    "needsManualReview": false
+    "needsManualReview": false,
+    "totalPool": 1900
   },
   {
     "category": "趣味民生",
@@ -128,14 +156,25 @@
         "field": "weatherinfo.temp",
         "transform": "int"
       },
-      "condition": { "operator": ">=", "value": 35, "unit": "℃" },
-      "binaryRule": { "missingData": "refund", "tie": "NO" },
-      "evidence": { "saveRawResponse": true, "saveScreenshot": false },
+      "condition": {
+        "operator": ">=",
+        "value": 35,
+        "unit": "℃"
+      },
+      "binaryRule": {
+        "missingData": "refund",
+        "tie": "NO"
+      },
+      "evidence": {
+        "saveRawResponse": true,
+        "saveScreenshot": false
+      },
       "humanReadable": "根据中国气象网官方实况，8 月 14 日 14:00 北京南郊观象台整点气温 ≥ 35.0℃ 则“预言成功”，否则“预言未成功”；数据缺失时能量原路退回。"
     },
     "resolutionMethod": "",
     "resolutionAttempts": 0,
-    "needsManualReview": false
+    "needsManualReview": false,
+    "totalPool": 2000
   },
   {
     "category": "影视娱乐",
@@ -155,13 +194,20 @@
     "settledAt": null,
     "resolutionSpec": {
       "version": 1,
-      "dataSource": { "type": "manual", "provider": "豆瓣官方评分页" },
-      "evidence": { "saveRawResponse": false, "saveScreenshot": true },
+      "dataSource": {
+        "type": "manual",
+        "provider": "豆瓣官方评分页"
+      },
+      "evidence": {
+        "saveRawResponse": false,
+        "saveScreenshot": true
+      },
       "humanReadable": "以豆瓣官方评分页开分后 24 小时内的首个稳定分值为准，≥ 8.0 分则“预言成功”，否则“预言未成功”；未开分时能量原路退回。"
     },
     "resolutionMethod": "",
     "resolutionAttempts": 0,
-    "needsManualReview": false
+    "needsManualReview": false,
+    "totalPool": 3000
   },
   {
     "category": "科技数码",
@@ -181,13 +227,20 @@
     "settledAt": null,
     "resolutionSpec": {
       "version": 1,
-      "dataSource": { "type": "manual", "provider": "品牌官方发布会" },
-      "evidence": { "saveRawResponse": false, "saveScreenshot": true },
+      "dataSource": {
+        "type": "manual",
+        "provider": "品牌官方发布会"
+      },
+      "evidence": {
+        "saveRawResponse": false,
+        "saveScreenshot": true
+      },
       "humanReadable": "以品牌官方直播发布会 PPT 画面或官网参数页为准，8 月 13 日发布会出现“自研端侧 AI 大模型”字样则“预言成功”，否则“预言未成功”；发布会取消时能量原路退回。"
     },
     "resolutionMethod": "",
     "resolutionAttempts": 0,
-    "needsManualReview": false
+    "needsManualReview": false,
+    "totalPool": 4000
   },
   {
     "category": "体育竞技",
@@ -207,12 +260,19 @@
     "settledAt": null,
     "resolutionSpec": {
       "version": 1,
-      "dataSource": { "type": "manual", "provider": "中超联赛官方赛后数据面板" },
-      "evidence": { "saveRawResponse": false, "saveScreenshot": true },
+      "dataSource": {
+        "type": "manual",
+        "provider": "中超联赛官方赛后数据面板"
+      },
+      "evidence": {
+        "saveRawResponse": false,
+        "saveScreenshot": true
+      },
       "humanReadable": "以中超联赛官方赛后数据面板为准，8 月 16 日常规时间主队获胜则“预言成功”，否则“预言未成功”；比赛延期或取消时能量原路退回。"
     },
     "resolutionMethod": "",
     "resolutionAttempts": 0,
-    "needsManualReview": false
+    "needsManualReview": false,
+    "totalPool": 3000
   }
 ]

@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 质量门禁：公共配置漂移校验 + 全量语法检查 + 冒烟测试 + 合规扫描
+      # （smoke-test / check-compliance / sync-common 均为纯 Node 脚本，无需安装依赖）
+      - name: Run quality gate
+        run: npm run check

@@ -20,15 +20,13 @@
 - AI 选题助手（`aiSuggestTopics`，支持 DeepSeek/千问/Kimi 联网搜索；入口当前按策略隐藏，配置好联网后恢复）；
 - 内容安全：微信 `msgSecCheck` + 本地敏感词表兜底（不再 fail-open）；
 - 工程：`wx-server-sdk` 锁定 4.0.2、首页分页/加载更多/骨架屏/竞态守卫、SDK 版本统一；
-- 性能：登录态 TTL 缓存（5 分钟）、荣誉检测节流（默认 10 分钟）、**榜单物化缓存**（`leaderboards` 集合，TTL 10 分钟，榜单查询不再全集合 count）、运营后台 7 页子包化（不进主包）；
+- 性能：登录态 TTL 缓存（5 分钟）、荣誉检测节流（默认 10 分钟）、**榜单物化缓存**（`leaderboards` 集合，TTL 10 分钟，榜单查询不再全集合 count）、运营后台 7 页子包化（不进主包）、**热门榜 totalPool 冗余字段索引查询**；
 - 监控：结算/仲裁/自动判定异常自动推送企业微信/飞书（复用 `LOCK_WEBHOOK_URL`）；
-- 工程：git 基线已初始化（main 分支）、`scripts/deploy.sh` 一键上传云函数。
+- 工程：git 基线（main 分支）、`scripts/deploy.sh` 一键上传云函数、**业务常量单一来源**（`cloudfunctions/_shared/config.js`，`npm run sync:common` 同步）、**CI 质量门禁**（`.github/workflows/ci.yml`：语法 + 冒烟 + 合规 + 常量漂移校验）。
 
 **已测试**
 
-- `node scripts/smoke-test.js`：全部通过（登录/表态/结算/异议仲裁/签到/广告/荣誉/邀请/PK/仲裁全链路）；
-- `node scripts/check-compliance.js`：前端 0 命中；
-- 所有云函数 `node --check` 语法校验通过。
+- `npm run check`（CI 同款门禁）：公共配置漂移校验 + 79 个 JS 语法检查 + `smoke-test.js` 全链路 + `check-compliance.js` 前端 0 命中；
 
 **待配置（代码已就绪，需要控制台操作）**
 
@@ -78,7 +76,8 @@
 │   │   ├── share.js / subscribe.js / ad.js
 │   ├── pages/              # 用户端 10 页
 │   └── subpackages/admin/  # 运营后台 7 页（子包，不计入主包体积）
-├── cloudfunctions/         # 云开发后端（37 个云函数，wx-server-sdk 锁定 4.0.2）
+├── cloudfunctions/         # 云开发后端（37 个云函数 + _shared 公共配置，wx-server-sdk 锁定 4.0.2）
+│   └── _shared/config.js   # 业务常量单一来源（sync:common 拷入各函数）
 ├── database/               # 集合设计文档 + security-rules（安全规则）+ markets 种子数据 + 判定规范示例
 ├── docs/开发方案.md         # 完整开发方案（架构/状态机/测试/合规/路线）
 ├── docs/事件选题与自动判定方案.md  # 事件来源 / 判定条件规范 / 自动结算三层架构
@@ -88,9 +87,12 @@
 ├── docs/prototype/         # 早期 HTML 原型存档（仅参考，与现 UI 已脱节）
 ├── scripts/
 │   ├── deploy.sh           # 云函数一键上传（@cloudbase/cli，npm run deploy）
+│   ├── sync-common.js      # 公共配置同步/漂移校验（npm run sync:common）
+│   ├── check-syntax.js     # 全仓库 JS 语法检查（npm run check:syntax）
 │   ├── smoke-test.js       # 全链路冒烟测试
 │   └── check-compliance.js # 合规词表扫描
-├── package.json            # 部署/测试脚本入口
+├── .github/workflows/ci.yml # CI 质量门禁（push/PR 自动跑 npm run check）
+├── package.json            # 部署/测试/门禁脚本入口
 └── project.config.json
 ```
 

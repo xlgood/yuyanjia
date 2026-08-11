@@ -37,7 +37,11 @@ async function expireOnePk(pk) {
         await betRef.remove();
         const poolField = pk.challenger.choice === 'YES' ? 'yesPool' : 'noPool';
         await t.collection('markets').doc(pk.marketId).update({
-          data: { [poolField]: _.inc(-pk.challenger.amount), updatedAt: db.serverDate() }
+          data: {
+            [poolField]: _.inc(-pk.challenger.amount),
+            totalPool: _.inc(-pk.challenger.amount),
+            updatedAt: db.serverDate()
+          }
         });
       }
       await pkRef.update({

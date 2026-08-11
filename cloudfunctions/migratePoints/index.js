@@ -119,6 +119,18 @@ exports.main = async () => {
       updated += 1;
     }
 
+    // 5) totalPool 回填：存量 markets 补齐冗余字段（幂等，热门榜索引查询依赖它）
+    const allMarkets = await fetchAll('markets', {});
+    let marketUpdated = 0;
+    for (const m of allMarkets) {
+      const totalPool = (m.yesPool || 0) + (m.noPool || 0);
+      if (m.totalPool === totalPool) continue;
+      await db.collection('markets').doc(m._id).update({
+        data: { totalPool, updatedAt: db.serverDate() }
+      });
+      marketUpdated += 1;
+    }
+
     return {
       ok: true,
       stats: {
@@ -127,6 +139,7 @@ exports.main = async () => {
         bets: settledBets.length,
         arbitrations: settledArbs.length,
         invites: rewardedInvites.length,
+        marketTotalPoolBackfilled: marketUpdated,
         weekStart,
         monthStart
       }

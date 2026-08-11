@@ -40,7 +40,11 @@ exports.main = async (event) => {
         });
         await t.collection('bets').doc(pk.challengerBetId).remove();
         await t.collection('markets').doc(pk.marketId).update({
-          data: { [pk.challenger.choice === 'YES' ? 'yesPool' : 'noPool']: _.inc(-pk.challenger.amount), updatedAt: db.serverDate() }
+          data: {
+            [pk.challenger.choice === 'YES' ? 'yesPool' : 'noPool']: _.inc(-pk.challenger.amount),
+            totalPool: _.inc(-pk.challenger.amount),
+            updatedAt: db.serverDate()
+          }
         });
         return { ok: true, status: 'declined' };
       }
@@ -61,7 +65,11 @@ exports.main = async (event) => {
 
       await userRef.update({ data: { points: _.inc(-amount), updatedAt: db.serverDate() } });
       await marketRef.update({
-        data: { [oppChoice === 'YES' ? 'yesPool' : 'noPool']: _.inc(amount), updatedAt: db.serverDate() }
+        data: {
+          [oppChoice === 'YES' ? 'yesPool' : 'noPool']: _.inc(amount),
+          totalPool: _.inc(amount),
+          updatedAt: db.serverDate()
+        }
       });
       await t.collection('bets').doc(betId).set({
         data: {

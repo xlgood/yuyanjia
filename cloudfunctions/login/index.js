@@ -1,9 +1,10 @@
 const cloud = require('wx-server-sdk');
 
-const INIT_POINTS = 1000;
-// 邀请奖励配置：三个函数（login/placeBet/inviteStats）共用同一组环境变量，缺省值保持一致
-const INVITEE_POINTS = Number(process.env.INVITE_INVITEE_POINTS) || 100; // 被邀请人新手加成
-const INVITER_POINTS = Number(process.env.INVITE_INVITER_POINTS) || 50;  // 邀请人奖励（首次表态后发放，见 placeBet）
+// 业务常量单一来源：cloudfunctions/_shared/config.js（npm run sync:common 同步）
+const { INIT_POINTS, INVITE_INVITER_POINTS, INVITE_INVITEE_POINTS } = require('./common-config');
+// 邀请奖励支持环境变量覆盖（login/placeBet/inviteStats 共用同一组环境变量）
+const INVITEE_POINTS = Number(process.env.INVITE_INVITEE_POINTS) || INVITE_INVITEE_POINTS; // 被邀请人新手加成
+const INVITER_POINTS = Number(process.env.INVITE_INVITER_POINTS) || INVITE_INVITER_POINTS; // 邀请人奖励（首次表态后发放，见 placeBet）
 // 每日计次上限 INVITE_DAILY_CAP 由 placeBet 在实际发奖时校验，本函数不再占用名额
 
 // 荣誉检测节流：login 被高频调用（app 启动 + 页面 onShow 刷新），而 checkHonors 内部

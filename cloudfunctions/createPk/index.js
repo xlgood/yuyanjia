@@ -82,7 +82,11 @@ exports.main = async (event) => {
 
       await userRef.update({ data: { points: _.inc(-amount), updatedAt: db.serverDate() } });
       await t.collection('markets').doc(marketId).update({
-        data: { [choice === 'YES' ? 'yesPool' : 'noPool']: _.inc(amount), updatedAt: db.serverDate() }
+        data: {
+          [choice === 'YES' ? 'yesPool' : 'noPool']: _.inc(amount),
+          totalPool: _.inc(amount),
+          updatedAt: db.serverDate()
+        }
       });
       await t.collection('bets').doc(betId).set({
         data: {

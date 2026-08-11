@@ -4,11 +4,14 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-const ARBITRATION_WINDOW_MS = 24 * 3600 * 1000;   // 仲裁公示期 24 小时
-const MIN_PARTICIPANTS = 10;                      // 表态人数 ≥ 10 才能发起仲裁
-const VOTE_BOND_MIN = 100;                        // 发起仲裁最低能量（锁 100% 当前能量）
-const ACTIVE_LIMIT = 1;                           // 同时最多参与 1 个仲裁
-const COOLDOWN_MS = 24 * 3600 * 1000;             // 发起冷却 24 小时
+// 业务常量单一来源：cloudfunctions/_shared/config.js
+const {
+  VOTE_BOND_MIN,
+  ACTIVE_ARBITRATION_LIMIT: ACTIVE_LIMIT,
+  ARBITRATION_WINDOW_MS,
+  ARBITRATION_MIN_PARTICIPANTS: MIN_PARTICIPANTS,
+  ARBITRATION_COOLDOWN_MS: COOLDOWN_MS
+} = require('./common-config');
 
 // 仲裁理由校验（与前端 validate.js 保持一致）
 const REASON_MIN_LEN = 10;

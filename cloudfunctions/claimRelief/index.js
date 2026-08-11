@@ -1,7 +1,7 @@
 const cloud = require('wx-server-sdk');
 
-const RELIEF_POINTS = 500;
-const COOLDOWN_MS = 24 * 60 * 60 * 1000;
+// 业务常量单一来源：cloudfunctions/_shared/config.js
+const { RELIEF_POINTS, RELIEF_COOLDOWN_MS: COOLDOWN_MS } = require('./common-config');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
