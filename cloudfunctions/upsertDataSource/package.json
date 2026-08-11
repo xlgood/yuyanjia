@@ -1,0 +1,9 @@
+{
+  "name": "upsertDataSource",
+  "version": "1.0.0",
+  "description": "运营后台：新增/更新数据源（含冻结/解冻）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

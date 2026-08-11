@@ -1,0 +1,82 @@
+<view class="container">
+  <view class="top-bar">
+    <text class="top-tip">先注册、后发题；连续判定失败的数据源请冻结</text>
+    <button class="add-btn" bindtap="onAdd">＋ 新增数据源</button>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <view wx:elif="{{list.length === 0}}" class="empty">
+    <view class="empty-icon">🗂️</view>
+    <view>还没有数据源，点击右上角新增</view>
+  </view>
+
+  <view wx:else>
+    <view class="source card" wx:for="{{list}}" wx:key="_id" data-id="{{item._id}}" bindtap="onEdit">
+      <view class="s-top">
+        <text class="s-name">{{item.name}}</text>
+        <text class="s-status {{statusClass[item.status]}}">{{statusText[item.status]}}</text>
+      </view>
+      <view class="s-tags">
+        <text class="s-tag">{{item.category}}</text>
+        <text class="s-tag">{{item.type === 'api' ? 'API' : item.type === 'web' ? '网页' : item.type === 'manual' ? '人工' : '托管抓取'}}</text>
+        <text class="s-tag">{{item.access === 'free' ? '免费' : item.access === 'paid' ? '付费' : '授权'}}</text>
+      </view>
+      <view class="s-url" wx:if="{{item.url}}">{{item.url}}</view>
+      <view class="s-notes" wx:if="{{item.notes}}">{{item.notes}}</view>
+      <view class="s-ops">
+        <view class="s-edit">编辑</view>
+        <view class="s-toggle {{item.status === 'frozen' ? 'ok' : 'bad'}}" catchtap="onToggleStatus" data-id="{{item._id}}">
+          {{item.status === 'frozen' ? '解冻' : '冻结'}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="mask" wx:if="{{formVisible}}" bindtap="onClose">
+    <view class="modal" catchtap="noop">
+      <view class="modal-title">{{form.id ? '编辑数据源' : '新增数据源'}}</view>
+
+      <view class="field">
+        <text class="field-label">名称 *</text>
+        <input class="field-input" value="{{form.name}}" data-field="name" bindinput="onFieldInput" placeholder="如：中国气象网实时天气" />
+      </view>
+
+      <view class="field">
+        <text class="field-label">适用分类</text>
+        <picker range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+          <view class="picker">{{form.category}}</view>
+        </picker>
+      </view>
+
+      <view class="field">
+        <text class="field-label">数据形态</text>
+        <picker range="{{types}}" range-key="label" value="{{typeIndex}}" bindchange="onTypeChange">
+          <view class="picker">{{types[typeIndex].label}}</view>
+        </picker>
+      </view>
+
+      <view class="field">
+        <text class="field-label">获取方式</text>
+        <picker range="{{accesses}}" range-key="label" value="{{accessIndex}}" bindchange="onAccessChange">
+          <view class="picker">{{accesses[accessIndex].label}}</view>
+        </picker>
+      </view>
+
+      <view class="field">
+        <text class="field-label">地址</text>
+        <input class="field-input" value="{{form.url}}" data-field="url" bindinput="onFieldInput" placeholder="接口地址或官网链接" />
+      </view>
+
+      <view class="field">
+        <text class="field-label">说明</text>
+        <textarea class="field-area" value="{{form.notes}}" data-field="notes" bindinput="onFieldInput" placeholder="使用限制、判定方式等" maxlength="200" />
+      </view>
+
+      <view class="modal-btns">
+        <button class="cancel" bindtap="onClose">取消</button>
+        <button class="save" bindtap="onSave">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

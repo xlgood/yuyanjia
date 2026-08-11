@@ -1,0 +1,70 @@
+<view class="container">
+  <view class="card input-card">
+    <view class="input-title">想要哪些方向的预测事件？</view>
+    <textarea
+      class="topic-input"
+      value="{{topic}}"
+      bindinput="onTopic"
+      placeholder="如：本周热点 / 科技数码发布会 / 电竞赛事"
+      maxlength="60"
+    />
+    <view class="cat-row">
+      <picker range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategory">
+        <view class="cat-picker">分类：{{categories[categoryIndex]}}</view>
+      </picker>
+      <button class="gen-btn" bindtap="onGenerate" disabled="{{generating}}">
+        {{generating ? '生成中...' : '🤖 AI 生成候选事件'}}
+      </button>
+    </view>
+    <view class="gen-tip">AI 只做选题建议，请勾选“可验证”的候选并核对数据源后再发题。</view>
+  </view>
+
+  <view class="err-box" wx:if="{{errorMsg}}">
+    <view class="err-title">⚠️ 出错了（完整信息）</view>
+    <view class="err-text">{{errorMsg}}</view>
+  </view>
+
+  <view wx:if="{{generated && candidates.length === 0}}" class="empty">
+    <view class="empty-icon">🤔</view>
+    <view>没有候选事件，换个需求试试</view>
+  </view>
+
+  <view wx:elif="{{candidates.length > 0}}">
+    <view class="mode-badge {{mode !== 'offline' ? 'online' : 'offline'}}">
+      {{mode === 'qwen_search' ? '🔍 通义千问·联网模式' : mode === 'kimi_search' ? '🔍 Kimi·联网模式' : mode === 'deepseek_search' ? '🔍 DeepSeek·联网模式' : mode === 'custom_search' ? '🔍 自定义接口·联网模式' : mode === 'custom' ? '🔌 自定义接口（未开搜索）' : '📴 离线模式（联网不可用，已回退）'}}
+    </view>
+    <view class="fallback-reason" wx:if="{{mode === 'offline' && fallbackReason}}">
+      回退原因：{{fallbackReason}}
+    </view>
+    <view class="cand card {{selected[item._id] ? 'picked' : ''}}"
+      wx:for="{{candidates}}" wx:key="_id"
+      data-id="{{item._id}}" bindtap="onToggle">
+      <view class="cand-check">{{selected[item._id] ? '✅' : '⬜'}}</view>
+      <view class="cand-body">
+        <view class="cand-title">{{item.title}}</view>
+        <view class="cand-tags">
+          <text class="cand-tag">{{item.category}}</text>
+          <text class="cand-tag {{item.verifiable ? 'ok' : 'warn'}}">{{item.verifiable ? '可验证' : '需人工确认'}}</text>
+          <text class="cand-tag" wx:if="{{item.dataSource}}">{{item.dataSource}}</text>
+        </view>
+        <view class="cand-reason">{{item.reason}}</view>
+        <view class="cand-deadline" wx:if="{{item.suggestedDeadline}}">建议截止：{{item.suggestedDeadline}}</view>
+        <view class="cand-constraints" wx:if="{{item.constraintCheck}}">
+          <text class="cand-check-item {{item.constraintCheck.binary ? 'ok' : 'bad'}}">二元</text>
+          <text class="cand-check-item {{item.constraintCheck.singleSource ? 'ok' : 'bad'}}">单一源</text>
+          <text class="cand-check-item {{item.constraintCheck.hardDeadline ? 'ok' : 'bad'}}">截止明确</text>
+          <text class="cand-check-item {{item.constraintCheck.noSensitive ? 'ok' : 'bad'}}">无敏感</text>
+          <text class="cand-check-item {{item.constraintCheck.hasSuspense ? 'ok' : 'bad'}}">有悬念</text>
+          <text class="cand-prob" wx:if="{{item.probability}}">概率约 {{item.probability}}%</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="bottom-bar">
+      <view class="bottom-row">
+        <button class="single-btn" bindtap="goPublish" disabled="{{generating}}">单个发题</button>
+        <button class="batch-btn" bindtap="goBatch" disabled="{{generating}}">批量发题（{{selectedCount}}）</button>
+      </view>
+    </view>
+  </view>
+</view>

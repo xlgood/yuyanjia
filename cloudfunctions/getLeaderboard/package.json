@@ -1,0 +1,9 @@
+{
+  "name": "getLeaderboard",
+  "version": "1.0.0",
+  "description": "四维榜单：连胜/周/月/总积分",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

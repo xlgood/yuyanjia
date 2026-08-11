@@ -1,0 +1,9 @@
+{
+  "name": "createArbitration",
+  "version": "1.0.0",
+  "description": "发起社区仲裁",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

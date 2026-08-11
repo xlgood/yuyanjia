@@ -1,0 +1,9 @@
+{
+  "name": "lockMarkets",
+  "version": "1.0.0",
+  "description": "截止时间锁定市场 + 运营通知 + 判定超时兜底",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

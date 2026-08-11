@@ -1,0 +1,175 @@
+/* =========================================================
+ * 预言大师 · 全局设计系统
+ * 风格：东方国风 —— 朱砂红 × 鎏金 × 宣纸米白 × 墨色
+ *
+ * 配色约定（中式习惯：红涨绿跌 / 红盈绿亏）：
+ *   朱砂红 #C03A2B —— 看好(YES) / 盈利 / 上涨 / 主行动
+ *   黛绿   #2E7D5B —— 不看好(NO) / 亏损 / 下跌
+ *   鎏金   #C9A227 —— 荣誉 / 奖励 / 邀请 / 点缀
+ *   宣纸   #F6F1E7 —— 页面底色
+ *   墨色   #33302A —— 主文字
+ *
+ * 历史兼容：模板中的 .green 槽位表示「看好/盈利」（渲染为朱砂红），
+ * .red 槽位表示「不看好/亏损」（渲染为黛绿）。类名保留以兼容旧模板，
+ * 新代码请使用语义类 .up / .down。
+ * ========================================================= */
+
+page {
+  background: #f6f1e7;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  color: #33302a;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+
+button::after {
+  border: none;
+}
+
+.container {
+  padding: 24rpx;
+}
+
+/* ---------- 卡片 ---------- */
+.card {
+  background: #fffdf8;
+  border-radius: 20rpx;
+  border: 1rpx solid #efe6d3;
+  box-shadow: 0 8rpx 24rpx rgba(146, 96, 24, 0.07);
+}
+
+/* ---------- 按钮 ---------- */
+.primary-btn {
+  background: linear-gradient(135deg, #c94a38 0%, #b03224 100%);
+  color: #ffffff;
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  padding: 20rpx 0;
+  line-height: 1.5;
+  box-shadow: 0 6rpx 16rpx rgba(176, 50, 36, 0.28);
+}
+
+.primary-btn[disabled] {
+  background: #d8cfc0;
+  color: #fffdf8;
+  box-shadow: none;
+}
+
+.gold-btn {
+  background: linear-gradient(135deg, #e0b64f 0%, #c9a227 100%);
+  color: #5d4310;
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  padding: 20rpx 0;
+  line-height: 1.5;
+  box-shadow: 0 6rpx 16rpx rgba(180, 140, 40, 0.3);
+}
+
+/* ---------- 语义色（红涨绿跌） ---------- */
+.up,
+.green {
+  color: #c03a2b;
+}
+
+.down,
+.red {
+  color: #2e7d5b;
+}
+
+.gold {
+  color: #a8801c;
+}
+
+.gray {
+  color: #a39a8b;
+}
+
+/* ---------- 空态 / 加载 ---------- */
+.empty {
+  text-align: center;
+  color: #a39a8b;
+  padding: 120rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 16rpx;
+}
+
+.empty-sub {
+  font-size: 24rpx;
+  color: #b7ad9c;
+  margin-top: 10rpx;
+}
+
+.loading {
+  text-align: center;
+  color: #a39a8b;
+  padding: 100rpx 0;
+}
+
+/* ---------- 通用弹窗（各页统一使用） ---------- */
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(43, 32, 20, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  width: 600rpx;
+  background: #fffdf8;
+  border-radius: 24rpx;
+  padding: 40rpx 36rpx 32rpx;
+  border: 1rpx solid #efe6d3;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 20rpx;
+  color: #33302a;
+}
+
+.modal-btns {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 32rpx;
+}
+
+.modal-cancel,
+.modal-ok {
+  flex: 1;
+  border-radius: 999rpx;
+  font-size: 28rpx;
+  padding: 16rpx 0;
+  line-height: 1.5;
+}
+
+.modal-cancel {
+  background: #f3ecdd;
+  color: #6f6552;
+}
+
+.modal-ok {
+  background: linear-gradient(135deg, #c94a38, #b03224);
+  color: #ffffff;
+}
+
+/* ---------- 页脚声明 ---------- */
+.footnote {
+  text-align: center;
+  font-size: 22rpx;
+  color: #b7ad9c;
+  padding: 40rpx 32rpx 60rpx;
+  line-height: 1.8;
+}

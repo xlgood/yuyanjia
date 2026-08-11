@@ -1,0 +1,85 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <block wx:elif="{{stats}}">
+    <view class="grid">
+      <view class="stat card">
+        <view class="num">{{stats.open}}</view>
+        <view class="label">进行中</view>
+      </view>
+      <view class="stat card">
+        <view class="num">{{stats.dispute_window}}</view>
+        <view class="label">判定公示中</view>
+      </view>
+      <view class="stat card">
+        <view class="num">{{stats.resolved}}</view>
+        <view class="label">已结算</view>
+      </view>
+      <view class="stat card warn">
+        <view class="num">{{stats.manual}}</view>
+        <view class="label">待人工复核</view>
+      </view>
+    </view>
+
+    <view class="card section">
+      <view class="sec-head">
+        <text class="sec-title">近 7 天发题数</text>
+        <text class="sec-sub">累计 {{stats.total}} 个合约</text>
+      </view>
+      <view class="bars">
+        <view class="bar-col" wx:for="{{daily}}" wx:key="key">
+          <text class="bar-count">{{item.count}}</text>
+          <view class="bar-track">
+            <view class="bar-fill" style="height: {{item.pct}}%"></view>
+          </view>
+          <text class="bar-label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card section">
+      <view class="sec-head">
+        <text class="sec-title">判定方式分布</text>
+      </view>
+      <view class="dist-row" wx:for="{{stats.methodDist}}" wx:key="method">
+        <text class="dist-label">{{item.label}}</text>
+        <text class="dist-count">{{item.count}} 个</text>
+      </view>
+    </view>
+
+    <view class="card section">
+      <view class="sec-head">
+        <text class="sec-title">数据源自动判定成功率</text>
+      </view>
+      <view class="src-row" wx:for="{{stats.autoStats}}" wx:key="label">
+        <view class="src-top">
+          <text class="src-label">{{item.label}}</text>
+          <text class="src-rate">成功 {{item.ok}} / 失败 {{item.fail}} · {{item.rate}}%</text>
+        </view>
+        <view class="progress">
+          <view class="progress-fill {{item.rate >= 80 ? 'good' : item.rate >= 50 ? 'mid' : 'bad'}}" style="width: {{item.rate}}%"></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="card section">
+      <view class="sec-head">
+        <text class="sec-title">待处理概览</text>
+      </view>
+      <view class="pending-row">
+        <view class="p-item">
+          <text class="p-num">{{stats.pending.manual}}</text>
+          <text class="p-label">待人工判定</text>
+        </view>
+        <view class="p-item">
+          <text class="p-num">{{stats.pending.dispute}}</text>
+          <text class="p-label">公示中</text>
+        </view>
+        <view class="p-item">
+          <text class="p-num">{{stats.pending.disputes}}</text>
+          <text class="p-label">历史申诉</text>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

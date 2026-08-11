@@ -1,0 +1,9 @@
+{
+  "name": "getPendingReviews",
+  "version": "1.0.0",
+  "description": "运营后台：待人工判定 / 公示期待复核队列",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

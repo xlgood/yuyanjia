@@ -1,0 +1,9 @@
+{
+  "name": "claimRelief",
+  "version": "1.0.0",
+  "description": "破产补助：能量归零后每日可领一次",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

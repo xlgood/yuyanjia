@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>预言大师 · 本地预览版</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      font-size: 14px;
+    }
+    .app { max-width: 440px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: 64px; }
+    .container { padding: 14px; }
+    .card { background: #fff; border-radius: 14px; box-shadow: 0 3px 12px rgba(15,42,90,.06); }
+    .hero {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 16px; margin-bottom: 12px; border-radius: 16px;
+      background: linear-gradient(135deg, #16337a, #1e4bb8); color: #fff;
+    }
+    .hero-title { font-size: 21px; font-weight: 800; }
+    .hero-sub { font-size: 12px; opacity: .82; margin-top: 4px; }
+    .hero-stats { display: flex; gap: 18px; }
+    .hero-stat { text-align: center; }
+    .hero-num { display: block; font-size: 18px; font-weight: 800; }
+    .hero-label { font-size: 11px; opacity: .75; }
+    .cat-bar { white-space: nowrap; overflow-x: auto; margin-bottom: 12px; padding-bottom: 2px; }
+    .cat-chip {
+      display: inline-block; padding: 6px 15px; margin-right: 8px; background: #fff;
+      border-radius: 999px; font-size: 13px; color: #475569; cursor: pointer;
+      box-shadow: 0 1px 4px rgba(15,42,90,.05);
+    }
+    .cat-chip.active { background: #12285c; color: #fff; font-weight: 600; }
+    .market-card { padding: 15px; margin-bottom: 12px; cursor: pointer; }
+    .m-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .m-cat { background: #eef2ff; color: #12285c; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+    .m-time { font-size: 11px; color: #94a3b8; }
+    .m-title { font-size: 15px; font-weight: 700; color: #0f172a; line-height: 1.5; margin-bottom: 12px; }
+    .m-pool { display: flex; background: #f8fafc; border: 1px solid #eef2f7; border-radius: 12px; padding: 12px 0; }
+    .m-pool-item { flex: 1; text-align: center; }
+    .m-pool-divider { width: 1px; background: #e2e8f0; }
+    .m-pool-label { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+    .m-pool-val { font-size: 16px; font-weight: 800; color: #0f172a; }
+    .m-unit { font-size: 10px; font-weight: 400; color: #94a3b8; }
+    .m-odds { font-size: 11px; margin-top: 3px; }
+    .m-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+    .m-total { font-size: 11px; color: #64748b; }
+    .m-go { font-size: 12px; color: #12285c; font-weight: 600; }
+    .green { color: #059669; } .red { color: #e11d48; } .gray { color: #94a3b8; }
+    .btn {
+      display: block; width: 100%; padding: 11px 0; border: none; border-radius: 999px;
+      background: #12285c; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer;
+    }
+    .btn:disabled { background: #c3cbe0; color: #fff; }
+    .detail-title { font-size: 17px; font-weight: 800; color: #0f172a; line-height: 1.55; margin-bottom: 12px; }
+    .rule-box { background: #f8fafc; border: 1px solid #eef2f7; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+    .rule-title { font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px; }
+    .rule-text { font-size: 12px; color: #64748b; line-height: 1.7; }
+    .pool-box { background: #f0f4ff; border: 1px solid #dbe4ff; border-radius: 12px; padding: 13px; margin-bottom: 12px; }
+    .pool-total { text-align: center; margin-bottom: 12px; }
+    .pool-total-label { font-size: 11px; color: #64748b; }
+    .pool-total-val { font-size: 26px; font-weight: 900; color: #12285c; margin-top: 2px; }
+    .pool-total-unit { font-size: 11px; font-weight: 400; color: #94a3b8; }
+    .pool-row { display: flex; border-top: 1px solid #dbe4ff; padding-top: 10px; }
+    .pool-side { flex: 1; text-align: center; }
+    .pool-side-label { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+    .pool-side-val { font-size: 14px; font-weight: 800; color: #0f172a; }
+    .pool-side-odds { font-size: 11px; margin-top: 3px; }
+    .action-card { padding: 15px; margin-bottom: 12px; }
+    .action-title { font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 10px; }
+    .choice-row { display: flex; gap: 10px; }
+    .choice-btn {
+      flex: 1; text-align: center; padding: 14px 0; border-radius: 12px; font-size: 15px; font-weight: 800;
+      border: 2px solid #e2e8f0; color: #475569; cursor: pointer;
+    }
+    .choice-btn.selected-yes { background: #059669; border-color: #059669; color: #fff; }
+    .choice-btn.selected-no { background: #e11d48; border-color: #e11d48; color: #fff; }
+    .amount-tip { font-size: 12px; color: #64748b; margin: 13px 0 8px; }
+    .amount-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .amount-btn {
+      text-align: center; padding: 10px 0; background: #f1f5f9; color: #475569;
+      border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .amount-btn.active { background: #12285c; color: #fff; }
+    .custom-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+    .custom-label { font-size: 12px; color: #64748b; }
+    .custom-input {
+      flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+      padding: 8px 10px; font-size: 13px;
+    }
+    .my-balance { font-size: 12px; color: #94a3b8; margin: 9px 0; }
+    .voted-card { text-align: center; }
+    .voted-title { font-size: 16px; font-weight: 800; }
+    .voted-line { font-size: 13px; color: #475569; margin-top: 6px; }
+    .voted-wait { font-size: 12px; color: #b45309; margin-top: 10px; }
+    .voted-payout { font-size: 14px; font-weight: 800; color: #059669; margin-top: 10px; }
+    .voted-payout.lost { color: #e11d48; }
+    .banner {
+      border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.6; margin-bottom: 12px;
+    }
+    .banner.result { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+    .banner.dispute { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .dev-card { background: #fffbeb; border: 1px dashed #f59e0b; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+    .dev-title { font-size: 13px; font-weight: 800; color: #92400e; margin-bottom: 8px; }
+    .dev-row { display: flex; gap: 8px; }
+    .dev-btn {
+      flex: 1; border: none; border-radius: 8px; padding: 9px 0; font-size: 12px; font-weight: 700;
+      color: #fff; background: #f59e0b; cursor: pointer;
+    }
+    .dev-btn.yes { background: #059669; }
+    .dev-btn.no { background: #e11d48; }
+    .dev-tip { font-size: 11px; color: #b45309; margin-top: 8px; line-height: 1.6; }
+    .tab-bar { display: flex; background: #fff; border-radius: 12px; padding: 4px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(15,42,90,.05); }
+    .tab-btn { flex: 1; text-align: center; padding: 8px 0; font-size: 12px; color: #64748b; border-radius: 8px; cursor: pointer; }
+    .tab-btn.active { background: #12285c; color: #fff; font-weight: 700; }
+    .rank-row { display: flex; align-items: center; background: #fff; border-radius: 12px; padding: 11px 13px; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(15,42,90,.05); }
+    .rank-row.me { border: 2px solid #12285c; background: #f5f7ff; }
+    .medal { width: 32px; font-size: 18px; text-align: center; }
+    .rank-info { flex: 1; margin-left: 8px; }
+    .rank-name { font-size: 14px; font-weight: 700; color: #0f172a; }
+    .me-tag { background: #12285c; color: #fff; font-size: 10px; border-radius: 4px; padding: 1px 5px; margin-left: 6px; }
+    .rank-sub { font-size: 10px; color: #94a3b8; margin-top: 2px; }
+    .rank-val { font-size: 15px; font-weight: 800; color: #12285c; }
+    .rank-unit { font-size: 10px; font-weight: 400; color: #94a3b8; }
+    .profile-card { display: flex; align-items: center; padding: 18px 15px; margin-bottom: 12px; }
+    .avatar { width: 55px; height: 55px; border-radius: 50%; background: #eef2ff; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+    .p-info { margin-left: 12px; }
+    .p-name { font-size: 17px; font-weight: 800; }
+    .p-edit { font-size: 12px; color: #64748b; margin-top: 4px; cursor: pointer; }
+    .stat-card { display: flex; align-items: center; padding: 14px 0; margin-bottom: 12px; }
+    .stat-item { flex: 1; text-align: center; }
+    .stat-num { font-size: 20px; font-weight: 900; color: #12285c; }
+    .stat-label { font-size: 11px; color: #94a3b8; margin-top: 3px; }
+    .stat-divider { width: 1px; height: 28px; background: #e2e8f0; }
+    .period-card { display: flex; justify-content: space-around; padding: 12px 0; margin-bottom: 12px; }
+    .period-item { text-align: center; }
+    .period-label { display: block; font-size: 11px; color: #94a3b8; }
+    .period-val { display: block; font-size: 15px; font-weight: 800; margin-top: 3px; }
+    .menu-card { margin-bottom: 12px; overflow: hidden; }
+    .menu-item { display: flex; align-items: center; padding: 13px 15px; cursor: pointer; }
+    .menu-item + .menu-item { border-top: 1px solid #f1f5f9; }
+    .menu-icon { margin-right: 9px; font-size: 16px; }
+    .menu-text { flex: 1; }
+    .menu-arrow { color: #cbd5e1; font-size: 17px; }
+    .record { padding: 13px 15px; margin-bottom: 10px; cursor: pointer; }
+    .r-top { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .r-cat { background: #eef2ff; color: #12285c; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+    .r-status { font-size: 11px; color: #64748b; }
+    .r-status.ok { color: #059669; font-weight: 700; }
+    .r-status.bad { color: #e11d48; font-weight: 700; }
+    .r-title { font-size: 13px; font-weight: 700; line-height: 1.5; margin-bottom: 8px; }
+    .r-bottom { display: flex; justify-content: space-between; font-size: 11px; }
+    .r-payout { margin-top: 6px; font-size: 13px; font-weight: 800; color: #059669; }
+    .r-payout.bad { color: #e11d48; }
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 440px; background: #fff; border-top: 1px solid #eef2f7;
+      display: flex; z-index: 10;
+    }
+    .nav-btn { flex: 1; text-align: center; padding: 7px 0 9px; cursor: pointer; color: #8a94a6; }
+    .nav-btn.active { color: #12285c; font-weight: 700; }
+    .nav-icon { font-size: 20px; display: block; }
+    .nav-label { font-size: 10px; }
+    .footnote { text-align: center; font-size: 10px; color: #94a3b8; padding: 8px 30px 20px; line-height: 1.6; }
+    .empty { text-align: center; color: #94a3b8; padding: 60px 0; }
+    .empty-icon { font-size: 40px; margin-bottom: 8px; }
+    .toast {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(15,23,42,.82); color: #fff; padding: 10px 18px; border-radius: 10px;
+      font-size: 13px; z-index: 99; opacity: 0; transition: opacity .2s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+    textarea.dispute-input {
+      width: 100%; min-height: 70px; background: #f8fafc; border: 1px solid #e2e8f0;
+      border-radius: 8px; padding: 9px; font-size: 13px; margin-bottom: 9px; font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div id="view"></div>
+    <div class="bottom-nav">
+      <div class="nav-btn active" data-nav="home" onclick="goHome()"><span class="nav-icon">🔮</span><span class="nav-label">预言</span></div>
+      <div class="nav-btn" data-nav="leaderboard" onclick="goLeaderboard()"><span class="nav-icon">🏆</span><span class="nav-label">榜单</span></div>
+      <div class="nav-btn" data-nav="profile" onclick="goProfile()"><span class="nav-icon">👤</span><span class="nav-label">我的</span></div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ============ 状态与数据（与 miniprogram/utils/mock-data.js 保持一致） ============
+    const STORAGE_KEY = 'oracle_preview_state_v1';
+    const INIT_POINTS = 1000, RELIEF_POINTS = 500, COOLDOWN_MS = 24 * 3600 * 1000;
+    const CATEGORIES = ['影视娱乐', '科技数码', '游戏电竞', '体育竞技', '趣味民生'];
+    const AMOUNTS = [50, 100, 200, 500];
+    const HOUR = 3600 * 1000, DAY = 24 * HOUR;
+    const MOCK_OPENID = 'MOCK_USER';
+
+    const USER_SEED = [
+      ['预言大师·诸葛', 12, 15, 3200, 12800, 45600, 3200],
+      ['数码极客阿杰', 9, 11, 2850, 10400, 38900, 2850],
+      ['猫眼老影迷', 8, 9, 2400, 9600, 33200, 2400],
+      ['篮球先知老王', 7, 8, 2100, 8800, 30100, 2100],
+      ['LPL 观察员', 6, 7, 1900, 7200, 26800, 1900],
+      ['气象小达人', 5, 6, 1600, 6500, 22400, 1600],
+      ['吃瓜群众甲', 4, 5, 1200, 5100, 18700, 1200],
+      ['理性分析菌', 3, 5, 900, 4300, 15600, 900],
+      ['都市夜猫子', 2, 4, 600, 3200, 12100, 600],
+      ['新手上路', 1, 2, 300, 1800, 7600, 300]
+    ];
+
+    function marketSeed() {
+      return [
+        { id: 'M001', cat: '影视娱乐', title: '截至本周日 24:00，电影《星际远征》在“猫眼专业版”上的累计综合票房是否突破 5.00 亿元？', dl: Date.now() + 3 * DAY, rule: '以猫眼专业版 App 官方数据为准，精确到个位数。最终票房 ≥ 5.00 亿则“预言成功”，否则“预言未成功”。', yes: 1200, no: 800 },
+        { id: 'M002', cat: '科技数码', title: '在下周二下午的品牌新品发布会上，官方正式亮相的下一代旗舰手机起步售价是否低于 5999 元？', dl: Date.now() + 4 * DAY + 6 * HOUR, rule: '以品牌官方直播、官网售价页为准。起步价 < 5999 元则“预言成功”，否则“预言未成功”。', yes: 500, no: 1500 },
+        { id: 'M003', cat: '游戏电竞', title: '在今晚 19:00 的 LPL 职业联赛第一局中，A 队能否在开局 15 分钟内击杀第一条大龙？', dl: Date.now() + 5 * HOUR, rule: '以 LPL 官方赛事数据面板为准。15 分钟内击杀则“预言成功”，否则“预言未成功”。', yes: 300, no: 1200 },
+        { id: 'M004', cat: '体育竞技', title: '在明早进行的 NBA 焦点战中，球星詹姆斯单场最终个人得分是否大于 25.5 分？', dl: Date.now() + 18 * HOUR, rule: '以 NBA 官方赛后数据统计为准。得分 ≥ 26 分则“预言成功”，否则“预言未成功”。', yes: 1000, no: 900 },
+        { id: 'M005', cat: '趣味民生', title: '根据中央气象局官方实况，明天 14:00 北京市南郊观象台整点实时气温是否达到或超过 35.0 摄氏度？', dl: Date.now() + 24 * HOUR, rule: '以中国气象网官方实况数据为准。温度 ≥ 35.0℃ 则“预言成功”，否则“预言未成功”。', yes: 1400, no: 600 },
+        { id: 'M006', cat: '影视娱乐', title: '本周五开播的年度大剧《长安十二时辰外传》在豆瓣的官方开分是否 ≥ 8.0 分？', dl: Date.now() + 2 * DAY, rule: '以豆瓣官方评分页为准（开分后 24 小时内的首个稳定分值）。≥ 8.0 分则“预言成功”，否则“预言未成功”。', yes: 2200, no: 800 },
+        { id: 'M007', cat: '科技数码', title: '下周旗舰发布会官方是否宣布搭载自研端侧 AI 大模型（以发布会 PPT 画面为准）？', dl: Date.now() + 5 * DAY, rule: '以品牌官方直播发布会 PPT 画面 / 官网参数页为准。出现“自研端侧 AI 大模型”字样则“预言成功”，否则“预言未成功”。', yes: 3600, no: 400 },
+        { id: 'M008', cat: '体育竞技', title: '本周末中超焦点战，上海海港主场对阵北京国安，主队是否获胜？', dl: Date.now() + 2 * DAY + 12 * HOUR, rule: '以中超联赛官方赛后数据面板为准。常规时间主队获胜则“预言成功”，否则“预言未成功”。', yes: 1800, no: 1200 }
+      ];
+    }
+
+    function seedState() {
+      const state = {
+        user: { id: MOCK_OPENID, nickname: '预言新人', points: INIT_POINTS, streak: 0, bestStreak: 0, weekPoints: 0, monthPoints: 0, totalPoints: 0, lastReliefAt: 0 },
+        users: USER_SEED.map((u, i) => ({ id: 'u' + (i + 1), nickname: u[0], streak: u[1], bestStreak: u[2], weekPoints: u[3], monthPoints: u[4], totalPoints: u[5], points: u[6] })),
+        markets: marketSeed().map(m => Object.assign({ status: 'open', result: null, hasDispute: false }, m)),
+        bets: {}, disputes: {}
+      };
+      return state;
+    }
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      const s = seedState();
+      save(s);
+      return s;
+    }
+    function save(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+    function resetDemo() {
+      localStorage.removeItem(STORAGE_KEY);
+      current = { marketId: null };
+      toast('演示数据已重置');
+      goHome();
+    }
+
+    // ============ 视图状态 ============
+    let state = load();
+    let current = { view: 'home', marketId: null, category: '全部', rankTab: 'streak' };
+    let sel = { choice: '', amount: 100, custom: '', reason: '' };
+
+    // ============ 工具 ============
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    function fmtDeadline(ts) {
+      const d = new Date(ts), diff = ts - Date.now();
+      if (diff > 0 && diff < DAY) return Math.floor(diff / HOUR) + '小时' + Math.floor((diff % HOUR) / 60000) + '分后';
+      return (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+    function fmtDate(ts) {
+      const d = new Date(ts);
+      return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+    function odds(pool, total) { return !pool || pool <= 0 ? '--' : (total / pool).toFixed(2); }
+    function findMarket(id) { return state.markets.find(m => m.id === id); }
+    function betId(mid) { return MOCK_OPENID + '_' + mid; }
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => el.classList.remove('show'), 1600);
+    }
+    function statusText(status) {
+      return { open: '进行中', dispute_window: '判定公示中', resolved: '已结算' }[status] || status;
+    }
+    function betStatusText(s) { return { active: '进行中', won: '预言成功', lost: '预言未成功', refunded: '已退回' }[s] || s; }
+
+    // ============ 结算（与小程序算法一致） ============
+    function settleMarket(mid, force) {
+      const m = findMarket(mid);
+      if (!m || m.status !== 'dispute_window') return { ok: false, err: '当前状态不可结算' };
+      if (m.hasDispute && !force) return { ok: false, err: '存在申诉，需人工复核后再结算' };
+      const total = m.yes + m.no;
+      const win = m.result === 'YES' ? m.yes : m.no;
+      const refundAll = total <= 0 || win <= 0;
+      Object.keys(state.bets).forEach(k => {
+        const b = state.bets[k];
+        if (b.marketId !== mid || b.status !== 'active') return;
+        const won = b.choice === m.result;
+        let payout = 0;
+        if (refundAll) { payout = b.amount; b.status = 'refunded'; }
+        else { if (won) payout = Math.floor((b.amount / win) * total); b.status = won ? 'won' : 'lost'; }
+        b.payout = payout;
+        if (b.openid === MOCK_OPENID) {
+          const u = state.user;
+          const ns = won && !refundAll ? u.streak + 1 : 0;
+          u.points += payout; u.streak = ns;
+          u.bestStreak = Math.max(u.bestStreak, ns);
+          u.weekPoints += payout; u.monthPoints += payout; u.totalPoints += payout;
+        }
+      });
+      m.status = 'resolved';
+      m.settledAt = Date.now();
+      return { ok: true };
+    }
+
+    // ============ 渲染 ============
+    const viewEl = document.getElementById('view');
+
+    function render() {
+      if (current.view === 'home') renderHome();
+      else if (current.view === 'detail') renderDetail();
+      else if (current.view === 'leaderboard') renderLeaderboard();
+      else renderProfile();
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.nav === (current.view === 'detail' ? 'home' : current.view)));
+    }
+
+    function renderHome() {
+      const cats = ['全部'].concat(CATEGORIES);
+      const list = state.markets.filter(m => m.status === 'open' && (current.category === '全部' || m.cat === current.category));
+      viewEl.innerHTML = `
+        <div class="container">
+          <div class="hero card">
+            <div>
+              <div class="hero-title">🔮 预言大师</div>
+              <div class="hero-sub">用智慧积分，围观热点真相</div>
+            </div>
+            <div class="hero-stats">
+              <div class="hero-stat"><span class="hero-num">${state.user.points}</span><span class="hero-label">能量</span></div>
+              <div class="hero-stat"><span class="hero-num">${state.user.streak}</span><span class="hero-label">连胜</span></div>
+            </div>
+          </div>
+          <div class="cat-bar">${cats.map(c => `<span class="cat-chip ${current.category === c ? 'active' : ''}" onclick="switchCat('${c}')">${c}</span>`).join('')}</div>
+          ${list.length === 0 ? '<div class="empty"><div class="empty-icon">🌱</div><div>该分类下暂无进行中的预言</div></div>' :
+            list.map(m => {
+              const total = m.yes + m.no;
+              return `
+              <div class="market-card card" onclick="openDetail('${m.id}')">
+                <div class="m-header"><span class="m-cat">${m.cat}</span><span class="m-time">⏳ ${fmtDeadline(m.dl)}</span></div>
+                <div class="m-title">${esc(m.title)}</div>
+                <div class="m-pool">
+                  <div class="m-pool-item"><div class="m-pool-label green">👍 看好 (YES)</div><div class="m-pool-val">${m.yes} <span class="m-unit">能量</span></div><div class="m-odds green">返还 ${odds(m.yes, total)}x</div></div>
+                  <div class="m-pool-divider"></div>
+                  <div class="m-pool-item"><div class="m-pool-label red">👎 不看好 (NO)</div><div class="m-pool-val">${m.no} <span class="m-unit">能量</span></div><div class="m-odds red">返还 ${odds(m.no, total)}x</div></div>
+                </div>
+                <div class="m-foot"><span class="m-total">总池 ${total} 能量</span><span class="m-go">围观支持 →</span></div>
+              </div>`;
+            }).join('')}
+        </div>`;
+    }
+
+    function renderDetail() {
+      const m = findMarket(current.marketId);
+      if (!m) { viewEl.innerHTML = '<div class="container"><div class="empty"><div class="empty-icon">🔍</div><div>预言不存在</div></div></div>'; return; }
+      const b = state.bets[betId(m.id)];
+      const d = state.disputes[betId(m.id)];
+      const total = m.yes + m.no;
+      let actionHtml = '';
+
+      if (m.status === 'open' && !b) {
+        actionHtml = `
+          <div class="action-card card">
+            <div class="action-title">您的判断是？</div>
+            <div class="choice-row">
+              <div class="choice-btn ${sel.choice === 'YES' ? 'selected-yes' : ''}" onclick="pickChoice('YES')">👍 看好</div>
+              <div class="choice-btn ${sel.choice === 'NO' ? 'selected-no' : ''}" onclick="pickChoice('NO')">👎 不看好</div>
+            </div>
+            ${sel.choice ? `
+              <div class="amount-tip">选择支持的能量值（多档可选）</div>
+              <div class="amount-grid">${AMOUNTS.map(a => `<div class="amount-btn ${sel.amount === a && !sel.custom ? 'active' : ''}" onclick="pickAmount(${a})">${a}</div>`).join('')}</div>
+              <div class="custom-row"><span class="custom-label">自定义</span><input class="custom-input" type="number" placeholder="输入任意能量值" value="${sel.custom}" oninput="pickCustom(this.value)"></div>
+              <div class="my-balance">我的能量：${state.user.points}</div>
+              <button class="btn" onclick="confirmBet()">确认支持 ${sel.amount || 0} 能量</button>
+            ` : ''}
+          </div>`;
+      } else if (b) {
+        actionHtml = `
+          <div class="action-card card voted-card">
+            <div class="voted-title">✅ 您已加入预言</div>
+            <div class="voted-line">您支持了 <span class="${b.choice === 'YES' ? 'green' : 'red'}">${b.choice === 'YES' ? '看好 (YES)' : '不看好 (NO)'}</span></div>
+            <div class="voted-line">投入 ${b.amount} 能量</div>
+            ${m.status === 'open' ? '<div class="voted-wait">⏳ 池内数据在截止前仍会变动，请等待官方判定。</div>' : ''}
+            ${b.status === 'won' ? `<div class="voted-payout">🎉 预言成功，瓜分获得 ${b.payout} 能量！</div>` : ''}
+            ${b.status === 'lost' ? '<div class="voted-payout lost">本次预言未成功，下注能量已进入奖池。</div>' : ''}
+            ${b.status === 'refunded' ? '<div class="voted-payout">池数据异常，能量已原路退回。</div>' : ''}
+          </div>`;
+      }
+
+      const disputeHtml = (m.status === 'dispute_window' && b && !d) ? `
+        <div class="action-card card">
+          <div class="action-title">对判定有异议？</div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:8px;line-height:1.6">请在异议公示期内提交反向证据（如官方截图或链接），平台将人工复核。</div>
+          <textarea class="dispute-input" placeholder="请描述异议理由并提供证据链接" oninput="sel.reason=this.value"></textarea>
+          <button class="btn" onclick="submitDispute()">提交申诉</button>
+        </div>` : (d ? `
+        <div class="action-card card">
+          <div class="action-title">📮 申诉已提交</div>
+          <div style="font-size:12px;color:#64748b">平台运营将复核您的证据，结算前会给出最终答复。</div>
+        </div>` : '');
+
+      const devHtml = `
+        <div class="dev-card">
+          <div class="dev-title">🛠️ 开发者模拟结算（本地预览）</div>
+          ${m.status === 'open' ? `
+            <div class="dev-row">
+              <button class="dev-btn yes" onclick="devResolve('YES')">模拟判定 YES 并结算</button>
+              <button class="dev-btn no" onclick="devResolve('NO')">模拟判定 NO 并结算</button>
+            </div>` :
+            m.status === 'dispute_window' ? `<button class="dev-btn" onclick="devForce()">强制结算（跳过公示/申诉）</button>` : ''}
+          <div class="dev-tip">此面板仅存在于本地预览版；正式小程序接入云开发后由管理员后台结算。</div>
+        </div>`;
+
+      const resultHtml = m.status === 'resolved' ? `
+        <div class="banner result">
+          <b>${m.result === 'YES' ? '👍 官方判定：看好成立' : '👎 官方判定：不看好成立'}</b><br>
+          判定于 ${fmtDate(m.resolvedAt)}，证据以判定标准中指定数据源为准。
+          ${b ? `<br><b>${b.status === 'won' ? '🎉 预言成功！瓜分获得 ' + b.payout + ' 能量' : b.status === 'lost' ? '本次预言未成功，能量已进入奖池' : b.status === 'refunded' ? '池数据异常，能量已原路退回' : ''}</b>` : ''}
+        </div>` : '';
+
+      const disputeBanner = m.status === 'dispute_window' ? `<div class="banner dispute">⏳ 官方已录入判定结果（${m.result === 'YES' ? '看好' : '不看好'}），正在异议公示期（12 小时），暂未派发能量。</div>` : '';
+
+      viewEl.innerHTML = `
+        <div class="container">
+          <div class="card" style="padding:15px;margin-bottom:12px">
+            <div class="m-header"><span class="m-cat">${m.cat}</span><span class="m-time">⏳ ${fmtDeadline(m.dl)}</span></div>
+            <div class="detail-title">${esc(m.title)}</div>
+            <div class="rule-box"><div class="rule-title">📌 胜负判定标准</div><div class="rule-text">${esc(m.rule)}</div></div>
+            <div class="pool-box">
+              <div class="pool-total"><div class="pool-total-label">当前总池（双方支持能量总和）</div><div class="pool-total-val">🪙 ${total} <span class="pool-total-unit">能量</span></div></div>
+              <div class="pool-row">
+                <div class="pool-side"><div class="pool-side-label green">👍 看好 (YES) 池</div><div class="pool-side-val">${m.yes} 能量</div><div class="pool-side-odds green">返还 ${odds(m.yes, total)}x</div></div>
+                <div class="pool-side"><div class="pool-side-label red">👎 不看好 (NO) 池</div><div class="pool-side-val">${m.no} 能量</div><div class="pool-side-odds red">返还 ${odds(m.no, total)}x</div></div>
+              </div>
+            </div>
+            ${resultHtml}
+            ${disputeBanner}
+          </div>
+          ${actionHtml}
+          ${disputeHtml}
+          ${m.status === 'resolved' ? '' : devHtml}
+        </div>`;
+    }
+
+    function renderLeaderboard() {
+      const fieldMap = { streak: 'streak', week: 'weekPoints', month: 'monthPoints', total: 'totalPoints' };
+      const field = fieldMap[current.rankTab];
+      const unit = current.rankTab === 'streak' ? '连胜' : '能量';
+      const all = state.users.map(u => ({ nickname: u.nickname, value: u[field], isMe: false }));
+      const myVal = state.user[field];
+      const myRank = all.filter(u => u.value > myVal).length + 1;
+      all.push({ nickname: state.user.nickname, value: myVal, isMe: true });
+      all.sort((a, b) => b.value - a.value);
+      const rows = all.slice(0, 50).map((u, i) => ({
+        rank: i + 1, nickname: u.nickname, value: u.value, isMe: u.isMe,
+        medal: i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : String(i + 1)
+      }));
+      if (!rows.some(r => r.isMe)) rows.push({ rank: myRank, nickname: state.user.nickname, value: myVal, isMe: true, medal: String(myRank) });
+
+      const tabs = [['streak', '🔥 连胜神算'], ['week', '📅 本周之星'], ['month', '🌙 月度智者'], ['total', '🪙 能量巨亨']];
+      viewEl.innerHTML = `
+        <div class="container">
+          <div class="tab-bar">${tabs.map(t => `<div class="tab-btn ${current.rankTab === t[0] ? 'active' : ''}" onclick="switchRank('${t[0]}')">${t[1]}</div>`).join('')}</div>
+          ${rows.map(r => `
+            <div class="rank-row ${r.isMe ? 'me' : ''}">
+              <span class="medal">${r.medal}</span>
+              <div class="rank-info"><div class="rank-name">${esc(r.nickname)}${r.isMe ? '<span class="me-tag">我</span>' : ''}</div><div class="rank-sub">排名 ${r.rank}</div></div>
+              <div class="rank-val">${r.value} <span class="rank-unit">${unit}</span></div>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    function renderProfile() {
+      const u = state.user;
+      const bets = Object.keys(state.bets).map(k => state.bets[k]).sort((a, b) => b.createdAt - a.createdAt);
+      const reliefLeft = u.lastReliefAt ? u.lastReliefAt + COOLDOWN_MS - Date.now() : 0;
+      viewEl.innerHTML = `
+        <div class="container">
+          <div class="card profile-card">
+            <div class="avatar">🔮</div>
+            <div class="p-info">
+              <div class="p-name">${esc(u.nickname)}</div>
+              <div class="p-edit" onclick="editNickname()">编辑昵称 ✏️</div>
+            </div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-item"><div class="stat-num">${u.points}</div><div class="stat-label">当前能量</div></div>
+            <div class="stat-divider"></div>
+            <div class="stat-item"><div class="stat-num">${u.streak}</div><div class="stat-label">当前连胜</div></div>
+            <div class="stat-divider"></div>
+            <div class="stat-item"><div class="stat-num">${u.bestStreak}</div><div class="stat-label">历史最高</div></div>
+          </div>
+          <div class="card period-card">
+            <div class="period-item"><span class="period-label">本周获得</span><span class="period-val">${u.weekPoints}</span></div>
+            <div class="period-item"><span class="period-label">本月获得</span><span class="period-val">${u.monthPoints}</span></div>
+            <div class="period-item"><span class="period-label">累计获得</span><span class="period-val">${u.totalPoints}</span></div>
+          </div>
+          <div class="card menu-card">
+            <div class="menu-item" onclick="scrollToRecords()"><span class="menu-icon">📜</span><span class="menu-text">我的预言记录（${bets.length}）</span><span class="menu-arrow">›</span></div>
+            <div class="menu-item" onclick="claimRelief()"><span class="menu-icon">🛟</span><span class="menu-text">破产补助（分享/看广告复活）</span><span class="menu-arrow">›</span></div>
+            <div class="menu-item" onclick="resetDemo()"><span class="menu-icon">🔄</span><span class="menu-text">重置演示数据</span><span class="menu-arrow">›</span></div>
+          </div>
+          <div class="footnote">能量值为平台虚拟积分，仅用于参与预言活动与兑换虚拟荣誉，不可兑换现金或实物。</div>
+          <div id="records"></div>
+        </div>`;
+      document.getElementById('records').innerHTML = bets.length === 0
+        ? '<div class="empty"><div class="empty-icon">📜</div><div>还没有预言记录，去首页开启你的第一卦吧</div></div>'
+        : bets.map(b => {
+            const m = findMarket(b.marketId);
+            const ok = b.status === 'won', bad = b.status === 'lost';
+            return `
+              <div class="card record" onclick="openDetail('${b.marketId}')">
+                <div class="r-top"><span class="r-cat">${b.marketCategory || (m ? m.cat : '')}</span><span class="r-status ${ok ? 'ok' : bad ? 'bad' : ''}">${betStatusText(b.status)}</span></div>
+                <div class="r-title">${esc(b.marketTitle)}</div>
+                <div class="r-bottom"><span class="${b.choice === 'YES' ? 'green' : 'red'}" style="font-weight:700">${b.choice === 'YES' ? '看好 (YES)' : '不看好 (NO)'}</span><span class="gray">${b.amount} 能量 · ${fmtDate(b.createdAt)}</span></div>
+                ${ok ? `<div class="r-payout">+${b.payout} 能量</div>` : ''}
+                ${bad ? `<div class="r-payout bad">-${b.amount} 能量</div>` : ''}
+              </div>`;
+          }).join('');
+    }
+
+    // ============ 交互 ============
+    function goHome() { current.view = 'home'; current.marketId = null; render(); }
+    function goLeaderboard() { current.view = 'leaderboard'; render(); }
+    function goProfile() { current.view = 'profile'; render(); }
+    function openDetail(id) { current.view = 'detail'; current.marketId = id; sel = { choice: '', amount: 100, custom: '', reason: '' }; render(); }
+    function switchCat(c) { current.category = c; render(); }
+    function switchRank(k) { current.rankTab = k; render(); }
+    function pickChoice(c) { sel.choice = c; render(); }
+    function pickAmount(a) { sel.amount = a; sel.custom = ''; render(); }
+    function pickCustom(v) { sel.custom = v; const n = parseInt(v, 10); sel.amount = !isNaN(n) && n > 0 ? n : 0; render(); }
+
+    function confirmBet() {
+      const m = findMarket(current.marketId);
+      if (!sel.choice) return toast('请先选择看好或不看好');
+      const amount = Number(sel.amount);
+      if (!amount || amount <= 0) return toast('请输入有效的能量值');
+      if (state.user.points < amount) return toast('能量不足，可去“我的”页领取补助');
+      if (state.bets[betId(m.id)]) return toast('您已参与过该预言');
+      state.user.points -= amount;
+      if (sel.choice === 'YES') m.yes += amount; else m.no += amount;
+      const b = { _id: betId(m.id), marketId: m.id, openid: MOCK_OPENID, choice: sel.choice, amount, marketTitle: m.title, marketCategory: m.cat, marketDeadline: m.dl, status: 'active', payout: 0, createdAt: Date.now() };
+      state.bets[betId(m.id)] = b;
+      save(state);
+      toast('表态成功，等待判定');
+      render();
+    }
+
+    function devResolve(result) {
+      const m = findMarket(current.marketId);
+      m.status = 'dispute_window';
+      m.result = result;
+      m.resolvedAt = Date.now();
+      const r = settleMarket(m.id, false);
+      save(state);
+      if (!r.ok) return toast(r.err);
+      toast('结算完成');
+      render();
+    }
+
+    function devForce() {
+      const r = settleMarket(current.marketId, true);
+      save(state);
+      if (!r.ok) return toast(r.err);
+      toast('强制结算完成');
+      render();
+    }
+
+    function submitDispute() {
+      const reason = (sel.reason || '').trim();
+      if (reason.length < 5) return toast('请填写至少 5 个字的异议理由');
+      const m = findMarket(current.marketId);
+      const id = betId(m.id);
+      if (state.disputes[id]) return toast('您已提交过申诉');
+      state.disputes[id] = { _id: id, marketId: m.id, openid: MOCK_OPENID, reason, createdAt: Date.now() };
+      m.hasDispute = true;
+      save(state);
+      toast('申诉已提交');
+      render();
+    }
+
+    function claimRelief() {
+      const u = state.user;
+      if (u.points > 0) return toast('能量充足，无需补助');
+      const left = (u.lastReliefAt || 0) + COOLDOWN_MS - Date.now();
+      if (left > 0) return toast(left > HOUR ? Math.floor(left / HOUR) + '小时' + Math.floor((left % HOUR) / 60000) + '分后可领' : Math.ceil(left / 60000) + '分钟后可领');
+      u.points += RELIEF_POINTS;
+      u.lastReliefAt = Date.now();
+      save(state);
+      toast('已领取 ' + RELIEF_POINTS + ' 能量');
+      render();
+    }
+
+    function editNickname() {
+      const name = prompt('输入新昵称（20 字以内）', state.user.nickname);
+      if (name && name.trim()) {
+        state.user.nickname = name.trim().slice(0, 20);
+        save(state);
+        render();
+      }
+    }
+
+    function scrollToRecords() {
+      const el = document.getElementById('records');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "settleArbitration",
+  "version": "1.0.0",
+  "description": "仲裁自动结算",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

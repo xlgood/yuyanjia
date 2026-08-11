@@ -1,0 +1,9 @@
+{
+  "name": "getDashboardStats",
+  "version": "1.0.0",
+  "description": "运营看板：状态分布、近7天发题、判定方式与数据源成功率",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

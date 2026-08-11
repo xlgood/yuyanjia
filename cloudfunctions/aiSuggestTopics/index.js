@@ -1,0 +1,368 @@
+// =========================================================
+// AI 选题助手（支持 DeepSeek / 通义千问 / Kimi 三选一，均带联网搜索）
+// 输入：用户需求（如“本周热点”）+ 可选分类偏好 + 数据源注册表
+// 输出：候选预测事件清单（严格 YES/NO 二值化、可验证性标注）
+// 说明：AI 只做选题建议，最终由运营勾选确认后发题。
+// =========================================================
+const cloud = require('wx-server-sdk');
+const https = require('https');
+
+// =========================================================
+// 模型选择（环境变量 AI_PROVIDER：deepseek | qwen | kimi）
+// deepseek：Responses API + 服务端 web_search（部分账号不支持会自动回退离线）
+// qwen    ：DashScope OpenAI 兼容接口 + enable_search（阿里官方联网）
+// kimi    ：Moonshot chat/completions + $web_search 内置工具（官方联网）
+// =========================================================
+const AI_PROVIDER = String(process.env.AI_PROVIDER || 'deepseek').toLowerCase();
+
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
+const DEEPSEEK_BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com';
+const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
+const DEEPSEEK_WEB_SEARCH = String(process.env.DEEPSEEK_WEB_SEARCH || 'true') === 'true';
+const DEEPSEEK_RESPONSES_MODEL = process.env.DEEPSEEK_RESPONSES_MODEL || 'deepseek-v4-flash';
+const DEEPSEEK_TIMEOUT_MS = Number(process.env.DEEPSEEK_TIMEOUT_MS || 110000);
+
+const QWEN_API_KEY = process.env.QWEN_API_KEY || '';
+const QWEN_BASE_URL = process.env.QWEN_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+const QWEN_MODEL = process.env.QWEN_MODEL || 'qwen-plus';
+
+const KIMI_API_KEY = process.env.KIMI_API_KEY || '';
+const KIMI_BASE_URL = process.env.KIMI_BASE_URL || 'https://api.moonshot.cn/v1';
+const KIMI_MODEL = process.env.KIMI_MODEL || 'kimi-k2-0711-preview';
+
+// 通用 OpenAI 兼容接口（如 OpenCode Zen / 各类中转网关）
+const CUSTOM_API_KEY = process.env.CUSTOM_API_KEY || '';
+const CUSTOM_BASE_URL = process.env.CUSTOM_BASE_URL || '';
+const CUSTOM_MODEL = process.env.CUSTOM_MODEL || '';
+const CUSTOM_SEARCH = String(process.env.CUSTOM_SEARCH || 'false') === 'true';
+
+// 管理员 openid（部署时在云函数环境变量配置 ADMIN_OPENIDS，逗号分隔；空 = 仅 Mock 可进后台）
+const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
+
+const CATEGORIES = ['影视娱乐', '科技数码', '游戏电竞', '体育竞技', '趣味民生', '财经宏观'];
+const MAX_ITEMS = 5;
+// 本地兜底词表：msgSecCheck 不可用（云调用未开通/异常）时降级使用，避免 fail-open
+const LOCAL_SENSITIVE_WORDS = [
+  '选举', '大选', '总统', '议会', '国会', '审判', '开庭', '判决', '起诉', '立案', '庭审',
+  '游行', '抗议', '罢工', '骚乱', '示威', '聚集', '疫情', '封控', '确诊', '公共卫生事件',
+  '赌博', '博彩', '下注', '投注', '赔率', '毒品', '冰毒', '海洛因', '枪支', '恐怖袭击',
+  '台独', '港独', '藏独', '疆独', '法轮功', '颠覆', '暴动', '政变', '裸聊', '援交', '色情'
+];
+// 小程序端 callFunction 无超时参数，连接约 60s 会被平台掐断；
+// 这里在 55s 主动收口，返回明确提示而不是 ESOCKETTIMEDOUT
+const AI_SAFE_TIMEOUT_MS = 55000;
+
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+
+// 微信官方内容安全（AI 输出在展示给运营前先过检）；未开通云调用时回退本地词表
+async function securityCheck(content) {
+  if (!content) return true;
+  try {
+    const r = await cloud.openapi.security.msgSecCheck({ content });
+    const suggest = r && r.result && r.result.suggest;
+    return suggest === 'pass' || !suggest;
+  } catch (e) {
+    const lower = String(content).toLowerCase();
+    return !LOCAL_SENSITIVE_WORDS.some(w => lower.indexOf(w.toLowerCase()) >= 0);
+  }
+}
+
+function postJson(url, payload, apiKey, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const body = JSON.stringify(payload);
+    const t = timeoutMs || 30000;
+    const req = https.request({
+      hostname: u.hostname,
+      path: u.pathname,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey,
+        'Content-Length': Buffer.byteLength(body)
+      },
+      timeout: t
+    }, res => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          reject(new Error('AI 响应解析失败: ' + String(data).slice(0, 200)));
+        }
+      });
+    });
+    req.on('timeout', () => req.destroy(new Error('AI 请求超时')));
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+function extractJsonArray(text) {
+  let t = String(text || '').trim();
+  t = t.replace(/```json/gi, '').replace(/```/g, '').trim();
+  const start = t.indexOf('[');
+  const end = t.lastIndexOf(']');
+  if (start < 0 || end <= start) return null;
+  try {
+    const arr = JSON.parse(t.slice(start, end + 1));
+    return Array.isArray(arr) ? arr : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// 兼容两种返回格式：Responses API（output/output_text）与 chat/completions（choices）
+function extractContent(resp) {
+  if (!resp) return '';
+  if (typeof resp.output_text === 'string' && resp.output_text) return resp.output_text;
+  if (Array.isArray(resp.output)) {
+    const parts = [];
+    for (const item of resp.output) {
+      if (item && item.type === 'message' && Array.isArray(item.content)) {
+        for (const c of item.content) {
+          if (c && typeof c.text === 'string') parts.push(c.text);
+        }
+      }
+    }
+    if (parts.length) return parts.join('\n');
+  }
+  const msg = resp && resp.choices && resp.choices[0] && resp.choices[0].message;
+  if (msg) {
+    if (typeof msg.content === 'string') return msg.content;
+    // 部分网关把 content 返回为数组（如 [{type:'text', text:'...'}]）
+    if (Array.isArray(msg.content)) {
+      const parts = [];
+      for (const c of msg.content) {
+        if (typeof c === 'string') parts.push(c);
+        else if (c && typeof c.text === 'string') parts.push(c.text);
+      }
+      if (parts.length) return parts.join('\n');
+    }
+  }
+  return '';
+}
+
+// 各模型通用 chat/completions 调用
+function chatCompletions(baseUrl, model, messages, apiKey, extra = {}, timeoutMs) {
+  return postJson(
+    baseUrl.replace(/\/$/, '') + '/chat/completions',
+    Object.assign({ model, messages, temperature: 0.7 }, extra),
+    apiKey,
+    timeoutMs || DEEPSEEK_TIMEOUT_MS
+  );
+}
+
+// Kimi 联网搜索：$web_search 是平台内置工具，模型要求时原样回传 arguments 即可
+async function callKimiWithSearch(systemPrompt, userPrompt, apiKey) {
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ];
+  const tools = [{ type: 'builtin_function', function: { name: '$web_search' } }];
+
+  for (let i = 0; i < 4; i++) {
+    const resp = await chatCompletions(KIMI_BASE_URL, KIMI_MODEL, messages, apiKey, { tools });
+    const choice = resp && resp.choices && resp.choices[0];
+    const msg = choice && choice.message;
+    if (choice && choice.finish_reason === 'tool_calls' && msg && Array.isArray(msg.tool_calls) && msg.tool_calls.length) {
+      messages.push({ role: 'assistant', content: msg.content || '', tool_calls: msg.tool_calls });
+      for (const tc of msg.tool_calls) {
+        const args = tc.function && tc.function.arguments;
+        messages.push({
+          role: 'tool',
+          tool_call_id: tc.id,
+          content: typeof args === 'string' ? args : JSON.stringify(args || {})
+        });
+      }
+      continue;
+    }
+    return resp;
+  }
+  throw new Error('Kimi 联网搜索轮次过多，请重试');
+}
+
+exports.main = async (event) => {
+  const { OPENID } = cloud.getWXContext();
+  if (!ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
+
+  const topic = String(event.topic || '').trim() || '本周热点';
+  const category = String(event.category || '');
+  const sources = Array.isArray(event.sources) ? event.sources.slice(0, 30) : [];
+  // 以北京时间锚定“今天”，防止模型按训练数据的旧日期生成选题
+  const todayCN = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+
+  const providerKey = AI_PROVIDER === 'qwen' ? QWEN_API_KEY
+    : AI_PROVIDER === 'kimi' ? KIMI_API_KEY
+    : AI_PROVIDER === 'custom' ? CUSTOM_API_KEY
+    : DEEPSEEK_API_KEY;
+  const providerLabel = AI_PROVIDER === 'qwen' ? '通义千问'
+    : AI_PROVIDER === 'kimi' ? 'Kimi'
+    : AI_PROVIDER === 'custom' ? '自定义接口'
+    : 'DeepSeek';
+  const providerKeyName = AI_PROVIDER === 'qwen' ? 'QWEN_API_KEY'
+    : AI_PROVIDER === 'kimi' ? 'KIMI_API_KEY'
+    : AI_PROVIDER === 'custom' ? 'CUSTOM_API_KEY'
+    : 'DEEPSEEK_API_KEY';
+  if (!providerKey) {
+    return { ok: false, err: `尚未配置 ${providerLabel} API Key：请在 aiSuggestTopics 环境变量中配置 ${providerKeyName}（AI_PROVIDER=${AI_PROVIDER}）` };
+  }
+  if (AI_PROVIDER === 'custom' && (!CUSTOM_BASE_URL || !CUSTOM_MODEL)) {
+    return { ok: false, err: 'custom 模式需同时配置 CUSTOM_BASE_URL 与 CUSTOM_MODEL' };
+  }
+
+  const sourceList = sources.map(s => ({
+    name: String(s.name || '').slice(0, 60),
+    type: String(s.type || ''),
+    url: String(s.url || '').slice(0, 200),
+    category: String(s.category || ''),
+    notes: String(s.notes || '').slice(0, 100)
+  }));
+
+  const systemPrompt = '你是预测市场「预言大师」的选题助手。你的职责是发现“截止后能用官方数据或官方公告验证”的硬事实型候选事件，并写成严格 YES/NO 二值化的问题。你只做选题建议，不裁决结果。';
+  const userPrompt = `今天是北京时间 ${todayCN}。用户需求：${topic}${category ? `，分类偏好：${category}` : ''}
+
+可选数据源（只能从其中选择 dataSource，禁止编造；无合适来源时 dataSource 填空字符串并把 verifiable 设为 false）：
+${JSON.stringify(sourceList)}
+
+只输出一个 JSON 数组（不要 markdown 代码块、不要多余文字），每个元素：
+{
+  "title": "严格 YES/NO 二值化的预测问题（中文，20-60 字）",
+  "category": "${CATEGORIES.join('|')}",
+  "reason": "为什么热门、为什么可验证（一句话）",
+  "dataSource": "建议数据源名称（必须来自上面的列表；没有就填空字符串）",
+  "suggestedDeadline": "建议截止时间（如：本周日 24:00）",
+  "verifiable": true,
+  "probability": "对该事件发生概率的粗略估计（20-80 之间的整数，表示存在悬念）",
+  "constraintCheck": {
+    "binary": true,
+    "singleSource": true,
+    "hardDeadline": true,
+    "noSensitive": true,
+    "hasSuspense": true
+  }
+}
+
+硬性规则：
+1. 只选「在某个时间点能用官方数据/官方公告验证」的硬事实，避免主观话题和无法验证的传闻；
+2. 标题必须二值化（是否/能否/是否达到），禁用“下注/赔率/庄家”等博彩词；
+3. 最多 ${MAX_ITEMS} 条，按可验证性和热度排序；
+4. 【绝对二元性】结果必须非此即彼，不存在平局、取消、改期之外的第三种可判读结果；若事件可能“取消/延期导致无法判定”，仍可接受，但必须在 reason 中说明判定兜底（数据缺失原路退回）；
+5. 【单一权威结算源】每个候选只允许绑定一个第三方权威公开结算源（官方数据/官方公告/权威榜单），禁止多个来源混用、禁止平台自设来源；dataSource 只能从给定列表选择；
+6. 【物理截止时间】每个候选必须有明确截止日期与时刻；截止后出现的任何信息不得作为判定证据，suggestedDeadline 必须具体到日或时刻；
+7. 【敏感红线】严禁输出任何国内外政治选举（含美国大选）、国内社会争议民生事件、法院正在审理的司法案件、公共卫生突发事件等敏感话题；无法判断是否敏感时一律不选；
+8. 【悬念区间】只选结果概率大致落在 20%-80% 之间的事件；99% 确定（如太阳升起）或实力悬殊到无悬念的事件必须排除；
+9. 【时效性】你有 web_search 联网检索工具：必须先检索 ${todayCN} 前后的最新信息，再基于检索结果生成候选；禁止把记忆里的旧事件当作“当前热点”，禁止编造检索不到的事件。所有候选截止时间必须在 ${todayCN} 之后仍可验证。优先输出周期性/持续性可验证的硬事实（未来天气、周票房、汇率/指数、官方榜单、已官宣日程），并把标题与 suggestedDeadline 写成面向 ${todayCN} 之后的可判定版本；
+10. 每个候选的 constraintCheck 五项必须全部为 true，否则不要输出该候选。`;
+
+  let resp;
+  let mode = 'offline';
+  let fallbackReason = '';
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ];
+  try {
+    const work = (async () => {
+      if (AI_PROVIDER === 'qwen') {
+        // 通义千问：OpenAI 兼容接口 + enable_search（服务端自动联网）
+        resp = await chatCompletions(QWEN_BASE_URL, QWEN_MODEL, messages, QWEN_API_KEY, {
+          enable_search: true,
+          response_format: { type: 'json_object' }
+        });
+        mode = 'qwen_search';
+      } else if (AI_PROVIDER === 'kimi') {
+        // Kimi：$web_search 内置工具（模型先搜索再回答）
+        resp = await callKimiWithSearch(systemPrompt, userPrompt, KIMI_API_KEY);
+        mode = 'kimi_search';
+      } else if (AI_PROVIDER === 'custom') {
+        // 通用 OpenAI 兼容接口：若平台支持 search 参数可开 CUSTOM_SEARCH=true
+        // 注意：部分网关对 temperature 有限制（如仅允许 1），这里不传，让模型用默认值
+        resp = await postJson(
+          CUSTOM_BASE_URL.replace(/\/$/, '') + '/chat/completions',
+          Object.assign(
+            { model: CUSTOM_MODEL, messages },
+            CUSTOM_SEARCH ? { enable_search: true } : {}
+          ),
+          CUSTOM_API_KEY,
+          DEEPSEEK_TIMEOUT_MS
+        );
+        mode = CUSTOM_SEARCH ? 'custom_search' : 'custom';
+      } else if (DEEPSEEK_WEB_SEARCH) {
+        // DeepSeek：Responses API + 服务端 web_search；账号不支持则回退离线
+        try {
+          resp = await postJson(
+            DEEPSEEK_BASE_URL.replace(/\/$/, '') + '/responses',
+            {
+              model: DEEPSEEK_RESPONSES_MODEL,
+              instructions: systemPrompt,
+              input: [{ role: 'user', content: userPrompt }],
+              tools: [{ type: 'web_search' }],
+              temperature: 0.7
+            },
+            DEEPSEEK_API_KEY,
+            DEEPSEEK_TIMEOUT_MS
+          );
+          mode = 'deepseek_search';
+        } catch (e) {
+          fallbackReason = String(e.message || e).slice(0, 300);
+          console.error('DeepSeek Responses/web_search 调用失败，回退离线 chat/completions：', e.message || e);
+          resp = await chatCompletions(DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, messages, DEEPSEEK_API_KEY, {
+            response_format: { type: 'json_object' }
+          }, 30000);
+        }
+      } else {
+        resp = await chatCompletions(DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, messages, DEEPSEEK_API_KEY, {
+          response_format: { type: 'json_object' }
+        }, 30000);
+      }
+    })();
+    await Promise.race([
+      work,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('AI 生成超时（模型响应过慢），请稍后重试或更换更快模型')), AI_SAFE_TIMEOUT_MS)
+      )
+    ]);
+  } catch (e) {
+    return { ok: false, err: 'AI 调用失败：' + (e.message || '未知错误') };
+  }
+
+  const content = extractContent(resp);
+  const parsed = extractJsonArray(content);
+  if (!parsed) {
+    const searchMode = mode !== 'offline' && mode !== 'custom';
+    const snippet = String(content || JSON.stringify(resp || {})).slice(0, 200);
+    return { ok: false, err: (searchMode ? '联网模式未返回有效候选清单' : 'AI 未返回有效候选清单') + '，返回内容：' + snippet };
+  }
+
+  const list = parsed
+    .filter(c => {
+      const title = String(c.title || '').trim();
+      return title.length >= 10 && (!c.category || CATEGORIES.includes(c.category));
+    })
+    .slice(0, MAX_ITEMS)
+    .map((c, i) => ({
+      _id: 'c' + i,
+      title: String(c.title || '').trim().slice(0, 80),
+      category: CATEGORIES.includes(c.category) ? c.category : '趣味民生',
+      reason: String(c.reason || '').slice(0, 100),
+      dataSource: String(c.dataSource || ''),
+      suggestedDeadline: String(c.suggestedDeadline || '').slice(0, 30),
+      verifiable: !!c.verifiable,
+      probability: String(c.probability || '').slice(0, 8),
+      constraintCheck: c.constraintCheck && typeof c.constraintCheck === 'object' ? c.constraintCheck : null
+    }));
+
+  // 逐条过微信内容安全，命中敏感内容的不进入候选清单
+  const safeList = [];
+  for (const c of list) {
+    const titleOk = await securityCheck(c.title);
+    const reasonOk = await securityCheck(c.reason);
+    if (titleOk && reasonOk) safeList.push(c);
+  }
+
+  if (!safeList.length) return { ok: false, err: 'AI 生成的候选均未通过内容安全检测，请调整需求后重试' };
+  return { ok: true, list: safeList, mode, fallbackReason };
+};

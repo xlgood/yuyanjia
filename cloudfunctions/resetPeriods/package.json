@@ -1,0 +1,9 @@
+{
+  "name": "resetPeriods",
+  "version": "1.0.0",
+  "description": "周榜/月榜周期重置",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

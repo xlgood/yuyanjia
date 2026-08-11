@@ -1,0 +1,9 @@
+{
+  "name": "placeBet",
+  "version": "1.0.0",
+  "description": "能量表态（下注）：扣能量、入池、写记录，事务保证原子性",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

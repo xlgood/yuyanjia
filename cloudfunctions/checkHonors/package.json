@@ -1,0 +1,9 @@
+{
+  "name": "checkHonors",
+  "version": "1.0.0",
+  "description": "荣誉自动解锁检查",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

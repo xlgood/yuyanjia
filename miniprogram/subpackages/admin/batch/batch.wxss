@@ -1,0 +1,157 @@
+.deadline-card {
+  padding: 26rpx 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.deadline-title {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: #2d2926;
+  margin-bottom: 14rpx;
+}
+
+.deadline-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.half {
+  flex: 1;
+}
+
+.picker {
+  background: #faf6ec;
+  border: 1rpx solid #e7dcc4;
+  border-radius: 14rpx;
+  padding: 14rpx 20rpx;
+  font-size: 26rpx;
+  text-align: center;
+}
+
+.deadline-tip {
+  font-size: 20rpx;
+  color: #a39a8b;
+  line-height: 1.6;
+  margin-top: 12rpx;
+}
+
+.item {
+  display: flex;
+  padding: 24rpx 26rpx;
+  margin-bottom: 16rpx;
+  border: 2rpx solid transparent;
+}
+
+.item-check {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+}
+
+.item-body {
+  flex: 1;
+}
+
+.item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12rpx;
+  margin-bottom: 10rpx;
+}
+
+.item-title {
+  flex: 1;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #2d2926;
+  line-height: 1.5;
+}
+
+.item-status {
+  font-size: 20rpx;
+  font-weight: 700;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  white-space: nowrap;
+}
+
+.item-status.drafting { background: #faf0d7; color: #9c2f22; }
+.item-status.ready { background: #e9f3ee; color: #2e7d5b; }
+.item-status.failed { background: #f6ded8; color: #c03a2b; }
+
+.item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-bottom: 10rpx;
+}
+
+.item-tag {
+  font-size: 20rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  background: #faf0d7;
+  color: #9c2f22;
+}
+
+.item-condition {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #9c2f22;
+  background: #f5f7ff;
+  border-radius: 10rpx;
+  padding: 10rpx 14rpx;
+  margin-bottom: 8rpx;
+}
+
+.item-human {
+  font-size: 22rpx;
+  color: #8b8172;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.item-ops {
+  display: flex;
+  justify-content: flex-end;
+  gap: 28rpx;
+  margin-top: 12rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx solid #f5f0e4;
+}
+
+.op {
+  font-size: 22rpx;
+}
+
+.op.edit {
+  color: #9c2f22;
+}
+
+.op.retry {
+  color: #c03a2b;
+  font-weight: 700;
+}
+
+.bottom-bar {
+  position: sticky;
+  bottom: 0;
+  padding: 16rpx 0 24rpx;
+  background: #f5f0e4;
+}
+
+.publish-btn {
+  background: #9c2f22;
+  color: #ffffff;
+  border-radius: 999rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.publish-btn[disabled] {
+  background: #c3cbe0;
+  color: #ffffff;
+}

@@ -1,0 +1,9 @@
+{
+  "name": "settleMarket",
+  "version": "1.0.0",
+  "description": "按瓜分池公式结算：正确方按投入占比瓜分总池",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

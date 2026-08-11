@@ -1,0 +1,90 @@
+<view class="container">
+  <view class="hero card">
+    <view>
+      <view class="hero-title">🔮 预言大师</view>
+      <view class="hero-sub">用智慧积分，围观热点真相</view>
+    </view>
+    <view class="hero-stats" wx:if="{{!compliance}}">
+      <view class="hero-stat">
+        <text class="hero-num">{{user ? user.points : '--'}}</text>
+        <text class="hero-label">能量</text>
+      </view>
+      <view class="hero-stat">
+        <text class="hero-num">{{user ? user.streak : '--'}}</text>
+        <text class="hero-label">连胜</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="invite-banner card" wx:if="{{!compliance}}" bindtap="goInvite">
+    <view class="invite-banner-left">🎁</view>
+    <view class="invite-banner-mid">
+      <view class="invite-banner-title">邀请好友，你得 {{inviterPoints}} 好友得 {{inviteePoints}} 能量</view>
+      <view class="invite-banner-sub">好友首次表态后，奖励自动到账</view>
+    </view>
+    <view class="invite-banner-arrow">›</view>
+  </view>
+
+  <scroll-view class="cat-bar" scroll-x enhanced show-scrollbar="{{false}}">
+    <view
+      wx:for="{{categories}}"
+      wx:key="*this"
+      class="cat-chip {{activeCategory === item ? 'active' : ''}}"
+      data-cat="{{item}}"
+      bindtap="onSwitchCategory"
+    >{{item}}</view>
+  </scroll-view>
+
+  <view wx:if="{{loading && markets.length === 0}}" class="market-list">
+    <view class="market-card card skeleton-card" wx:for="{{[1, 2, 3, 4]}}" wx:key="*this">
+      <view class="sk-line sk-title"></view>
+      <view class="sk-line sk-mid"></view>
+      <view class="sk-line sk-short"></view>
+    </view>
+  </view>
+
+  <view wx:elif="{{markets.length === 0}}" class="empty">
+    <view class="empty-icon">🌱</view>
+    <view>{{activeCategory === '热门' ? '总池 ≥ ' + hotThreshold + ' 能量的热门预言正在集结中' : '该分类下暂无进行中的预言'}}</view>
+  </view>
+
+  <view wx:else class="market-list">
+    <view
+      class="market-card card"
+      wx:for="{{markets}}"
+      wx:key="_id"
+      data-id="{{item._id}}"
+      bindtap="onTapMarket"
+    >
+      <view class="m-header">
+        <text class="m-cat">{{item.category}}</text>
+        <text class="m-time">{{item.status === 'locked' ? '⏸ 等待判定中' : '⏳ ' + item.deadlineText}}</text>
+      </view>
+      <view class="m-title">{{item.title}}</view>
+
+      <view class="m-pool" wx:if="{{!compliance}}">
+        <view class="m-pool-item">
+          <view class="m-rate green">👍 {{item.yesRate}}</view>
+        </view>
+        <view class="m-pool-divider"></view>
+        <view class="m-pool-item">
+          <view class="m-rate red">👎 {{item.noRate}}</view>
+        </view>
+      </view>
+
+      <view class="m-foot" wx:if="{{!compliance}}">
+        <text class="m-total">🪙 总池 {{item.totalText}}</text>
+        <text class="m-go">围观支持 →</text>
+      </view>
+      <view class="m-foot" wx:else>
+        <text class="m-total">今日热点民意调查</text>
+        <text class="m-go">参与投票 →</text>
+      </view>
+    </view>
+
+    <view wx:if="{{loadingMore}}" class="list-more">加载中...</view>
+    <view wx:elif="{{!hasMore}}" class="list-more">— 已加载全部 —</view>
+  </view>
+
+  <view class="safe-bottom"></view>
+</view>

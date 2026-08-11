@@ -1,0 +1,89 @@
+<view class="container">
+  <view class="card form-card">
+    <view class="form-title">基本信息</view>
+
+    <view class="field">
+      <text class="field-label">分类</text>
+      <picker range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategory">
+        <view class="picker">{{categories[categoryIndex]}}</view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <text class="field-label">预言标题 *（YES/NO 二项化表述）</text>
+      <textarea class="field-area" value="{{title}}" bindinput="onTitle" placeholder="如：明天 14:00 北京南郊观象台气温是否 ≥ 35.0℃？" maxlength="100" />
+    </view>
+
+    <view class="field">
+      <text class="field-label">截止时间（事件结果可确认的时间点）</text>
+      <view class="row">
+        <picker class="half" mode="date" value="{{deadlineDate}}" bindchange="onDate">
+          <view class="picker">{{deadlineDate}}</view>
+        </picker>
+        <picker class="half" mode="time" value="{{deadlineTime}}" bindchange="onTime">
+          <view class="picker">{{deadlineTime}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <button class="ai-btn" bindtap="onAiDraft" disabled="{{aiDrafting || publishing}}">
+      {{aiDrafting ? 'AI 起草中...' : '🤖 AI 起草判定条件'}}
+    </button>
+    <view class="ai-tip">AI 只生成规则草稿（DeepSeek），请核对数据源、阈值与文案后再发布；判定执行仍走数据源规则引擎。</view>
+
+    <view class="form-title">判定方式</view>
+    <view class="field">
+      <picker range="{{modes}}" value="{{modeIndex}}" bindchange="onMode">
+        <view class="picker">{{modes[modeIndex]}}</view>
+      </picker>
+    </view>
+
+    <block wx:if="{{modeIndex === 0}}">
+      <view class="field">
+        <text class="field-label">数据源（来自注册表）</text>
+        <picker range="{{sources}}" range-key="name" value="{{sourceIndex}}" bindchange="onSource">
+          <view class="picker">{{sources[sourceIndex] ? sources[sourceIndex].name : '暂无 API 数据源，请先到数据源注册表添加'}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="field-label">取值字段（JSON 点分路径）</text>
+        <input class="field-input" value="{{field}}" bindinput="onField" placeholder="如 weatherinfo.temp" />
+      </view>
+      <view class="row">
+        <picker class="half" range="{{transforms}}" value="{{transformIndex}}" bindchange="onTransform">
+          <view class="picker">类型：{{transforms[transformIndex]}}</view>
+        </picker>
+        <picker class="half" range="{{operators}}" value="{{operatorIndex}}" bindchange="onOperator">
+          <view class="picker">比较：{{operators[operatorIndex]}}</view>
+        </picker>
+      </view>
+      <view class="row">
+        <input class="half field-input" type="number" value="{{value}}" bindinput="onValue" placeholder="阈值，如 35" />
+        <input class="half field-input" value="{{unit}}" bindinput="onUnit" placeholder="单位，如 ℃" />
+      </view>
+    </block>
+
+    <block wx:else>
+      <view class="field">
+        <text class="field-label">证据来源（官方公告/官微/官网）</text>
+        <input class="field-input" value="{{provider}}" bindinput="onProvider" placeholder="如：品牌官方微博" />
+      </view>
+      <view class="field">
+        <text class="field-label">判定说明 *（用户可见，含数据源与边界规则）</text>
+        <textarea class="field-area" value="{{humanReadable}}" bindinput="onHuman" placeholder="如：以品牌官方微博公告为准，出现官方发布日期声明则“预言成功”，否则“预言未成功”" maxlength="200" />
+      </view>
+    </block>
+  </view>
+
+  <view class="card preview-card" wx:if="{{humanText}}">
+    <view class="form-title">用户可见判定文案</view>
+    <view class="human-text">{{humanText}}</view>
+    <view class="form-title">机读判定规范（resolutionSpec）</view>
+    <scroll-view scroll-y class="spec-box">
+      <text class="spec-text">{{specText}}</text>
+    </scroll-view>
+  </view>
+
+  <button class="btn preview-btn" bindtap="onPreview">生成判定规范预览</button>
+  <button class="btn publish-btn" bindtap="onPublish" disabled="{{publishing}}">{{publishing ? '发布中...' : '发布预言'}}</button>
+</view>

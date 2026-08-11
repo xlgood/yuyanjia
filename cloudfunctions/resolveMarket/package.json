@@ -1,0 +1,9 @@
+{
+  "name": "resolveMarket",
+  "version": "1.0.0",
+  "description": "管理员录入官方判定，进入 12 小时异议公示期",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

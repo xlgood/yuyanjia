@@ -1,0 +1,60 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/detail/detail",
+    "pages/leaderboard/leaderboard",
+    "pages/profile/profile",
+    "pages/history/history",
+    "pages/task/task",
+    "pages/shop/shop",
+    "pages/invite/invite",
+    "pages/pk/pk",
+    "pages/arbitration/arbitration"
+  ],
+  "subpackages": [
+    {
+      "root": "subpackages/admin",
+      "name": "admin",
+      "pages": [
+        "index/index",
+        "sources/sources",
+        "publish/publish",
+        "review/review",
+        "dashboard/dashboard",
+        "suggest/suggest",
+        "batch/batch"
+      ]
+    }
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#9c2f22",
+    "navigationBarTitleText": "预言大师",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f6f1e7",
+    "backgroundTextStyle": "dark",
+    "enableShareTimeline": true
+  },
+  "tabBar": {
+    "color": "#a39a8b",
+    "selectedColor": "#c03a2b",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "预言"
+      },
+      {
+        "pagePath": "pages/leaderboard/leaderboard",
+        "text": "榜单"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

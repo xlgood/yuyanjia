@@ -1,0 +1,9 @@
+{
+  "name": "getDataSources",
+  "version": "1.0.0",
+  "description": "运营后台：数据源注册表列表",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

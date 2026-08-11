@@ -1,0 +1,9 @@
+{
+  "name": "createMarket",
+  "version": "1.0.0",
+  "description": "管理员发布预测合约（含机读判定规范 resolutionSpec）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

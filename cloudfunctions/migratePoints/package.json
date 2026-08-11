@@ -1,0 +1,9 @@
+{
+  "name": "migratePoints",
+  "version": "1.0.0",
+  "description": "一次性迁移：榜单净收益口径重算 + inviteCount 回填",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

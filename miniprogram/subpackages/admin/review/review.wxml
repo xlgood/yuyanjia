@@ -1,0 +1,48 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <view wx:elif="{{list.length === 0}}" class="empty">
+    <view class="empty-icon">✅</view>
+    <view>队列已清空：没有待人工判定或公示中的合约</view>
+  </view>
+
+  <view wx:else>
+    <view class="review card" wx:for="{{list}}" wx:key="_id">
+      <view class="r-top">
+        <text class="r-cat">{{item.category}}</text>
+        <text class="r-type {{item.reviewTypeCls}}">{{item.reviewTypeText}}</text>
+      </view>
+      <view class="r-title">{{item.title}}</view>
+      <view class="r-meta">截止 {{item.deadlineText}} · {{item.timeText}}</view>
+      <view class="r-urgency {{item.urgencyCls}}" wx:if="{{item.urgencyText}}">{{item.urgencyText}}</view>
+      <view class="r-result" wx:if="{{item.reviewType === 'dispute'}}">
+        当前判定：{{item.result === 'YES' ? '👍 看好' : '👎 不看好'}}
+      </view>
+
+      <block wx:if="{{item.reviewType === 'manual_deadline' || item.reviewType === 'manual_fail'}}">
+        <view class="evidence-row">
+          <input
+            class="evidence-input"
+            placeholder="官方证据链接 / 截图说明（必填）"
+            data-id="{{item._id}}"
+            bindinput="onEvidenceInput"
+          />
+        </view>
+        <view class="op-row">
+          <button class="op-btn yes" data-id="{{item._id}}" data-result="YES" bindtap="onResolve">判定：看好</button>
+          <button class="op-btn no" data-id="{{item._id}}" data-result="NO" bindtap="onResolve">判定：不看好</button>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view class="op-row">
+          <button class="op-btn" data-id="{{item._id}}" bindtap="onForceSettle">按当前判定结算</button>
+        </view>
+        <view class="op-row">
+          <button class="op-btn yes" data-id="{{item._id}}" data-result="YES" bindtap="onOverride">覆盖为看好并结算</button>
+          <button class="op-btn no" data-id="{{item._id}}" data-result="NO" bindtap="onOverride">覆盖为不看好并结算</button>
+        </view>
+      </block>
+    </view>
+  </view>
+</view>

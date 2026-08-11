@@ -1,0 +1,9 @@
+{
+  "name": "createPk",
+  "version": "1.0.0",
+  "description": "发起 PK 挑战",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

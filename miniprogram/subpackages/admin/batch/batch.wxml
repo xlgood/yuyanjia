@@ -1,0 +1,45 @@
+<view class="container">
+  <view class="card deadline-card">
+    <view class="deadline-title">统一截止时间（应用到本次批量发布的全部合约）</view>
+    <view class="deadline-row">
+      <picker class="half" mode="date" value="{{deadlineDate}}" bindchange="onDate">
+        <view class="picker">{{deadlineDate}}</view>
+      </picker>
+      <picker class="half" mode="time" value="{{deadlineTime}}" bindchange="onTime">
+        <view class="picker">{{deadlineTime}}</view>
+      </picker>
+    </view>
+    <view class="deadline-tip">AI 正在逐条起草判定草稿，请核对后发布；可在发题页单独调整某一合约。</view>
+  </view>
+
+  <view class="card item" wx:for="{{items}}" wx:key="key"
+    data-key="{{item.key}}" bindtap="onToggle">
+    <view class="item-check">{{item.publish ? '✅' : '⬜'}}</view>
+    <view class="item-body">
+      <view class="item-top">
+        <text class="item-title">{{item.title}}</text>
+        <text class="item-status {{item.status}}">
+          {{item.status === 'ready' ? '草稿完成' : item.status === 'failed' ? '起草失败' : 'AI 起草中...'}}
+        </text>
+      </view>
+      <view class="item-tags">
+        <text class="item-tag">{{item.category}}</text>
+        <text class="item-tag" wx:if="{{item.mode === 'numeric'}}">数值型</text>
+        <text class="item-tag" wx:if="{{item.mode === 'manual'}}">人工判定</text>
+        <text class="item-tag" wx:if="{{item.provider}}">{{item.provider}}</text>
+      </view>
+      <view class="item-condition" wx:if="{{item.conditionText}}">{{item.conditionText}}</view>
+      <view class="item-human" wx:if="{{item.humanReadable}}">{{item.humanReadable}}</view>
+      <view class="item-ops" catchtap="noop">
+        <text class="op edit" data-key="{{item.key}}" bindtap="onEdit">编辑</text>
+        <text class="op retry" wx:if="{{item.status === 'failed'}}" data-key="{{item.key}}" bindtap="onRetry">重试</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom-bar">
+    <button class="publish-btn" bindtap="onPublishAll" disabled="{{publishing}}">
+      {{publishing ? '发布中...' : '批量发布（' + readyCount + '）'}}
+    </button>
+  </view>
+</view>

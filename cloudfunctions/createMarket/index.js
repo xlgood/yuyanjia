@@ -1,0 +1,144 @@
+const cloud = require('wx-server-sdk');
+
+// 管理员 openid（部署时在云函数环境变量配置 ADMIN_OPENIDS，逗号分隔；空 = 仅 Mock 可进后台）
+const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
+const CATEGORIES = ['影视娱乐', '科技数码', '游戏电竞', '体育竞技', '趣味民生', '财经宏观'];
+const OPERATORS = ['>=', '>', '<=', '<', '==', '!=', 'contains', 'in'];
+const TRANSFORMS = ['int', 'float', 'string'];
+
+// 二值化词：标题必须包含其一，保证结果非此即彼
+const BINARY_WORDS = ['是否', '能否', '会不会', '能不能', '有没有', '是否达到', '是否突破', '是否超过', '是否低于', '会不会突破', '是否赢得', '是否获胜'];
+// 敏感红线：政治选举 / 社会争议 / 司法案件 / 公共卫生突发事件
+const SENSITIVE_WORDS = [
+  '选举', '大选', '总统', '特朗普', '拜登', '投票结果', '议会', '国会',
+  '审判', '开庭', '判决', '起诉', '立案', '在审', '庭审',
+  '游行', '抗议', '罢工', '骚乱', '示威', '聚集',
+  '疫情', '封控', '确诊', '疑似病例', '公共卫生事件'
+];
+// 本地兜底词表：msgSecCheck 不可用（云调用未开通/异常）时降级使用，避免 fail-open
+const LOCAL_SENSITIVE_WORDS = SENSITIVE_WORDS.concat([
+  '赌博', '博彩', '下注', '投注', '赔率', '毒品', '冰毒', '海洛因', '枪支', '恐怖袭击',
+  '台独', '港独', '藏独', '疆独', '法轮功', '颠覆', '暴动', '政变', '裸聊', '援交', '色情'
+]);
+
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+const db = cloud.database();
+
+// 微信官方内容安全检测（标题/判定说明全链路）；未开通云调用时回退本地词表
+async function securityCheck(content) {
+  if (!content) return true;
+  try {
+    const r = await cloud.openapi.security.msgSecCheck({ content });
+    const suggest = r && r.result && r.result.suggest;
+    return suggest === 'pass' || !suggest;
+  } catch (e) {
+    const lower = String(content).toLowerCase();
+    return !LOCAL_SENSITIVE_WORDS.some(w => lower.indexOf(w.toLowerCase()) >= 0);
+  }
+}
+
+exports.main = async (event) => {
+  const { OPENID } = cloud.getWXContext();
+  if (!ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
+
+  const category = String(event.category || '');
+  const title = String(event.title || '').trim();
+  const sourceOfTruth = String(event.sourceOfTruth || '').trim();
+  const deadline = Number(event.deadline);
+  const spec = event.resolutionSpec;
+
+  if (!CATEGORIES.includes(category)) return { ok: false, err: '分类不合法' };
+  if (!title || title.length < 10) return { ok: false, err: '标题过短' };
+  // 硬性约束 1：绝对二元性（标题必须二值化）
+  if (!BINARY_WORDS.some(w => title.indexOf(w) >= 0)) {
+    return { ok: false, err: '标题必须二值化（请使用“是否/能否/是否达到/是否超过”等表述），保证结果非此即彼' };
+  }
+  // 硬性约束 4：敏感红线
+  const hit = SENSITIVE_WORDS.find(w => title.indexOf(w) >= 0);
+  if (hit) return { ok: false, err: `标题涉及敏感红线（${hit}），禁止发布` };
+  // 内容安全全链路：标题 / 判定说明 / 用户可见文案统一过微信官方检测
+  const titlePass = await securityCheck(title);
+  if (!titlePass) return { ok: false, err: '标题包含敏感内容，禁止发布' };
+  if (!sourceOfTruth) return { ok: false, err: '缺少判定标准说明' };
+  if (!deadline || deadline <= Date.now()) return { ok: false, err: '截止时间必须晚于当前时间' };
+  if (deadline - Date.now() > 90 * 24 * 3600 * 1000) {
+    return { ok: false, err: '截止时间过远（超过 90 天），预测周期过长，请调整' };
+  }
+
+  // 机读判定规范校验
+  //   - type=manual：事实型事件，无需数值条件，运营在截止后人工录入官方判定 + 铁证链接
+  //   - type=api/weather：数值型事件，必须带可执行的 condition
+  if (!spec || !spec.dataSource || !spec.dataSource.type) {
+    return { ok: false, err: '缺少 resolutionSpec（至少需要 dataSource.type）' };
+  }
+  if (spec.dataSource.type === 'manual') {
+    if (!spec.humanReadable) return { ok: false, err: 'manual 类型必须提供 humanReadable 判定说明' };
+  } else {
+    if (!spec.condition) return { ok: false, err: '缺少判定条件 condition' };
+    if (!OPERATORS.includes(spec.condition.operator)) return { ok: false, err: '判定运算符不支持' };
+    if (spec.condition.value === undefined || spec.condition.value === null) return { ok: false, err: '判定阈值缺失' };
+  }
+
+  // 硬性约束 2：先注册、后发题——api/weather 类型必须引用注册表中的数据源，
+  // 并提供可执行的 url / field / transform；判定说明中不得同时出现多个数据源名称
+  let knownSources = [];
+  try {
+    const dsRes = await db.collection('data_sources').limit(200).get();
+    knownSources = dsRes.data || [];
+  } catch (e) {
+    return { ok: false, err: '数据源注册表不可用，请先初始化 data_sources 集合' };
+  }
+  const sourceType = spec.dataSource.type;
+  const sourceName = String(spec.dataSource.name || spec.dataSource.provider || '').trim();
+  const sourceUrl = String(spec.dataSource.url || '').trim();
+  if (sourceType !== 'manual') {
+    const matched = knownSources.some(s =>
+      (sourceName && (s.name === sourceName || (s._id || s.id) === sourceName)) ||
+      (sourceUrl && s.url === sourceUrl)
+    );
+    if (!matched) {
+      return { ok: false, err: `数据源未注册：请先在数据源注册表登记「${sourceName || sourceUrl || sourceType}」` };
+    }
+    if (!sourceUrl) return { ok: false, err: 'api/weather 类型必须提供数据源 url' };
+    if (!String(spec.dataSource.field || '').trim()) return { ok: false, err: 'api/weather 类型必须提供取值字段 field' };
+    if (!TRANSFORMS.includes(spec.dataSource.transform)) return { ok: false, err: 'transform 仅支持 int / float / string' };
+  }
+  if (spec.humanReadable) {
+    const hr = String(spec.humanReadable);
+    const hitNames = knownSources.filter(s => s.name && hr.indexOf(s.name) >= 0).map(s => s.name);
+    if (hitNames.length > 1) {
+      return { ok: false, err: `判定说明出现多个数据源（${hitNames.join('、')}），只能指定一个结算源` };
+    }
+  }
+
+  if (spec.humanReadable) {
+    const hrPass = await securityCheck(String(spec.humanReadable).slice(0, 500));
+    if (!hrPass) return { ok: false, err: '判定说明包含敏感内容，请修改后发布' };
+  }
+  if (sourceOfTruth) {
+    const stPass = await securityCheck(sourceOfTruth.slice(0, 500));
+    if (!stPass) return { ok: false, err: '判定标准说明包含敏感内容，请修改后发布' };
+  }
+  const doc = {
+    category,
+    title,
+    sourceOfTruth: spec.humanReadable || sourceOfTruth,
+    deadline,
+    yesPool: 0,
+    noPool: 0,
+    status: 'open',
+    result: null,
+    evidenceUrl: '',
+    hasDispute: false,
+    disputeCount: 0,
+    resolutionSpec: spec,
+    resolutionMethod: '',
+    resolutionAttempts: 0,
+    needsManualReview: false,
+    createdAt: db.serverDate(),
+    updatedAt: db.serverDate()
+  };
+
+  const r = await db.collection('markets').add({ data: doc });
+  return { ok: true, marketId: r._id };
+};

@@ -1,0 +1,9 @@
+{
+  "triggers": [
+    {
+      "name": "dailyRankSnapshot",
+      "type": "timer",
+      "config": "0 55 23 * * * *"
+    }
+  ]
+}

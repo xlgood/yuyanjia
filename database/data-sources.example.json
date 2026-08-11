@@ -1,0 +1,102 @@
+[
+  {
+    "id": "SRC-WEATHER-CMA",
+    "name": "中国气象网实时天气",
+    "category": "趣味民生",
+    "type": "api",
+    "access": "free",
+    "url": "http://www.weather.com.cn/data/sk/101010100.html",
+    "notes": "免费公开接口，城市代码映射到南郊观象台等站点；判定时抓取整点实况并存证",
+    "status": "verified"
+  },
+  {
+    "id": "SRC-FX-PBOC",
+    "name": "中国人民银行人民币汇率中间价",
+    "category": "财经宏观",
+    "type": "api",
+    "access": "free",
+    "url": "https://www.pbc.gov.cn/rmyh/rmhq/index.html",
+    "notes": "官网公开数据，可抓取当日中间价；节假日停发需按日历处理",
+    "status": "verified"
+  },
+  {
+    "id": "SRC-STATS-NBS",
+    "name": "国家统计局数据发布",
+    "category": "财经宏观",
+    "type": "api",
+    "access": "free",
+    "url": "https://data.stats.gov.cn",
+    "notes": "CPI/PMI/社零等定期发布，发布日历固定；接口解析成本较高，可先人工录入+存证",
+    "status": "trial"
+  },
+  {
+    "id": "SRC-INDEX-QUOTE",
+    "name": "股票/基金指数行情",
+    "category": "财经宏观",
+    "type": "api",
+    "access": "paid",
+    "url": "",
+    "notes": "券商/行情数据商（如同花顺、东方财富、Wind）接口，需商务授权；一次接入覆盖全部指数",
+    "status": "pending"
+  },
+  {
+    "id": "SRC-SPORTS-FEED",
+    "name": "体育赛事数据商",
+    "category": "体育竞技/游戏电竞",
+    "type": "api",
+    "access": "paid",
+    "url": "",
+    "notes": "Sportradar / Opta / 国内数据商，一个供应商覆盖篮球足球电竞多个赛事；MVP 阶段可先人工+官方赛果链接",
+    "status": "pending"
+  },
+  {
+    "id": "SRC-MOVIE-BOXOFFICE",
+    "name": "猫眼/灯塔专业版票房",
+    "category": "影视娱乐",
+    "type": "api",
+    "access": "paid",
+    "url": "",
+    "notes": "无公开 API，需商务授权；未接入前用官方票房页截图+人工录入，走公示期",
+    "status": "pending"
+  },
+  {
+    "id": "SRC-DOUBAN-SCORE",
+    "name": "豆瓣评分页",
+    "category": "影视娱乐",
+    "type": "web",
+    "access": "free",
+    "url": "https://movie.douban.com",
+    "notes": "页面稳定但反爬较强；判定只需开分时点抓一次并截图存证，建议用托管抓取服务",
+    "status": "trial"
+  },
+  {
+    "id": "SRC-LAUNCH-PAGE",
+    "name": "品牌发布会/官网参数页",
+    "category": "科技数码",
+    "type": "web",
+    "access": "free",
+    "url": "",
+    "notes": "以发布会直播/官网页面为准；事实型事件，抓一次存证即可，也可人工录入+铁证链接",
+    "status": "verified"
+  },
+  {
+    "id": "SRC-EVENT-FACT",
+    "name": "官方公告/官宣（通用）",
+    "category": "全品类",
+    "type": "manual",
+    "access": "free",
+    "url": "",
+    "notes": "事实型事件通用通道：运营在截止后录入官方判定 + 官方链接/截图铁证，走 5 小时公示（跨夜顺延）与仲裁兜底",
+    "status": "verified"
+  },
+  {
+    "id": "SRC-SCRAPER-MANAGED",
+    "name": "托管抓取服务",
+    "category": "全品类",
+    "type": "scraper",
+    "access": "paid",
+    "url": "",
+    "notes": "ScrapingBee / Apify / 八爪鱼等，解决 IP 池、渲染、反爬；用于判定时的一次性取值+截图存证",
+    "status": "pending"
+  }
+]

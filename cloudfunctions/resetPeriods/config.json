@@ -1,0 +1,14 @@
+{
+  "triggers": [
+    {
+      "name": "weeklyReset",
+      "type": "timer",
+      "config": "0 0 0 * * MON *"
+    },
+    {
+      "name": "monthlyReset",
+      "type": "timer",
+      "config": "0 0 0 1 * * *"
+    }
+  ]
+}

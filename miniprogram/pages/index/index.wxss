@@ -1,0 +1,274 @@
+/* ---------- 顶部主视觉：朱砂渐变 + 鎏金描边 ---------- */
+.hero {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 40rpx 36rpx;
+  margin-bottom: 24rpx;
+  background: linear-gradient(150deg, #8e2a20 0%, #b83a2c 60%, #c94a38 100%);
+  color: #ffffff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 10rpx 28rpx rgba(158, 47, 34, 0.3);
+}
+
+/* 鎏金装饰圆环 */
+.hero::before {
+  content: '';
+  position: absolute;
+  right: -60rpx;
+  top: -80rpx;
+  width: 260rpx;
+  height: 260rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(224, 182, 79, 0.35);
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  right: 30rpx;
+  bottom: -100rpx;
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 50%;
+  background: rgba(224, 182, 79, 0.12);
+}
+
+.hero-title {
+  font-size: 44rpx;
+  font-weight: 800;
+  letter-spacing: 4rpx;
+  font-family: 'Songti SC', 'STSong', 'SimSun', serif;
+}
+
+.hero-sub {
+  font-size: 24rpx;
+  opacity: 0.85;
+  margin-top: 10rpx;
+  color: #f5dfae;
+  letter-spacing: 2rpx;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 24rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-stat {
+  text-align: center;
+  background: rgba(255, 251, 240, 0.14);
+  border: 1rpx solid rgba(224, 182, 79, 0.45);
+  border-radius: 16rpx;
+  padding: 12rpx 24rpx;
+}
+
+.hero-num {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #f8e3b0;
+}
+
+.hero-label {
+  font-size: 22rpx;
+  opacity: 0.85;
+  letter-spacing: 2rpx;
+}
+
+/* ---------- 邀请横幅：鎏金 ---------- */
+.invite-banner {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 28rpx;
+  margin-bottom: 24rpx;
+  background: linear-gradient(135deg, #faf0d7 0%, #f8edcf 100%);
+  border: 2rpx solid #e4c87a;
+  border-radius: 20rpx;
+}
+
+.invite-banner-left {
+  font-size: 44rpx;
+  margin-right: 18rpx;
+}
+
+.invite-banner-mid {
+  flex: 1;
+}
+
+.invite-banner-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #8c6a1c;
+}
+
+.invite-banner-sub {
+  font-size: 22rpx;
+  color: #a8801c;
+  margin-top: 4rpx;
+}
+
+.invite-banner-arrow {
+  color: #c9a227;
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+/* ---------- 分类签 ---------- */
+.cat-bar {
+  white-space: nowrap;
+  margin-bottom: 24rpx;
+}
+
+.cat-chip {
+  display: inline-block;
+  padding: 12rpx 32rpx;
+  margin-right: 16rpx;
+  background: #fffdf8;
+  border: 1rpx solid #ece2ce;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  color: #6f6552;
+}
+
+.cat-chip.active {
+  background: linear-gradient(135deg, #c94a38, #b03224);
+  border-color: #b03224;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4rpx 12rpx rgba(176, 50, 36, 0.28);
+}
+
+/* ---------- 预言卡 ---------- */
+.market-card {
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.market-card:active {
+  transform: scale(0.985);
+  transition: transform 0.1s;
+}
+
+.m-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14rpx;
+}
+
+.m-cat {
+  background: #faf0d7;
+  color: #8c6a1c;
+  font-size: 22rpx;
+  font-weight: 700;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid #ecd9a3;
+}
+
+.m-time {
+  font-size: 22rpx;
+  color: #a39a8b;
+}
+
+.m-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #2d2926;
+  line-height: 1.5;
+  margin-bottom: 22rpx;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.m-pool {
+  display: flex;
+  background: #faf6ec;
+  border: 1rpx solid #f0e7d2;
+  border-radius: 16rpx;
+  padding: 22rpx 0;
+}
+
+.m-pool-item {
+  flex: 1;
+  text-align: center;
+}
+
+.m-pool-divider {
+  width: 1rpx;
+  background: #e7dcc4;
+}
+
+.m-rate {
+  font-size: 34rpx;
+  font-weight: 800;
+}
+
+.m-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20rpx;
+}
+
+.m-total {
+  font-size: 22rpx;
+  color: #8b8172;
+}
+
+.m-go {
+  font-size: 24rpx;
+  color: #c03a2b;
+  font-weight: 600;
+}
+
+/* ---------- 骨架屏（国风 shimmer） ---------- */
+@keyframes sk-shimmer {
+  0% { background-position: -600rpx 0; }
+  100% { background-position: 600rpx 0; }
+}
+
+.skeleton-card {
+  padding: 28rpx;
+}
+
+.sk-line {
+  height: 26rpx;
+  border-radius: 8rpx;
+  background: linear-gradient(90deg, #efe6d3 25%, #faf3e3 50%, #efe6d3 75%);
+  background-size: 1200rpx 100%;
+  animation: sk-shimmer 1.4s infinite linear;
+  margin-bottom: 18rpx;
+}
+
+.sk-title {
+  width: 65%;
+  height: 34rpx;
+}
+
+.sk-mid {
+  width: 100%;
+}
+
+.sk-short {
+  width: 45%;
+  margin-bottom: 0;
+}
+
+/* ---------- 加载更多 / 底部安全区 ---------- */
+.list-more {
+  text-align: center;
+  color: #b7ad9c;
+  font-size: 22rpx;
+  padding: 24rpx 0 8rpx;
+}
+
+.safe-bottom {
+  height: calc(env(safe-area-inset-bottom) + 20rpx);
+}

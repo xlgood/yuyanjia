@@ -1,0 +1,9 @@
+{
+  "name": "myPks",
+  "version": "1.0.0",
+  "description": "我的 PK 记录",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

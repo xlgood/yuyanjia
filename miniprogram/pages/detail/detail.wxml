@@ -1,0 +1,246 @@
+<view class="container" wx:if="{{loading}}">
+  <view class="loading">加载中...</view>
+</view>
+
+<view class="container" wx:elif="{{market}}">
+  <view class="card main-card">
+    <view class="d-header">
+      <text class="d-cat">{{market.category}}</text>
+      <text class="d-time">⏳ {{market.deadlineText}}</text>
+      <button class="d-share-btn" open-type="share" data-channel="group">📣 分享</button>
+    </view>
+    <view class="d-title">{{market.title}}</view>
+
+    <view class="rule-box">
+      <view class="rule-title">📌 胜负判定标准</view>
+      <view class="rule-text">{{market.sourceOfTruth}}</view>
+    </view>
+
+    <view class="pool-box" wx:if="{{!compliance}}">
+      <view class="pool-total">
+        <text class="pool-total-label">当前总池（双方支持能量总和）</text>
+        <view class="pool-total-val">🪙 {{market.totalText}} <text class="pool-total-unit">能量</text></view>
+      </view>
+      <view class="rate-bar">
+        <view class="rate-bar-yes" style="width: {{market.yesRateNum}}%"></view>
+        <view class="rate-bar-no" style="width: {{market.noRateNum}}%"></view>
+      </view>
+      <view class="rate-legend">
+        <text class="green">👍 {{market.yesRate}}</text>
+        <text class="red">👎 {{market.noRate}}</text>
+      </view>
+      <view class="pool-participants">👥 {{participantCount}} 人参与表态</view>
+    </view>
+
+    <view class="result-box" wx:if="{{market.status === 'resolved'}}">
+      <view class="result-title">
+        {{market.result === 'YES' ? '👍 官方判定：看好成立' : '👎 官方判定：不看好成立'}}
+      </view>
+      <view class="result-sub">判定于 {{market.resolvedAtText}}，证据以判定标准中指定数据源为准。</view>
+      <view class="result-payout" wx:if="{{myBet}}">
+        {{myBet.status === 'won' ? '🎉 预言成功！瓜分获得 ' + myBet.payout + ' 能量' : myBet.status === 'lost' ? '本次预言未成功，能量已进入奖池' : myBet.status === 'refunded' ? '池数据异常，能量已原路退回' : ''}}
+      </view>
+    </view>
+
+    <view class="dispute-banner" wx:if="{{market.status === 'dispute_window' || market.status === 'arbitration_window'}}">
+      ⏳ 官方已录入判定结果（{{market.result === 'YES' ? '看好' : '不看好'}}），
+      {{market.status === 'arbitration_window' ? '正在仲裁公示期，社区投票决定是否推翻判定' : '正在判定公示期，可发起社区仲裁'}}。
+    </view>
+    <view class="dispute-banner" wx:if="{{market.status === 'locked'}}">
+      ⏸ 已停止表态，正在等待官方判定，请留意结果公布。
+    </view>
+  </view>
+
+  <!-- 审核模式：纯民意问卷 -->
+  <view class="card action-card" wx:if="{{compliance}}">
+    <view class="action-title">今日热点民意调查</view>
+    <view class="poll-tip">您的选择仅作为民意统计，不消耗任何能量，不影响任何奖励。</view>
+    <view class="choice-row">
+      <view
+        class="choice-btn poll {{pollChoice === 'YES' ? 'selected-yes' : ''}}"
+        data-choice="YES"
+        bindtap="onPollVote"
+      >👍 看好</view>
+      <view
+        class="choice-btn poll {{pollChoice === 'NO' ? 'selected-no' : ''}}"
+        data-choice="NO"
+        bindtap="onPollVote"
+      >👎 不看好</view>
+    </view>
+    <view class="poll-done" wx:if="{{pollChoice}}">
+      感谢参与！您已选择：{{pollChoice === 'YES' ? '看好' : '不看好'}}
+    </view>
+  </view>
+
+  <!-- 完整模式：能量表态 -->
+  <view class="card action-card" wx:elif="{{market.status === 'open' && !myBet}}">
+    <view class="action-title">您的判断是？</view>
+    <view class="choice-row">
+      <view
+        class="choice-btn {{selectedChoice === 'YES' ? 'selected-yes' : ''}}"
+        data-choice="YES"
+        bindtap="onSelectChoice"
+      >👍 看好</view>
+      <view
+        class="choice-btn {{selectedChoice === 'NO' ? 'selected-no' : ''}}"
+        data-choice="NO"
+        bindtap="onSelectChoice"
+      >👎 不看好</view>
+    </view>
+
+    <block wx:if="{{selectedChoice}}">
+      <view class="amount-tip">选择支持的能量值（多档可选）</view>
+      <view class="amount-grid">
+        <view
+          wx:for="{{presets}}"
+          wx:key="*this"
+          class="amount-btn {{selectedAmount === item && !customAmount ? 'active' : ''}}"
+          data-amount="{{item}}"
+          bindtap="onSelectAmount"
+        >{{item}}</view>
+      </view>
+      <view class="custom-row">
+        <text class="custom-label">自定义</text>
+        <input
+          class="custom-input"
+          type="number"
+          placeholder="输入任意能量值"
+          value="{{customAmount}}"
+          bindinput="onCustomAmount"
+        />
+      </view>
+      <view class="my-balance">我的能量：{{userPoints}}</view>
+      <button class="primary-btn confirm-btn" bindtap="onConfirmBet" disabled="{{submitting}}">
+        {{submitting ? '提交中...' : '确认支持 ' + (selectedAmount || 0) + ' 能量'}}
+      </button>
+      <button class="pk-btn" bindtap="onCreatePk" disabled="{{submitting}}">
+        <view class="pk-btn-title">⚔️ 发起 PK 挑战</view>
+        <view class="pk-btn-sub">邀请好友应战，双方立场相反</view>
+      </button>
+    </block>
+  </view>
+
+  <!-- 已锁定：等待判定 -->
+  <view class="card action-card" wx:elif="{{market.status === 'locked' && !myBet}}">
+    <view class="action-title">⏸ 已停止表态</view>
+    <view class="poll-tip">该事件已到截止时间，正在等待官方判定；结果确认并公示后将自动结算。</view>
+  </view>
+
+  <!-- 已表态状态 -->
+  <view class="card action-card voted-card" wx:elif="{{myBet}}">
+    <view class="voted-title">✅ 您已加入预言</view>
+    <view class="voted-line">
+      您支持了 <text class="{{myBet.choice === 'YES' ? 'green' : 'red'}}">{{myBet.choice === 'YES' ? '看好 (YES)' : '不看好 (NO)'}}</text>
+    </view>
+    <view class="voted-line">投入 {{myBet.amount}} 能量</view>
+    <view class="voted-wait" wx:if="{{market.status === 'open'}}">⏳ 池内数据在截止前仍会变动，请等待官方判定。</view>
+    <view class="voted-wait" wx:elif="{{market.status === 'locked'}}">⏸ 已停止表态，等待官方判定中。</view>
+    <view class="voted-payout" wx:if="{{myBet.status === 'won'}}">🎉 预言成功，瓜分获得 {{myBet.payout}} 能量！</view>
+    <view class="voted-payout lost" wx:if="{{myBet.status === 'lost'}}">本次预言未成功，投入能量已进入奖池。</view>
+    <view class="voted-payout" wx:if="{{myBet.status === 'refunded'}}">池数据异常，能量已原路退回。</view>
+  </view>
+
+  <!-- 仲裁入口 -->
+  <view class="card arbitration-card" wx:if="{{market.status === 'dispute_window' && myBet}}">
+    <view class="action-title">⚖️ 对判定结果有异议？</view>
+    <view class="arb-tip">
+      <block wx:if="{{participantCount < 10}}">该事件表态人数 {{participantCount}} 人，不足 10 人，暂不支持社区仲裁。</block>
+      <block wx:elif="{{activeArbitration}}">该事件已有进行中的仲裁，点击进入仲裁社区查看投票进展。</block>
+      <block wx:else>发起仲裁需锁定当前全部能量作为保证金，公示 24 小时由社区投票决定是否推翻判定。</block>
+    </view>
+    <button
+      class="primary-btn"
+      bindtap="onArbitrationAction"
+      disabled="{{!isMock && participantCount < 10}}"
+    >{{activeArbitration ? '查看仲裁进展' : '发起社区仲裁'}}</button>
+  </view>
+
+  <!-- 发起仲裁确认面板 -->
+  <view class="mask" wx:if="{{arbConfirmVisible}}" bindtap="onArbCancel">
+    <view class="modal arb-confirm" catchtap="noop">
+      <view class="modal-title">⚖️ 确认发起仲裁</view>
+      <view class="arb-confirm-tip">发起仲裁需将当前全部能量作为保证金锁定，公示期结束后按投票结果分配。</view>
+      <view class="arb-confirm-bond">
+        <view class="arb-bond-label">本次锁定保证金</view>
+        <view class="arb-bond-num">🪙 {{arbBond}} 能量（当前全部）</view>
+      </view>
+      <view class="arb-confirm-rule">
+        仲裁成立 → 判定翻转，投对票者瓜分对方保证金；<br/>
+        仲裁不成立 → 维持原判定，你的保证金归否决方。<br/>
+        公示期 24 小时，一旦发起不可撤回。
+      </view>
+      <view class="arb-reason-box">
+        <view class="arb-reason-label">仲裁理由（必填，10-200 字）</view>
+        <textarea
+          class="arb-reason-input"
+          placeholder="说明为什么认为当前判定有误（如：官方数据源口径、截止时点等）"
+          value="{{arbReason}}"
+          bindinput="onArbReasonInput"
+          maxlength="200"
+          auto-height
+        />
+      </view>
+      <view class="modal-btns">
+        <button class="modal-cancel" bindtap="onArbCancel">再想想</button>
+        <button class="modal-ok" bindtap="onArbConfirm" disabled="{{submitting}}">确认发起</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 能量不足引导面板 -->
+  <view class="mask" wx:if="{{insufficientVisible}}" bindtap="onCloseInsufficient">
+    <view class="modal insuff-confirm" catchtap="noop">
+      <view class="modal-title">🪙 能量不足</view>
+      <view class="insuff-tip">
+        本次表态需要 <text class="insuff-need">{{needAmount}}</text> 能量，
+        当前拥有 <text class="insuff-have">{{userPoints}}</text> 能量，还差 <text class="insuff-gap">{{needAmount - userPoints > 0 ? needAmount - userPoints : 0}}</text> 能量。
+      </view>
+      <view class="insuff-ways">
+        <view class="way-row">📅 每日签到，连续签到奖励递增</view>
+        <view class="way-row">📺 看视频领能量，每天最多 3 次</view>
+        <view class="way-row">🛟 能量归零时还可领取破产补助</view>
+      </view>
+      <view class="modal-btns">
+        <button class="modal-cancel" bindtap="onCloseInsufficient">暂不表态</button>
+        <button class="modal-ok" bindtap="goTaskCenter">去任务中心获取</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="card arbitration-card" wx:if="{{market.status === 'arbitration_window'}}">
+    <view class="action-title">⚖️ 仲裁进行中</view>
+    <view class="arb-tip">社区正在投票决定是否推翻当前判定（{{activeArbitration ? activeArbitration.supportVotes : 0}} 支持 / {{activeArbitration ? activeArbitration.opposeVotes : 0}} 否决）。</view>
+    <button class="primary-btn" bindtap="goArbitration">进入仲裁社区</button>
+  </view>
+
+  <view class="card arbitration-card" wx:if="{{market.status === 'dispute_window' && arbitration && arbitration.status === 'settled'}}">
+    <view class="action-title">⚖️ 仲裁已结束</view>
+    <view class="arb-tip">
+      {{arbitration.winner === 'support' ? '仲裁成立，判定已翻转为' + (market.result === 'YES' ? '不看好' : '看好') : '仲裁未成立，维持原判定'}}
+    </view>
+    <button class="primary-btn" bindtap="goArbitration">查看仲裁详情</button>
+  </view>
+
+  <!-- 本地 mock 模式专属：开发者模拟结算面板 -->
+  <view class="dev-card" wx:if="{{isMock && !compliance}}">
+    <view class="dev-title">🛠️ 开发者模拟结算（本地测试）</view>
+    <view wx:if="{{market.status === 'open'}}">
+      <view class="dev-row">
+        <button class="dev-btn yes" data-result="YES" bindtap="onDevResolve">模拟判定 YES（进公示期）</button>
+        <button class="dev-btn no" data-result="NO" bindtap="onDevResolve">模拟判定 NO（进公示期）</button>
+      </view>
+    </view>
+    <view wx:elif="{{market.status === 'dispute_window'}}">
+      <button class="dev-btn" bindtap="onDevSettle">模拟结算（瓜分）</button>
+      <button class="dev-btn" bindtap="onDevForceSettle">强制结算（跳过公示/仲裁）</button>
+    </view>
+    <view class="dev-tip">此面板仅在使用本地模拟数据时显示；接入云开发后，判定与结算由管理员后台操作。</view>
+  </view>
+</view>
+
+<view class="container" wx:else>
+  <view class="empty">
+    <view class="empty-icon">🔍</view>
+    <view>预言不存在或已被移除</view>
+  </view>
+</view>

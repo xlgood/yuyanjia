@@ -1,0 +1,9 @@
+{
+  "name": "togglePkOpen",
+  "version": "1.0.0",
+  "description": "PK 开关切换",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

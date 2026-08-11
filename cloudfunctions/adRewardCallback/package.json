@@ -1,0 +1,9 @@
+{
+  "name": "adRewardCallback",
+  "version": "1.0.0",
+  "description": "激励视频广告服务端奖励回调（验签/解密/原子发放）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

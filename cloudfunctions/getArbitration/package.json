@@ -1,0 +1,9 @@
+{
+  "name": "getArbitration",
+  "version": "1.0.0",
+  "description": "查询仲裁详情",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "dataSource": {
+    "type": "weather",
+    "provider": "中国气象网",
+    "url": "http://www.weather.com.cn/data/sk/101010100.html",
+    "field": "weatherinfo.temp",
+    "transform": "int"
+  },
+  "condition": {
+    "operator": ">=",
+    "value": 35,
+    "unit": "℃"
+  },
+  "binaryRule": {
+    "missingData": "refund",
+    "tie": "NO"
+  },
+  "evidence": {
+    "saveRawResponse": true,
+    "saveScreenshot": false
+  },
+  "humanReadable": "根据中国气象网官方实况，判定时刻北京南郊观象台整点气温 ≥ 35.0℃ 则“预言成功”，否则“预言未成功”；数据缺失时能量原路退回。"
+}

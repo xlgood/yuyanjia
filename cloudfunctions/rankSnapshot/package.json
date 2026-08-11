@@ -1,0 +1,9 @@
+{
+  "name": "rankSnapshot",
+  "version": "1.0.0",
+  "description": "榜单每日快照",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

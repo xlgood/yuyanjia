@@ -1,0 +1,90 @@
+<view class="container">
+  <view class="tab-bar">
+    <view class="tab-item {{tab === 'inbox' ? 'active' : ''}}" data-tab="inbox" bindtap="onSwitchTab">
+      收到的挑战
+      <text class="tab-badge" wx:if="{{inbox.length}}">{{inbox.length}}</text>
+    </view>
+    <view class="tab-item {{tab === 'mine' ? 'active' : ''}}" data-tab="mine" bindtap="onSwitchTab">我的 PK</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <block wx:elif="{{tab === 'inbox'}}">
+    <!-- 收到的挑战 -->
+    <view class="empty" wx:if="{{inbox.length === 0}}">
+      <view class="empty-icon">🛡️</view>
+      <view>暂无收到的挑战</view>
+      <view class="empty-sub">去预言详情页发起挑战，或分享 PK 中心邀请好友来战</view>
+    </view>
+    <view
+      class="card pk-card {{highlightPk === item._id ? 'highlight' : ''}}"
+      wx:for="{{inbox}}"
+      wx:key="_id"
+    >
+      <view class="pk-head">
+        <view class="pk-vs">
+          <view class="pk-user">
+            <view class="pk-avatar">{{item.challenger.avatar || '🔮'}}</view>
+            <view class="pk-name">{{item.challenger.nickname}}</view>
+          </view>
+          <view class="pk-vs-text">VS</view>
+          <view class="pk-user">
+            <view class="pk-avatar">你</view>
+            <view class="pk-name">我</view>
+          </view>
+        </view>
+        <view class="pk-expires">⏳ {{item.expiresInText}}后失效</view>
+      </view>
+      <view class="pk-market" data-id="{{item.marketId}}" bindtap="goMarket">{{item.marketTitle}}</view>
+      <view class="pk-stance">
+        <view class="stance-chip {{item.challenger.choice === 'YES' ? 'yes' : 'no'}}">{{item.challenger.choice === 'YES' ? '👍 看好' : '👎 不看好'}}</view>
+        <text class="stance-amount">{{item.challenger.amount}} 能量</text>
+        <text class="stance-reverse">你将锁定反向立场</text>
+      </view>
+      <view class="pk-actions">
+        <button class="pk-btn decline" data-id="{{item._id}}" bindtap="onDecline" disabled="{{processingId === item._id}}">拒绝</button>
+        <button class="pk-btn accept" data-id="{{item._id}}" bindtap="onAccept" disabled="{{processingId === item._id}}">接受挑战</button>
+      </view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <!-- 我的 PK 记录 -->
+    <view class="empty" wx:if="{{list.length === 0}}">
+      <view class="empty-icon">⚔️</view>
+      <view>还没有 PK 记录</view>
+    </view>
+    <view class="card pk-card" wx:for="{{list}}" wx:key="_id">
+      <view class="pk-head">
+        <view class="pk-vs">
+          <view class="pk-user">
+            <view class="pk-avatar">{{item.myAvatar}}</view>
+            <view class="pk-name">我</view>
+          </view>
+          <view class="pk-vs-text">VS</view>
+          <view class="pk-user">
+            <view class="pk-avatar">{{item.theirAvatar}}</view>
+            <view class="pk-name">{{item.theirName}}</view>
+          </view>
+        </view>
+        <view class="pk-status {{item.status}}">{{item.statusText}}</view>
+      </view>
+      <view class="pk-market" data-id="{{item.marketId}}" bindtap="goMarket">{{item.marketTitle}}</view>
+      <view class="pk-stance">
+        <text class="stance-amount">我：{{item.myChoiceText || '--'}} / {{item.myAmount}} 能量</text>
+        <text class="stance-amount" wx:if="{{item.theirChoiceText}}">对方：{{item.theirChoiceText}} / {{item.theirAmount || ''}} 能量</text>
+      </view>
+      <view class="pk-result" wx:if="{{item.resultText}}">{{item.resultText}}</view>
+    </view>
+    <view class="load-more" wx:if="{{hasMore}}" bindtap="loadMore">{{loadingMore ? '加载中...' : '加载更多（已显示 ' + list.length + ' / ' + total + ' 条）'}}</view>
+    <view class="list-end" wx:if="{{!hasMore && total > 0}}">— 已加载全部 {{total}} 条 PK 记录 —</view>
+  </block>
+
+  <view class="card dev-card" wx:if="{{isMock}}">
+    <view class="dev-title">🛠️ 开发者模拟（本地测试）</view>
+    <view class="dev-tip">模拟好友向你发起 PK，验证应战/拒绝流程。</view>
+    <button class="dev-btn" bindtap="onSimulateChallenge">模拟好友发起挑战</button>
+  </view>
+
+  <view class="footnote">PK 双方必须持相反立场，判定与结算沿用预言事件规则。能量为虚拟积分，不可兑换现金或实物。</view>
+</view>

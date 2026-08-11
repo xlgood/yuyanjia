@@ -1,0 +1,9 @@
+{
+  "name": "aiSuggestTopics",
+  "version": "1.0.0",
+  "description": "AI 选题助手（DeepSeek）：生成候选预测事件清单，运营勾选后发题",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

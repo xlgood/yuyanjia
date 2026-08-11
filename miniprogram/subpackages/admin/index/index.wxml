@@ -1,0 +1,60 @@
+<view class="container">
+  <view class="hero card">
+    <view class="hero-title">🛠️ 运营后台</view>
+    <view class="hero-sub">先注册数据源，再发题；自动判定失败进入复核队列</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <block wx:else>
+    <view class="menu card" bindtap="goSources">
+      <view class="menu-icon">🗂️</view>
+      <view class="menu-info">
+        <view class="menu-title">数据源注册表</view>
+        <view class="menu-desc">添加 / 冻结数据源，先注册后发题</view>
+      </view>
+      <view class="menu-badge">{{sourceCount}}</view>
+    </view>
+
+    <view class="menu card" bindtap="goPublish">
+      <view class="menu-icon">📢</view>
+      <view class="menu-info">
+        <view class="menu-title">发布新预言</view>
+        <view class="menu-desc">选择数据源，自动生成判定规范</view>
+      </view>
+      <view class="menu-arrow">›</view>
+    </view>
+
+    <view class="menu card" bindtap="goReview">
+      <view class="menu-icon">🔍</view>
+      <view class="menu-info">
+        <view class="menu-title">待判定 / 复核队列</view>
+        <view class="menu-desc">人工判定到期、自动判定失败与公示期合约</view>
+      </view>
+      <view class="menu-badge warn" wx:if="{{pendingCount > 0}}">{{pendingCount}}</view>
+      <view class="menu-badge urgent" wx:if="{{urgentCount > 0}}">{{urgentCount}} 紧急</view>
+      <view class="menu-arrow" wx:else>›</view>
+    </view>
+
+    <view class="menu card" bindtap="goDashboard">
+      <view class="menu-icon">📊</view>
+      <view class="menu-info">
+        <view class="menu-title">运营看板</view>
+        <view class="menu-desc">发题趋势、判定成功率、待处理概览</view>
+      </view>
+      <view class="menu-arrow">›</view>
+    </view>
+
+    <!-- AI 选题助手已按运营策略隐藏（人工选题 + AI 起草判定条件），如需恢复取消注释即可 -->
+    <!-- <view class="menu card" bindtap="goSuggest">
+      <view class="menu-icon">🤖</view>
+      <view class="menu-info">
+        <view class="menu-title">AI 选题助手</view>
+        <view class="menu-desc">输入需求，AI 生成候选事件清单</view>
+      </view>
+      <view class="menu-arrow">›</view>
+    </view> -->
+  </block>
+
+  <view class="footnote">本页面仅管理员可见；数据源与判定操作均有云函数权限校验，修改后请核对公示期与结算状态。</view>
+</view>

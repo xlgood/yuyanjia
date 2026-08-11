@@ -1,0 +1,9 @@
+{
+  "name": "respondPk",
+  "version": "1.0.0",
+  "description": "接受/拒绝 PK",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

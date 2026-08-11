@@ -1,0 +1,9 @@
+{
+  "name": "getMarketDetail",
+  "version": "1.0.0",
+  "description": "获取预言详情与我的表态/申诉",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

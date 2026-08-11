@@ -1,0 +1,9 @@
+{
+  "name": "voteArbitration",
+  "version": "1.0.0",
+  "description": "仲裁投票",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

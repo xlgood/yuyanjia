@@ -1,0 +1,9 @@
+{
+  "name": "aiDraftSpec",
+  "version": "1.0.0",
+  "description": "AI 起草判定条件（DeepSeek）：把事件描述改写成机读 resolutionSpec 草稿",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

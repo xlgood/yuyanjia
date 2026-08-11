@@ -1,0 +1,211 @@
+// =========================================================
+// AI 起草判定条件（DeepSeek）
+// 输入：事件标题 + 分类 + 截止时间 + 数据源注册表
+// 输出：resolutionSpec 草稿（AI 只起草规则，最终由运营确认后发布，
+//       判定执行仍由 resolver 规则引擎 + 公示期兜底，AI 不参与裁决）
+// =========================================================
+const cloud = require('wx-server-sdk');
+const https = require('https');
+
+// TODO: 部署前配置（二选一）
+// 1) 直接在此处填写：const DEEPSEEK_API_KEY = 'sk-xxxx';
+// 2) 在云函数「配置 → 环境变量」中添加 DEEPSEEK_API_KEY
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
+const DEEPSEEK_BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com';
+const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
+
+// 管理员 openid（部署时在云函数环境变量配置 ADMIN_OPENIDS，逗号分隔；空 = 仅 Mock 可进后台）
+const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
+
+const OPERATORS = ['>=', '>', '<=', '<', '==', '!=', 'contains', 'in'];
+const TRANSFORMS = ['int', 'float', 'string'];
+// 本地兜底词表：msgSecCheck 不可用（云调用未开通/异常）时降级使用，避免 fail-open
+const LOCAL_SENSITIVE_WORDS = [
+  '选举', '大选', '总统', '议会', '国会', '审判', '开庭', '判决', '起诉', '立案', '庭审',
+  '游行', '抗议', '罢工', '骚乱', '示威', '聚集', '疫情', '封控', '确诊', '公共卫生事件',
+  '赌博', '博彩', '下注', '投注', '赔率', '毒品', '冰毒', '海洛因', '枪支', '恐怖袭击',
+  '台独', '港独', '藏独', '疆独', '法轮功', '颠覆', '暴动', '政变', '裸聊', '援交', '色情'
+];
+
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+
+// 微信官方内容安全（AI 判定草稿在展示给运营前先过检）；未开通云调用时回退本地词表
+async function securityCheck(content) {
+  if (!content) return true;
+  try {
+    const r = await cloud.openapi.security.msgSecCheck({ content });
+    const suggest = r && r.result && r.result.suggest;
+    return suggest === 'pass' || !suggest;
+  } catch (e) {
+    const lower = String(content).toLowerCase();
+    return !LOCAL_SENSITIVE_WORDS.some(w => lower.indexOf(w.toLowerCase()) >= 0);
+  }
+}
+
+function postJson(url, payload, apiKey) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const body = JSON.stringify(payload);
+    const req = https.request({
+      hostname: u.hostname,
+      path: u.pathname,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey,
+        'Content-Length': Buffer.byteLength(body)
+      },
+      timeout: 30000
+    }, res => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          reject(new Error('AI 响应解析失败: ' + String(data).slice(0, 200)));
+        }
+      });
+    });
+    req.on('timeout', () => req.destroy(new Error('AI 请求超时')));
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+function extractJson(text) {
+  let t = String(text || '').trim();
+  t = t.replace(/```json/gi, '').replace(/```/g, '').trim();
+  const start = t.indexOf('{');
+  const end = t.lastIndexOf('}');
+  if (start < 0 || end <= start) return null;
+  try {
+    return JSON.parse(t.slice(start, end + 1));
+  } catch (e) {
+    return null;
+  }
+}
+
+exports.main = async (event) => {
+  const { OPENID } = cloud.getWXContext();
+  if (!ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
+
+  const title = String(event.title || '').trim();
+  const category = String(event.category || '');
+  const deadlineText = String(event.deadlineText || '');
+  const sources = Array.isArray(event.sources) ? event.sources.slice(0, 30) : [];
+
+  if (title.length < 10) return { ok: false, err: '事件标题过短，无法起草' };
+  if (!DEEPSEEK_API_KEY) {
+    return { ok: false, err: '尚未配置 DeepSeek API Key：请在 aiDraftSpec 云函数中配置环境变量 DEEPSEEK_API_KEY' };
+  }
+
+  const sourceList = sources.map(s => ({
+    name: String(s.name || '').slice(0, 60),
+    type: String(s.type || ''),
+    url: String(s.url || '').slice(0, 200),
+    category: String(s.category || ''),
+    notes: String(s.notes || '').slice(0, 100)
+  }));
+
+  const systemPrompt = '你是预测市场「预言大师」的判定条件起草助手。你的职责是把事件改写成严格二值化（YES/NO）、机器可执行的判定条件（resolutionSpec）。你只起草规则，不裁决结果。';
+  const userPrompt = `请为以下预测事件起草判定条件。
+
+事件描述：${title}
+分类：${category || '未指定'}
+判定时点（截止）：${deadlineText || '未指定'}
+
+可选数据源（只能从其中选择 provider，禁止编造数据源）：
+${JSON.stringify(sourceList)}
+
+输出要求：只输出一个 JSON 对象（不要 markdown 代码块、不要多余文字）：
+{
+  "mode": "numeric" 或 "manual",
+  "provider": "数据源名称（numeric 时必须是上面列表中的 name）",
+  "field": "JSON 点分取值路径（numeric 时填写，如 weatherinfo.temp）",
+  "transform": "int|float|string",
+  "operator": ">=|>|<=|<|==|!=|contains|in",
+  "value": 阈值（数值或字符串，contains/in 时可为字符串或数组）,
+  "unit": "单位，如 ℃/元/分",
+  "humanReadable": "给用户看的判定说明（中文，必须包含：数据源、判定时点、比较规则、缺失数据处理），与上述字段严格一致"
+}
+
+硬性规则：
+1. 优先 numeric（有可机读数据源时）；只有无法机读时才选 manual；
+2. 边界规则固定为：数据缺失时能量原路退回；临界值按条件严格比较，平局判 NO；
+3. humanReadable 用合规词汇（支持率/预言成功，禁用下注/赔率/庄家）；
+4. 【单一结算源】provider 只能唯一指定一个官方数据源（必须来自上面列表），humanReadable 中只允许出现这一个结算源，禁止“以 A 为准、B 做参考”的多源表述；
+5. 【物理截止】humanReadable 必须包含明确的判定时点（截止时间），并注明“截止时点之后产生的任何信息不作为判定证据”；
+6. 【二元性】判定条件必须保证结果严格二值（成立/不成立），不存在第三种结果；若事件可能取消/延期，写明“数据缺失或事件未发生时能量原路退回”；
+7. 【敏感红线】若事件属于政治选举、社会争议、司法案件、公共卫生突发事件等敏感话题，直接返回 {"mode":"manual","provider":"","humanReadable":"事件涉及敏感红线，禁止发布"}。`;
+
+  let resp;
+  try {
+    resp = await postJson(
+      DEEPSEEK_BASE_URL.replace(/\/$/, '') + '/chat/completions',
+      {
+        model: DEEPSEEK_MODEL,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.2,
+        response_format: { type: 'json_object' }
+      },
+      DEEPSEEK_API_KEY
+    );
+  } catch (e) {
+    return { ok: false, err: 'AI 调用失败：' + (e.message || '未知错误') };
+  }
+
+  const content = resp && resp.choices && resp.choices[0] && resp.choices[0].message && resp.choices[0].message.content;
+  const parsed = extractJson(content);
+  if (!parsed) {
+    return { ok: false, err: 'AI 未返回有效 JSON，请重试' };
+  }
+
+  if (parsed.mode === 'manual') {
+    const humanReadable = String(parsed.humanReadable || '').trim();
+    if (humanReadable.length < 10) return { ok: false, err: 'AI 未返回有效的判定说明，请重试' };
+    const hrPass = await securityCheck(humanReadable.slice(0, 500));
+    if (!hrPass) return { ok: false, err: 'AI 生成的判定说明包含敏感内容，请重试或改用手动填写' };
+    return {
+      ok: true,
+      spec: {
+        mode: 'manual',
+        provider: String(parsed.provider || '官方公告').slice(0, 60),
+        humanReadable
+      }
+    };
+  }
+
+  // numeric 模式校验
+  const provider = String(parsed.provider || '').trim();
+  const field = String(parsed.field || '').trim();
+  if (!provider || !field) return { ok: false, err: 'AI 返回的数据源或字段为空，请重试' };
+  if (!sources.some(s => String(s.name || '') === provider)) {
+    return { ok: false, err: `AI 引用了未注册数据源「${provider}」，请重试或改用手动填写` };
+  }
+  if (!OPERATORS.includes(parsed.operator)) return { ok: false, err: 'AI 返回了不支持的比较符，请重试' };
+  const transform = TRANSFORMS.includes(parsed.transform) ? parsed.transform : 'int';
+  const value = transform === 'string' ? String(parsed.value) : Number(parsed.value);
+  if (value === '' || (transform !== 'string' && isNaN(value))) return { ok: false, err: 'AI 返回的阈值无效，请重试' };
+
+  const hrCheck = await securityCheck(String(parsed.humanReadable || '').slice(0, 500));
+  if (!hrCheck) return { ok: false, err: 'AI 生成的判定说明包含敏感内容，请重试或改用手动填写' };
+
+  return {
+    ok: true,
+    spec: {
+      mode: 'numeric',
+      provider,
+      field,
+      transform,
+      operator: parsed.operator,
+      value,
+      unit: String(parsed.unit || '').slice(0, 20),
+      humanReadable: String(parsed.humanReadable || '').slice(0, 300)
+    }
+  };
+};

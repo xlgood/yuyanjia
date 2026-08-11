@@ -1,0 +1,9 @@
+{
+  "triggers": [
+    {
+      "name": "autoSettleArbitrationEvery5Min",
+      "type": "timer",
+      "config": "0 */5 * * * * *"
+    }
+  ]
+}

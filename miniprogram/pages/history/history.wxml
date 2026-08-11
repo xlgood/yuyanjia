@@ -1,0 +1,32 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <view wx:elif="{{list.length === 0}}" class="empty">
+    <view class="empty-icon">📜</view>
+    <view>还没有预言记录，去首页开启你的第一卦吧</view>
+  </view>
+
+  <view wx:else>
+    <view
+      class="record card"
+      wx:for="{{list}}"
+      wx:key="_id"
+      data-id="{{item.marketId}}"
+      bindtap="onTapItem"
+    >
+      <view class="r-top">
+        <text class="r-cat">{{item.marketCategory}}</text>
+        <text class="r-status {{item.status === 'won' ? 'ok' : item.status === 'lost' ? 'bad' : ''}}">{{item.statusText}}</text>
+      </view>
+      <view class="r-title">{{item.marketTitle}}</view>
+      <view class="r-bottom">
+        <text class="r-choice {{item.choiceClass}}">{{item.choiceText}}</text>
+        <text class="r-meta">{{item.amount}} 能量 · {{item.createdAtText}}</text>
+      </view>
+      <view class="r-payout" wx:if="{{item.status === 'won'}}">+{{item.payout}} 能量</view>
+      <view class="r-payout bad" wx:if="{{item.status === 'lost'}}">-{{item.amount}} 能量</view>
+    </view>
+    <view class="load-more" wx:if="{{hasMore}}" bindtap="loadMore">{{loadingMore ? '加载中...' : '加载更多（已显示 ' + list.length + ' / ' + total + ' 条）'}}</view>
+    <view class="list-end" wx:if="{{!hasMore && total > 0}}">— 已加载全部 {{total}} 条记录 —</view>
+  </view>
+</view>

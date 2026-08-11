@@ -1,0 +1,39 @@
+<view class="container">
+  <view class="tab-bar card">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="tab-btn {{activeTab === item.key ? 'active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onSwitchTab"
+    >{{item.label}}</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <view wx:elif="{{list.length === 0}}" class="empty">
+    <view class="empty-icon">🏆</view>
+    <view wx:if="{{!isPk}}">榜单建设中，快来抢占第一名！</view>
+    <view wx:else>暂无 PK 战绩，快去发起第一场挑战吧！</view>
+  </view>
+
+  <view wx:else>
+    <view class="rank-row {{item.isMe ? 'me' : ''}}" wx:for="{{list}}" wx:key="rank">
+      <text class="medal">{{item.medal}}</text>
+      <view class="rank-info">
+        <view class="rank-name">{{item.nickname}} <text wx:if="{{item.isMe}}" class="me-tag">我</text></view>
+        <view class="rank-sub" wx:if="{{!isPk}}">排名 {{item.rank}}</view>
+        <view class="rank-sub" wx:else>{{item.sub}}</view>
+        <view class="rank-sub gap-tip" wx:if="{{item.isMe && item.gapToNext > 0}}">距上一名还差 {{item.gapToNext}} {{isPk ? '个百分点' : item.unit}}</view>
+      </view>
+      <view class="trend {{item.trend}}" wx:if="{{item.trend}}">
+        <text wx:if="{{item.trend === 'up'}}">↑</text>
+        <text wx:elif="{{item.trend === 'down'}}">↓</text>
+        <text wx:elif="{{item.trend === 'same'}}">=</text>
+        <text wx:else>NEW</text>
+      </view>
+      <view class="rank-val">{{item.value}} <text class="rank-unit">{{item.unit}}</text></view>
+    </view>
+    <view class="more-btn" bindtap="onLoadMore" wx:if="{{!isPk && total > limit}}">加载更多（已显示 {{limit}} / {{total}}）</view>
+  </view>
+</view>

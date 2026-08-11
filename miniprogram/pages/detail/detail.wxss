@@ -1,0 +1,518 @@
+.main-card {
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+}
+
+.d-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.d-cat {
+  background: #faf0d7;
+  color: #8c6a1c;
+  font-size: 22rpx;
+  font-weight: 700;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid #ecd9a3;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.d-time {
+  font-size: 22rpx;
+  color: #a39a8b;
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 12rpx;
+}
+
+.d-title {
+  font-size: 34rpx;
+  font-weight: 800;
+  color: #2d2926;
+  line-height: 1.55;
+  margin-bottom: 24rpx;
+}
+
+.rule-box {
+  background: #faf6ec;
+  border: 1rpx solid #f0e7d2;
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.rule-title {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #6f6552;
+  margin-bottom: 8rpx;
+}
+
+.rule-text {
+  font-size: 24rpx;
+  color: #8b8172;
+  line-height: 1.7;
+}
+
+/* ---------- 奖池 ---------- */
+.pool-box {
+  background: linear-gradient(160deg, #fdf8ec 0%, #faf0d7 100%);
+  border: 1rpx solid #ecd9a3;
+  border-radius: 18rpx;
+  padding: 26rpx;
+  margin-bottom: 24rpx;
+}
+
+.pool-total {
+  text-align: center;
+  margin-bottom: 24rpx;
+}
+
+.pool-total-label {
+  font-size: 22rpx;
+  color: #a8801c;
+}
+
+.pool-total-val {
+  font-size: 48rpx;
+  font-weight: 900;
+  color: #8c6a1c;
+  margin-top: 6rpx;
+}
+
+.pool-total-unit {
+  font-size: 22rpx;
+  font-weight: 400;
+  color: #b7a06a;
+}
+
+.rate-bar {
+  display: flex;
+  height: 16rpx;
+  background: #e7dcc4;
+  border-radius: 999rpx;
+  overflow: hidden;
+  margin-bottom: 12rpx;
+}
+
+.rate-bar-yes {
+  height: 100%;
+  background: linear-gradient(90deg, #d95a47, #c03a2b);
+}
+
+.rate-bar-no {
+  height: 100%;
+  background: linear-gradient(90deg, #3d9470, #2e7d5b);
+}
+
+.rate-legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 22rpx;
+  font-weight: 700;
+  margin-bottom: 20rpx;
+}
+
+.pool-participants {
+  text-align: center;
+  font-size: 22rpx;
+  color: #8b8172;
+  margin-top: -8rpx;
+  margin-bottom: 4rpx;
+}
+
+/* ---------- 仲裁 ---------- */
+.arbitration-card {
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+}
+
+.arbitration-card .primary-btn {
+  margin-top: 18rpx;
+}
+
+.arb-tip {
+  font-size: 24rpx;
+  color: #8b8172;
+  line-height: 1.7;
+}
+
+.arb-confirm-tip {
+  font-size: 25rpx;
+  color: #6f6552;
+  line-height: 1.7;
+  margin-bottom: 22rpx;
+}
+
+.arb-confirm-bond {
+  background: #faf0d7;
+  border: 2rpx solid #e4c87a;
+  border-radius: 16rpx;
+  padding: 22rpx 26rpx;
+  margin-bottom: 22rpx;
+}
+
+.arb-bond-label {
+  font-size: 23rpx;
+  color: #a8801c;
+}
+
+.arb-bond-num {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #8c6a1c;
+  margin-top: 8rpx;
+}
+
+.arb-confirm-rule {
+  font-size: 23rpx;
+  color: #8b8172;
+  line-height: 1.8;
+  margin-bottom: 26rpx;
+}
+
+.arb-reason-box {
+  margin-bottom: 8rpx;
+}
+
+.arb-reason-label {
+  font-size: 23rpx;
+  color: #6f6552;
+  font-weight: 600;
+  margin-bottom: 10rpx;
+}
+
+.arb-reason-input {
+  width: 100%;
+  min-height: 120rpx;
+  max-height: 260rpx;
+  background: #faf6ec;
+  border: 2rpx solid #e7dcc4;
+  border-radius: 14rpx;
+  padding: 16rpx 18rpx;
+  font-size: 25rpx;
+  box-sizing: border-box;
+}
+
+/* ---------- 能量不足面板 ---------- */
+.insuff-tip {
+  font-size: 26rpx;
+  color: #6f6552;
+  line-height: 1.7;
+  margin-bottom: 20rpx;
+}
+
+.insuff-need {
+  color: #c03a2b;
+  font-weight: 800;
+}
+
+.insuff-have {
+  color: #2e7d5b;
+  font-weight: 800;
+}
+
+.insuff-gap {
+  color: #c03a2b;
+  font-weight: 800;
+}
+
+.insuff-ways {
+  background: #faf6ec;
+  border-radius: 14rpx;
+  padding: 18rpx 22rpx;
+  margin-bottom: 10rpx;
+}
+
+.way-row {
+  font-size: 24rpx;
+  color: #8b8172;
+  line-height: 1.9;
+}
+
+/* ---------- 判定结果 ---------- */
+.result-box {
+  background: #fdf2f0;
+  border: 1rpx solid #eec5bd;
+  border-radius: 18rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.result-title {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #9c2f22;
+}
+
+.result-sub {
+  font-size: 24rpx;
+  color: #8b8172;
+  margin-top: 8rpx;
+}
+
+.result-payout {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #c03a2b;
+  margin-top: 16rpx;
+}
+
+.dispute-banner {
+  background: #faf0d7;
+  border: 1rpx solid #e4c87a;
+  color: #8c6a1c;
+  font-size: 24rpx;
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+  line-height: 1.6;
+}
+
+/* ---------- 表态操作 ---------- */
+.action-card {
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+}
+
+.action-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #2d2926;
+  margin-bottom: 20rpx;
+}
+
+.poll-tip {
+  font-size: 24rpx;
+  color: #a39a8b;
+  margin-bottom: 20rpx;
+}
+
+.choice-row {
+  display: flex;
+  gap: 20rpx;
+}
+
+.choice-btn {
+  flex: 1;
+  text-align: center;
+  padding: 28rpx 0;
+  border-radius: 18rpx;
+  font-size: 30rpx;
+  font-weight: 800;
+  border: 2rpx solid #e7dcc4;
+  color: #6f6552;
+  background: #fffdf8;
+}
+
+.choice-btn.selected-yes {
+  background: linear-gradient(135deg, #d95a47, #c03a2b);
+  border-color: #c03a2b;
+  color: #ffffff;
+  box-shadow: 0 6rpx 16rpx rgba(192, 58, 43, 0.3);
+}
+
+.choice-btn.selected-no {
+  background: linear-gradient(135deg, #3d9470, #2e7d5b);
+  border-color: #2e7d5b;
+  color: #ffffff;
+  box-shadow: 0 6rpx 16rpx rgba(46, 125, 91, 0.3);
+}
+
+.poll-done {
+  margin-top: 20rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #c03a2b;
+  font-weight: 600;
+}
+
+.amount-tip {
+  font-size: 24rpx;
+  color: #8b8172;
+  margin: 26rpx 0 16rpx;
+}
+
+.amount-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16rpx;
+}
+
+.amount-btn {
+  text-align: center;
+  padding: 20rpx 0;
+  background: #faf6ec;
+  border: 1rpx solid #e7dcc4;
+  color: #6f6552;
+  border-radius: 14rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.amount-btn.active {
+  background: linear-gradient(135deg, #c94a38, #b03224);
+  border-color: #b03224;
+  color: #ffffff;
+  box-shadow: 0 4rpx 12rpx rgba(176, 50, 36, 0.28);
+}
+
+.custom-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.custom-label {
+  font-size: 24rpx;
+  color: #8b8172;
+}
+
+.custom-input {
+  flex: 1;
+  background: #faf6ec;
+  border: 1rpx solid #e7dcc4;
+  border-radius: 12rpx;
+  padding: 14rpx 20rpx;
+  font-size: 26rpx;
+}
+
+.my-balance {
+  font-size: 24rpx;
+  color: #a39a8b;
+  margin: 18rpx 0;
+}
+
+.confirm-btn {
+  width: 100%;
+}
+
+/* ---------- 已表态 ---------- */
+.voted-card {
+  text-align: center;
+}
+
+.voted-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #2d2926;
+}
+
+.voted-line {
+  font-size: 26rpx;
+  color: #6f6552;
+  margin-top: 12rpx;
+}
+
+.voted-wait {
+  font-size: 24rpx;
+  color: #a8801c;
+  margin-top: 20rpx;
+}
+
+.voted-payout {
+  font-size: 28rpx;
+  font-weight: 800;
+  color: #c03a2b;
+  margin-top: 20rpx;
+}
+
+.voted-payout.lost {
+  color: #2e7d5b;
+}
+
+/* ---------- 开发者面板 ---------- */
+.dev-card {
+  background: #faf0d7;
+  border: 1rpx dashed #c9a227;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.dev-title {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: #8c6a1c;
+  margin-bottom: 16rpx;
+}
+
+.dev-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.dev-btn {
+  flex: 1;
+  font-size: 24rpx;
+  border-radius: 12rpx;
+  padding: 14rpx 0;
+  background: #c9a227;
+  color: #ffffff;
+  font-weight: 700;
+  margin-top: 12rpx;
+}
+
+.dev-btn.yes {
+  background: #c03a2b;
+}
+
+.dev-btn.no {
+  background: #2e7d5b;
+}
+
+.dev-tip {
+  font-size: 22rpx;
+  color: #a8801c;
+  margin-top: 14rpx;
+  line-height: 1.6;
+}
+
+/* ---------- 分享 / PK ---------- */
+.d-share-btn {
+  margin-left: auto;
+  background: #faf0d7;
+  color: #8c6a1c;
+  font-size: 22rpx;
+  font-weight: 600;
+  border-radius: 999rpx;
+  padding: 6rpx 20rpx;
+  line-height: 1.6;
+  border: 1rpx solid #ecd9a3;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pk-btn {
+  margin-top: 20rpx;
+  background: linear-gradient(135deg, #faf0d7, #f8e9c4);
+  border: 2rpx solid #e4c87a;
+  border-radius: 18rpx;
+  padding: 18rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pk-btn-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #8c6a1c;
+  line-height: 1.4;
+}
+
+.pk-btn-sub {
+  font-size: 22rpx;
+  color: #a8801c;
+  margin-top: 4rpx;
+  line-height: 1.4;
+}
