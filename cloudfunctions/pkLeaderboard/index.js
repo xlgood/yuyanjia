@@ -7,6 +7,7 @@ const cloud = require('wx-server-sdk');
 // 本函数只读缓存并补充“我的排名/追赶/趋势”，单次调用零聚合开销。
 // 响应契约与旧版一致（winRate 为整数百分比、含 rate/avatarUrl）。
 // =========================================================
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 

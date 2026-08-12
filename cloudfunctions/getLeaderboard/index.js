@@ -9,6 +9,7 @@ const cloud = require('wx-server-sdk');
 // 仅「我的排名/追赶差值」仍需 2 次轻量 count（按唯一主键字段查询，有索引）。
 // 注意：排名是 10 分钟内近似值，榜单场景可接受；要绝对实时可缩短 TTL。
 // =========================================================
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
