@@ -9,7 +9,7 @@ exports.main = async (event) => {
   const marketId = String(event.marketId || '');
 
   try {
-    // 查找该事件进行中或最近的公断
+    // 查找该卦题进行中或最近的公断
     const res = await db.collection('arbitrations')
       .where({ marketId })
       .orderBy('createdAt', 'desc')

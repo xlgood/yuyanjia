@@ -116,7 +116,7 @@ async function grantAdReward(userId, transactionId, amount) {
 }
 
 exports.main = async (event) => {
-  // 兼容云开发 HTTP 触发器与 callFunction 两种事件形态
+  // 兼容云开发 HTTP 触发器与 callFunction 两种卦题形态
   const httpMethod = String(event.httpMethod || event.method || '').toUpperCase();
   const query = event.queryStringParameters || event.query || {};
 

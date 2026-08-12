@@ -61,7 +61,7 @@ Page({
           .catch(() => {});
       })
       .catch(err => {
-        console.error('[卦题大师] 刷新用户失败', err);
+        console.error('[问卦局] 刷新用户失败', err);
       });
   },
 
@@ -234,10 +234,10 @@ Page({
   noop() {},
 
   onShareAppMessage() {
-    return share.appShare('🔮 卦题大师：来邀弈 7 连胜，测测你的卦题力', '/pages/index/index');
+    return share.appShare('🔮 问卦局：来邀弈 7 连胜，测测你的卦题力', '/pages/index/index');
   },
 
   onShareTimeline() {
-    return share.timelineShare('🔮 卦题大师：来邀弈 7 连胜，测测你的卦题力');
+    return share.timelineShare('🔮 问卦局：来邀弈 7 连胜，测测你的卦题力');
   }
 });

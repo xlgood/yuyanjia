@@ -171,10 +171,10 @@ Page({
   },
 
   onShareAppMessage() {
-    return share.appShare('⚔️ 我在「卦题大师」发起了 对弈 邀弈，敢来应弈吗？', '/pages/pk/pk');
+    return share.appShare('⚔️ 我在「问卦局」发起了 对弈 邀弈，敢来应弈吗？', '/pages/pk/pk');
   },
 
   onShareTimeline() {
-    return share.timelineShare('⚔️ 卦题大师 对弈弈台');
+    return share.timelineShare('⚔️ 问卦局 对弈弈台');
   }
 });

@@ -7,12 +7,12 @@ const { CATEGORIES, OPERATORS, TRANSFORMS } = require('./common-config');
 
 // 二值化词：标题必须包含其一，保证结果非此即彼
 const BINARY_WORDS = ['是否', '能否', '会不会', '能不能', '有没有', '是否达到', '是否突破', '是否超过', '是否低于', '会不会突破', '是否赢得', '是否获胜'];
-// 敏感红线：政治选举 / 社会争议 / 司法案件 / 公共卫生突发事件
+// 敏感红线：政治选举 / 社会争议 / 司法案件 / 公共卫生突发卦题
 const SENSITIVE_WORDS = [
   '选举', '大选', '总统', '特朗普', '拜登', '附议结果', '议会', '国会',
   '审判', '开庭', '判决', '起诉', '立案', '在审', '庭审',
   '游行', '抗议', '罢工', '骚乱', '示威', '聚集',
-  '疫情', '封控', '确诊', '疑似病例', '公共卫生事件'
+  '疫情', '封控', '确诊', '疑似病例', '公共卫生卦题'
 ];
 // 本地兜底词表：msgSecCheck 不可用（云调用未开通/异常）时降级使用，避免 fail-open
 const LOCAL_SENSITIVE_WORDS = SENSITIVE_WORDS.concat([
@@ -65,8 +65,8 @@ exports.main = async (event) => {
   }
 
   // 机读断卦规范校验
-  //   - type=manual：事实型事件，无需数值条件，运营在截止后人工录入官方断卦 + 铁证链接
-  //   - type=api/weather：数值型事件，必须带可执行的 condition
+  //   - type=manual：事实型卦题，无需数值条件，运营在截止后人工录入官方断卦 + 铁证链接
+  //   - type=api/weather：数值型卦题，必须带可执行的 condition
   if (!spec || !spec.dataSource || !spec.dataSource.type) {
     return { ok: false, err: '缺少 resolutionSpec（至少需要 dataSource.type）' };
   }

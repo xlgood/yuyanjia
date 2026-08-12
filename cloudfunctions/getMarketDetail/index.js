@@ -20,7 +20,7 @@ exports.main = async (event) => {
     myBet = (await db.collection('bets').doc(`${OPENID}_${marketId}`).get()).data;
   } catch (e) { /* 未应卦 */ }
 
-  // 参与人数 = 该事件下应卦记录数（按 marketId 统计）
+  // 参与人数 = 该卦题下应卦记录数（按 marketId 统计）
   let participantCount = 0;
   try {
     participantCount = (await db.collection('bets').where({ marketId }).count()).total;

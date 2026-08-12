@@ -3,7 +3,7 @@
 
   <view wx:elif="{{!arbitration}}" class="empty">
     <view class="empty-icon">⚖️</view>
-    <view>该事件暂无公断</view>
+    <view>该卦题暂无公断</view>
   </view>
 
   <block wx:else>

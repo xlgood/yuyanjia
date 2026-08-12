@@ -186,7 +186,7 @@ exports.main = async () => {
 
     if (!adapter) {
       await flagManual(m._id, attempts, '无对应数据源适配器: ' + (spec && spec.dataSource && spec.dataSource.type));
-      await postWebhook(`【卦题大师·断卦告警】事件「${String(m.title || m._id).slice(0, 30)}」无对应数据源适配器，已转人工`);
+      await postWebhook(`【问卦局·断卦告警】卦题「${String(m.title || m._id).slice(0, 30)}」无对应数据源适配器，已转人工`);
       summary.manual.push(m._id);
       continue;
     }
@@ -224,7 +224,7 @@ exports.main = async () => {
         await db.collection('markets').doc(m._id).update({
           data: { needsManualReview: true, resolutionAttempts: attempts, updatedAt: db.serverDate() }
         });
-        await postWebhook(`【卦题大师·断卦告警】事件「${String(m.title || m._id).slice(0, 30)}」自动断卦连续 ${attempts} 次失败，已转人工复核`);
+        await postWebhook(`【问卦局·断卦告警】卦题「${String(m.title || m._id).slice(0, 30)}」自动断卦连续 ${attempts} 次失败，已转人工复核`);
         summary.manual.push(m._id);
       } else {
         await db.collection('markets').doc(m._id).update({

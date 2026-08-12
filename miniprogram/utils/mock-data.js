@@ -223,7 +223,7 @@ function seedState() {
   });
 
   const users = [
-    { _id: 'u1', nickname: '卦题大师·诸葛', avatarUrl: '', streak: 12, bestStreak: 15, weekPoints: 3200, monthPoints: 12800, totalPoints: 45600, points: 3200, inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u1', nickname: '问卦局·诸葛', avatarUrl: '', streak: 12, bestStreak: 15, weekPoints: 3200, monthPoints: 12800, totalPoints: 45600, points: 3200, inviteRewardDate: '', inviteRewardToday: 0 },
     { _id: 'u2', nickname: '数码极客阿杰', avatarUrl: '', streak: 9, bestStreak: 11, weekPoints: 2850, monthPoints: 10400, totalPoints: 38900, points: 2850, inviteRewardDate: '', inviteRewardToday: 0 },
     { _id: 'u3', nickname: '猫眼老影迷', avatarUrl: '', streak: 8, bestStreak: 9, weekPoints: 2400, monthPoints: 9600, totalPoints: 33200, points: 2400, inviteRewardDate: '', inviteRewardToday: 0 },
     { _id: 'u4', nickname: '篮球先知老王', avatarUrl: '', streak: 7, bestStreak: 8, weekPoints: 2100, monthPoints: 8800, totalPoints: 30100, points: 2100, inviteRewardDate: '', inviteRewardToday: 0 },
@@ -242,8 +242,8 @@ function seedState() {
     { _id: 'SRC-SPORTS-FEED', name: '体育赛事数据商', category: '体育竞技', type: 'api', access: 'paid', url: '', notes: '一个供应商覆盖篮球足球电竞多个赛事，需商务授权', status: 'pending' },
     { _id: 'SRC-MOVIE-BOXOFFICE', name: '猫眼/灯塔专业版票房', category: '影视娱乐', type: 'api', access: 'paid', url: '', notes: '无公开 API，需商务授权；未接入前用官方票房页截图+人工录入', status: 'pending' },
     { _id: 'SRC-DOUBAN-SCORE', name: '豆瓣评分页', category: '影视娱乐', type: 'web', access: 'free', url: 'https://movie.douban.com', notes: '页面稳定但反爬较强，断卦时抓一次并截图存证', status: 'trial' },
-    { _id: 'SRC-LAUNCH-PAGE', name: '品牌发布会/官网参数页', category: '科技数码', type: 'web', access: 'free', url: '', notes: '事实型事件，抓一次存证即可，也可人工录入+铁证链接', status: 'verified' },
-    { _id: 'SRC-EVENT-FACT', name: '官方公告/官宣（通用）', category: '全品类', type: 'manual', access: 'free', url: '', notes: '事实型事件通用通道：运营录入官方断卦 + 官方链接/截图铁证', status: 'verified' }
+    { _id: 'SRC-LAUNCH-PAGE', name: '品牌发布会/官网参数页', category: '科技数码', type: 'web', access: 'free', url: '', notes: '事实型卦题，抓一次存证即可，也可人工录入+铁证链接', status: 'verified' },
+    { _id: 'SRC-EVENT-FACT', name: '官方公告/官宣（通用）', category: '全品类', type: 'manual', access: 'free', url: '', notes: '事实型卦题通用通道：运营录入官方断卦 + 官方链接/截图铁证', status: 'verified' }
   ];
 
   const me = {
@@ -496,7 +496,7 @@ function settleMarketState(state, marketId) {
     return { ok: false, err: '当前状态不可结卦' };
   }
   if (state.arbitrations.some(a => a.marketId === marketId && a.status === 'pending')) {
-    return { ok: false, err: '该事件有进行中的公断，请等待公断公示期结束' };
+    return { ok: false, err: '该卦题有进行中的公断，请等待公断公示期结束' };
   }
   const totalPool = (market.yesPool || 0) + (market.noPool || 0);
   const winningPool = market.result === 'YES' ? market.yesPool || 0 : market.noPool || 0;
@@ -985,7 +985,7 @@ function call(name, data = {}) {
       if (!market) return { ok: false, err: '卦题不存在' };
       if (market.status !== 'dispute_window') return { ok: false, err: '当前不在断卦公示期，无法发起公断' };
       const participantCount = Object.keys(state.bets).filter(k => state.bets[k].marketId === marketId).length;
-      if (participantCount < 10) return { ok: false, err: `该事件应卦人数不足 10 人，暂反对社区公断（当前 ${participantCount} 人）` };
+      if (participantCount < 10) return { ok: false, err: `该卦题应卦人数不足 10 人，暂反对社区公断（当前 ${participantCount} 人）` };
 
       // 资格：已结卦应卦 ≥ 5 或 已结卦 对弈 ≥ 3
       const settledBets = Object.keys(state.bets).filter(k => state.bets[k].openid === state.user._id && state.bets[k].status === 'won').length;
@@ -997,7 +997,7 @@ function call(name, data = {}) {
       const bond = state.user.points;
       if (bond < VOTE_BOND_MIN) return { ok: false, err: `爻不足，发起公断需要至少 ${VOTE_BOND_MIN} 爻` };
       if (state.arbitrations.some(a => a.marketId === marketId && a.status === 'pending')) {
-        return { ok: false, err: '该事件已有进行中的公断' };
+        return { ok: false, err: '该卦题已有进行中的公断' };
       }
       if (state.arbitrations.some(a => a.status === 'pending' && a.challenger.openid === state.user._id)) {
         return { ok: false, err: '您同时只能参与 1 个公断' };
@@ -1695,7 +1695,7 @@ function call(name, data = {}) {
             _id: 'c1',
             title: '某头部手机品牌是否于本月内官宣下一代旗舰的发布日期？',
             category: '科技数码',
-            reason: '发布会/官微公告类事件，热度高（Mock 示例）',
+            reason: '发布会/官微公告类卦题，热度高（Mock 示例）',
             dataSource: '官方公告',
             suggestedDeadline: '本月最后一天 24:00',
             verifiable: true,

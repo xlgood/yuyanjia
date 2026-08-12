@@ -28,7 +28,7 @@ module.exports = {
   // 新用户初始爻（来源于 constants.js）
   INIT_POINTS,
 
-  // 「热门」标签门槛：总池（YES+NO 爻和）≥ 该值的事件进入热门榜，按总爻降序
+  // 「热门」标签门槛：总池（YES+NO 爻和）≥ 该值的卦题进入热门榜，按总爻降序
   HOT_POOL_THRESHOLD: 200,
 
   // 破产补助：每次发放额度与冷却时间（毫秒）（来源于 constants.js）

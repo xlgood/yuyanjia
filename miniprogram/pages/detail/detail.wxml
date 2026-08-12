@@ -7,7 +7,7 @@
     <view class="d-header">
       <text class="d-cat">{{market.category}}</text>
       <text class="d-time">⏳ {{market.deadlineText}}</text>
-      <button class="d-share-btn" open-type="share" data-channel="group">📣 分享</button>
+      <button class="d-share-btn" size="mini" open-type="share" data-channel="group">分享</button>
     </view>
     <view class="d-title">{{market.title}}</view>
 
@@ -123,7 +123,7 @@
   <!-- 已锁定：等待断卦 -->
   <view class="card action-card" wx:elif="{{market.status === 'locked' && !myBet}}">
     <view class="action-title">⏸ 已停止应卦</view>
-    <view class="poll-tip">该事件已到截止时间，正在等待官方断卦；结果确认并公示后将自动结卦。</view>
+    <view class="poll-tip">该卦题已到截止时间，正在等待官方断卦；结果确认并公示后将自动结卦。</view>
   </view>
 
   <!-- 已应卦状态 -->
@@ -144,8 +144,8 @@
   <view class="card arbitration-card" wx:if="{{market.status === 'dispute_window' && myBet}}">
     <view class="action-title">⚖️ 对断卦结果有异议？</view>
     <view class="arb-tip">
-      <block wx:if="{{participantCount < 10}}">该事件应卦人数 {{participantCount}} 人，不足 10 人，暂反对社区公断。</block>
-      <block wx:elif="{{activeArbitration}}">该事件已有进行中的公断，点击进入公断阁查看附议进展。</block>
+      <block wx:if="{{participantCount < 10}}">该卦题应卦人数 {{participantCount}} 人，不足 10 人，暂反对社区公断。</block>
+      <block wx:elif="{{activeArbitration}}">该卦题已有进行中的公断，点击进入公断阁查看附议进展。</block>
       <block wx:else>发起公断需锁定当前全部爻作为保证金，公示 24 小时由社区附议决定是否推翻断卦。</block>
     </view>
     <button

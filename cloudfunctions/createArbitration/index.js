@@ -98,9 +98,9 @@ exports.main = async (event) => {
         throw new Error('该卦题已停止接收应卦');
       }
 
-      // 参与人数门槛：该事件应卦人数 ≥ 10
+      // 参与人数门槛：该卦题应卦人数 ≥ 10
       if (participantCount < MIN_PARTICIPANTS) {
-        throw new Error(`该事件应卦人数不足 ${MIN_PARTICIPANTS} 人，暂反对社区公断`);
+        throw new Error(`该卦题应卦人数不足 ${MIN_PARTICIPANTS} 人，暂反对社区公断`);
       }
 
       const userRef = t.collection('users').doc(OPENID);
@@ -116,8 +116,8 @@ exports.main = async (event) => {
       const bond = user.points;
       if (bond < VOTE_BOND_MIN) throw new Error(`爻不足，发起公断需要至少 ${VOTE_BOND_MIN} 爻`);
 
-      // 同一事件已存在进行中的公断
-      if (activeArbRes.data.length) throw new Error('该事件已有进行中的公断');
+      // 同一卦题已存在进行中的公断
+      if (activeArbRes.data.length) throw new Error('该卦题已有进行中的公断');
 
       // 同时参与上限 + 发起冷却
       if (myActiveRes.total >= ACTIVE_LIMIT) throw new Error('您同时只能参与 1 个公断');

@@ -26,7 +26,7 @@ App({
     if (invite) {
       this.globalData.inviteCode = String(invite).slice(0, 64);
     }
-    // 静默登录：获取 / 创建用户档案（带上邀请码，用于裂变归属）
+    // 静默登录：获取 / 创建用户档案（带上邀友码，用于裂变归属）
     this.login(this.globalData.inviteCode || '');
   },
 
@@ -36,12 +36,12 @@ App({
       this.setUser(user);
       return user;
     }).catch(err => {
-      console.error('[预言大师] 登录失败', err);
+      console.error('[问卦局] 登录失败', err);
       return null;
     });
   },
 
-  // 各页面操作（表态/签到/兑换等）拿到最新用户后统一走这里更新缓存
+  // 各页面操作（应卦/问签/兑换等）拿到最新用户后统一走这里更新缓存
   setUser(user) {
     this.globalData.user = user;
     this.globalData.userAt = Date.now();
@@ -54,7 +54,7 @@ App({
     return this.login();
   },
 
-  // TTL 内复用缓存；force=true 强制重新登录（如完成任务后需立即刷新能量）
+  // TTL 内复用缓存；force=true 强制重新登录（如完成修行后需立即刷新能量）
   refreshUser(force) {
     if (!force && this.globalData.user && Date.now() - (this.globalData.userAt || 0) < USER_CACHE_TTL_MS) {
       return Promise.resolve(this.globalData.user);

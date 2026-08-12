@@ -1,4 +1,4 @@
-// 分享工具：统一生成带邀请码的分享路径
+// 分享工具：统一生成带邀友码的分享路径
 const config = require('./config');
 
 function myOpenId() {
@@ -9,7 +9,7 @@ function myOpenId() {
   return '';
 }
 
-// 路径后追加邀请参数（路径本身可能已带 query）
+// 路径后追加邀友参数（路径本身可能已带 query）
 function withInvite(path) {
   const id = myOpenId();
   if (!id) return path;

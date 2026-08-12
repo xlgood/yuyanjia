@@ -1,6 +1,6 @@
 // =========================================================
 // AI 起草断卦条件（DeepSeek）
-// 输入：事件标题 + 分类 + 截止时间 + 数据源注册表
+// 输入：卦题标题 + 分类 + 截止时间 + 数据源注册表
 // 输出：resolutionSpec 草稿（AI 只起草规则，最终由运营确认后发布，
 //       断卦执行仍由 resolver 规则引擎 + 公示期兜底，AI 不参与裁决）
 // =========================================================
@@ -22,7 +22,7 @@ const TRANSFORMS = ['int', 'float', 'string'];
 // 本地兜底词表：msgSecCheck 不可用（云调用未开通/异常）时降级使用，避免 fail-open
 const LOCAL_SENSITIVE_WORDS = [
   '选举', '大选', '总统', '议会', '国会', '审判', '开庭', '判决', '起诉', '立案', '庭审',
-  '游行', '抗议', '罢工', '骚乱', '示威', '聚集', '疫情', '封控', '确诊', '公共卫生事件',
+  '游行', '抗议', '罢工', '骚乱', '示威', '聚集', '疫情', '封控', '确诊', '公共卫生卦题',
   '赌博', '博彩', '下注', '投注', '赔率', '毒品', '冰毒', '海洛因', '枪支', '恐怖袭击',
   '台独', '港独', '藏独', '疆独', '法轮功', '颠覆', '暴动', '政变', '裸聊', '援交', '色情'
 ];
@@ -96,7 +96,7 @@ exports.main = async (event) => {
   const deadlineText = String(event.deadlineText || '');
   const sources = Array.isArray(event.sources) ? event.sources.slice(0, 30) : [];
 
-  if (title.length < 10) return { ok: false, err: '事件标题过短，无法起草' };
+  if (title.length < 10) return { ok: false, err: '卦题标题过短，无法起草' };
   if (!DEEPSEEK_API_KEY) {
     return { ok: false, err: '尚未配置 DeepSeek API Key：请在 aiDraftSpec 云函数中配置环境变量 DEEPSEEK_API_KEY' };
   }
@@ -109,10 +109,10 @@ exports.main = async (event) => {
     notes: String(s.notes || '').slice(0, 100)
   }));
 
-  const systemPrompt = '你是问卦市场「卦题大师」的断卦条件起草助手。你的职责是把事件改写成严格二值化（YES/NO）、机器可执行的断卦条件（resolutionSpec）。你只起草规则，不裁决结果。';
-  const userPrompt = `请为以下问卦事件起草断卦条件。
+  const systemPrompt = '你是问卦市场「问卦局」的断卦条件起草助手。你的职责是把卦题改写成严格二值化（YES/NO）、机器可执行的断卦条件（resolutionSpec）。你只起草规则，不裁决结果。';
+  const userPrompt = `请为以下问卦卦题起草断卦条件。
 
-事件描述：${title}
+卦题描述：${title}
 分类：${category || '未指定'}
 断卦时点（截止）：${deadlineText || '未指定'}
 
@@ -137,8 +137,8 @@ ${JSON.stringify(sourceList)}
 3. humanReadable 用合规词汇（卦意占比/应验，禁用下注/赔率/庄家）；
 4. 【单一结卦源】provider 只能唯一指定一个官方数据源（必须来自上面列表），humanReadable 中只允许出现这一个结卦源，禁止“以 A 为准、B 做参考”的多源表述；
 5. 【物理截止】humanReadable 必须包含明确的断卦时点（截止时间），并注明“截止时点之后产生的任何信息不作为断卦证据”；
-6. 【二元性】断卦条件必须保证结果严格二值（成立/不成立），不存在第三种结果；若事件可能取消/延期，写明“数据缺失或事件未发生时爻原路退回”；
-7. 【敏感红线】若事件属于政治选举、社会争议、司法案件、公共卫生突发事件等敏感话题，直接返回 {"mode":"manual","provider":"","humanReadable":"事件涉及敏感红线，禁止发布"}。`;
+6. 【二元性】断卦条件必须保证结果严格二值（成立/不成立），不存在第三种结果；若卦题可能取消/延期，写明“数据缺失或卦题未发生时爻原路退回”；
+7. 【敏感红线】若卦题属于政治选举、社会争议、司法案件、公共卫生突发卦题等敏感话题，直接返回 {"mode":"manual","provider":"","humanReadable":"卦题涉及敏感红线，禁止发布"}。`;
 
   let resp;
   try {

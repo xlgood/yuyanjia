@@ -86,5 +86,5 @@
     <button class="dev-btn" bindtap="onSimulateChallenge">模拟好友邀弈</button>
   </view>
 
-  <view class="footnote">对弈 双方必须持相反立场，断卦与结卦沿用卦题事件规则。爻为虚拟积分，不可兑换现金或实物。</view>
+  <view class="footnote">对弈 双方必须持相反立场，断卦与结卦沿用卦题卦题规则。爻为虚拟积分，不可兑换现金或实物。</view>
 </view>

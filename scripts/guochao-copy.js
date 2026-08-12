@@ -74,6 +74,8 @@ const MAP = [
   ['我的预言记录', '我的卦录'],
   ['发布新预言', '发布新卦题'],
   ['预言', '卦题'],
+  ['卦题大师', '问卦局'],
+  ['事件', '卦题'],
   ['新手', '初入道']
 ];
 
@@ -103,6 +105,10 @@ const walk = d => {
 walk(path.join(ROOT, 'miniprogram', 'pages'));
 targets.push(path.join(ROOT, 'miniprogram', 'utils', 'validate.js'));
 targets.push(path.join(ROOT, 'miniprogram', 'utils', 'mock-data.js'));
+targets.push(path.join(ROOT, 'miniprogram', 'utils', 'share.js'));
+targets.push(path.join(ROOT, 'miniprogram', 'utils', 'subscribe.js'));
+targets.push(path.join(ROOT, 'miniprogram', 'utils', 'api.js'));
+targets.push(path.join(ROOT, 'miniprogram', 'app.js'));
 for (const f of fs.readdirSync(path.join(ROOT, 'cloudfunctions'))) {
   const idx = path.join(ROOT, 'cloudfunctions', f, 'index.js');
   if (fs.existsSync(idx)) targets.push(idx);

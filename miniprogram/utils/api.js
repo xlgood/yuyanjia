@@ -61,13 +61,13 @@ module.exports = {
   // 仅本地 Mock 模式可用的演示接口（云端没有对应云函数）
   simulateInvite: () => config.USE_MOCK
     ? call('simulateInvite')
-    : Promise.reject(new Error('模拟邀请仅本地演示模式可用')),
+    : Promise.reject(new Error('模拟邀友仅本地演示模式可用')),
   createPk: data => call('createPk', data),
   respondPk: data => call('respondPk', data),
   myPks: data => call('myPks', data),
   pkLeaderboard: () => call('pkLeaderboard'),
   // 与 login/updateProfile 一样解包 .user，调用方直接拿用户对象，
-  // 避免把整个响应体写进 globalData.user（曾导致全局用户对象被污染、分享丢邀请码）
+  // 避免把整个响应体写进 globalData.user（曾导致全局用户对象被污染、分享丢邀友码）
   togglePkOpen: data => call('togglePkOpen', data).then(res => res.user),
   createArbitration: data => call('createArbitration', data),
   getArbitration: data => call('getArbitration', data),

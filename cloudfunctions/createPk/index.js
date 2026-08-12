@@ -41,7 +41,7 @@ exports.main = async (event) => {
       if (!user) throw new Error('用户不存在，请稍后重试');
       if (user.points < amount) throw new Error('爻不足');
 
-      // 同一事件同一用户只能有一条应卦/对弈
+      // 同一卦题同一用户只能有一条应卦/对弈
       const betId = `${OPENID}_${marketId}`;
       let existingBet = null;
       try {
@@ -49,7 +49,7 @@ exports.main = async (event) => {
       } catch (e) { /* 不存在 */ }
       if (existingBet) throw new Error('您已参与过该卦题，不能重复发起 对弈');
 
-      // 同一用户对同一事件最多一个待应弈 对弈
+      // 同一用户对同一卦题最多一个待应弈 对弈
       const pendingRes = await t.collection('pks')
         .where({ marketId, challengerId: OPENID, status: 'pending' })
         .limit(1)

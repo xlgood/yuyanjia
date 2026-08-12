@@ -168,7 +168,12 @@ Page({
 
   decorate(m) {
     const total = (m.yesPool || 0) + (m.noPool || 0);
+    // 兼容存量数据：断卦依据里若有旧词，展示时统一为国潮口径
+    const sourceOfTruth = String(m.sourceOfTruth || '')
+      .split('预言未成功').join('未应验')
+      .split('预言成功').join('应验');
     return Object.assign({}, m, {
+      sourceOfTruth,
       deadlineText: fmt.formatDeadline(m.deadline),
       resolvedAtText: m.resolvedAt ? fmt.formatDate(m.resolvedAt) : '',
       totalPool: total,
@@ -365,13 +370,13 @@ Page({
 
   onShareAppMessage() {
     const { market } = this.data;
-    if (!market) return share.appShare('🔮 卦题大师', '/pages/index/index');
+    if (!market) return share.appShare('🔮 问卦局', '/pages/index/index');
     return share.appShare(`${market.title} —— 来测测你的判断！`, `/pages/detail/detail?id=${market._id}`);
   },
 
   onShareTimeline() {
     const { market } = this.data;
-    if (!market) return share.timelineShare('🔮 卦题大师：热点问卦，测测你的洞察力');
+    if (!market) return share.timelineShare('🔮 问卦局：热点问卦，测测你的洞察力');
     return share.timelineShare(`🔮 ${market.title}`);
   }
 });
