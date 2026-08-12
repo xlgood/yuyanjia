@@ -34,7 +34,7 @@
 
     <view class="result-box" wx:if="{{market.status === 'resolved'}}">
       <view class="result-title">
-        {{market.result === 'YES' ? '☰ 官方断卦：看好成立' : '☷ 官方断卦：不看好成立'}}
+        {{market.result === 'YES' ? '☰ 官方断卦：看好方应验' : '☷ 官方断卦：不看好方应验'}}
       </view>
       <view class="result-sub">断卦于 {{market.resolvedAtText}}，证据以断卦依据中指定数据源为准。</view>
       <view class="result-payout" wx:if="{{myBet}}">
