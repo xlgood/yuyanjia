@@ -15,9 +15,9 @@ const _ = db.command;
 
 const FIELD_MAP = {
   streak: 'streak',
-  week: 'weekPoints',
-  month: 'monthPoints',
-  total: 'totalPoints'
+  week: 'points',
+  month: 'points',
+  total: 'points'
 };
 const TYPES = Object.keys(FIELD_MAP);
 // 对弈 榜最少场次门槛：与 rankSnapshot / pkLeaderboard 保持一致

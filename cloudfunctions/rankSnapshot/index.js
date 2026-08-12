@@ -6,9 +6,9 @@ const _ = db.command;
 
 const FIELD_MAP = {
   streak: 'streak',
-  week: 'weekPoints',
-  month: 'monthPoints',
-  total: 'totalPoints'
+  week: 'points',
+  month: 'points',
+  total: 'points'
 };
 const TYPES = ['streak', 'week', 'month', 'total', 'pk'];
 // 对弈 榜最少场次门槛：与 pkLeaderboard 保持一致
@@ -45,7 +45,7 @@ exports.main = async (event) => {
   if (!targets.length) return { ok: false, err: '参数不合法' };
 
   try {
-    const users = await fetchAll(db.collection('users'), { nickname: true, avatarUrl: true, avatar: true, streak: true, weekPoints: true, monthPoints: true, totalPoints: true });
+    const users = await fetchAll(db.collection('users'), { nickname: true, avatarUrl: true, avatar: true, streak: true, points: true });
     const snapshots = db.collection('rank_snapshots');
     const done = [];
 
