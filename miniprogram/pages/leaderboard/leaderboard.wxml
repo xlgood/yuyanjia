@@ -14,7 +14,7 @@
   <view wx:elif="{{list.length === 0}}" class="empty">
     <view class="empty-icon">🏆</view>
     <view wx:if="{{!isPk}}">天榜建设中，快来抢占第一名！</view>
-    <view wx:else>暂无 对弈 战绩，快去发起第一场邀弈吧！</view>
+    <view wx:else>暂无对弈战绩，快去发起第一场邀弈吧！</view>
   </view>
 
   <view wx:else>

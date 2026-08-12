@@ -1,8 +1,8 @@
 <view class="container">
   <view class="hero card">
     <view>
-      <view class="hero-title">🔮 卦题大师</view>
-      <view class="hero-sub">用智慧积分，围观热点真相</view>
+      <view class="hero-title">🔮 问卦局</view>
+      <view class="hero-sub">以爻观卦，洞见真相</view>
     </view>
     <view class="hero-stats" wx:if="{{!compliance}}">
       <view class="hero-stat">
@@ -74,7 +74,7 @@
 
       <view class="m-foot" wx:if="{{!compliance}}">
         <text class="m-total">🪙 卦池 {{item.totalText}}</text>
-        <text class="m-go">围观附议 →</text>
+        <text class="m-go">观局附议 →</text>
       </view>
       <view class="m-foot" wx:else>
         <text class="m-total">今日热点民意调查</text>

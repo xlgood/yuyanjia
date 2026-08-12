@@ -1,5 +1,5 @@
 const api = require('../../utils/api');
-const { BET_STATUS } = require('../../utils/constants');
+const { BET_STATUS, CHOICE_TEXT } = require('../../utils/constants');
 const fmt = require('../../utils/format');
 
 Page({
@@ -39,7 +39,7 @@ Page({
         const pageList = (res.list || []).map(b => Object.assign({}, b, {
           createdAtText: fmt.formatDate(b.createdAt),
           statusText: BET_STATUS[b.status] || b.status,
-          choiceText: b.choice === 'YES' ? '看好 (YES)' : '不看好 (NO)',
+          choiceText: b.choice === 'YES' ? CHOICE_TEXT.YES : CHOICE_TEXT.NO,
           choiceClass: b.choice === 'YES' ? 'green' : 'red'
         }));
         this.setData({

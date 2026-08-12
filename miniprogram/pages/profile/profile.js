@@ -199,7 +199,7 @@ Page({
   },
 
   goPkLeaderboard() {
-    // 天榜是 tabBar 页面，必须用 switchTab；用全局标记传递“进入即切 对弈 榜”信号
+    // 天榜是 tabBar 页面，必须用 switchTab；用全局标记传递“进入即切弈榜”信号
     getApp().globalData.pkLbRequest = true;
     wx.switchTab({ url: '/pages/leaderboard/leaderboard' });
   },

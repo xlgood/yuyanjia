@@ -12,7 +12,7 @@
     <view class="d-title">{{market.title}}</view>
 
     <view class="rule-box">
-      <view class="rule-title">📌 胜负断卦标准</view>
+      <view class="rule-title">📌 断卦依据</view>
       <view class="rule-text">{{market.sourceOfTruth}}</view>
     </view>
 
@@ -26,19 +26,19 @@
         <view class="rate-bar-no" style="width: {{market.noRateNum}}%"></view>
       </view>
       <view class="rate-legend">
-        <text class="green">👍 {{market.yesRate}}</text>
-        <text class="red">👎 {{market.noRate}}</text>
+        <text class="green">☰ {{market.yesRate}}</text>
+        <text class="red">☷ {{market.noRate}}</text>
       </view>
       <view class="pool-participants">👥 {{participantCount}} 人参与应卦</view>
     </view>
 
     <view class="result-box" wx:if="{{market.status === 'resolved'}}">
       <view class="result-title">
-        {{market.result === 'YES' ? '👍 官方断卦：看好成立' : '👎 官方断卦：不看好成立'}}
+        {{market.result === 'YES' ? '☰ 官方断卦：看好成立' : '☷ 官方断卦：不看好成立'}}
       </view>
-      <view class="result-sub">断卦于 {{market.resolvedAtText}}，证据以断卦标准中指定数据源为准。</view>
+      <view class="result-sub">断卦于 {{market.resolvedAtText}}，证据以断卦依据中指定数据源为准。</view>
       <view class="result-payout" wx:if="{{myBet}}">
-        {{myBet.status === 'won' ? '🎉 应验！分卦获得 ' + myBet.payout + ' 爻' : myBet.status === 'lost' ? '本次未应验，爻已进入奖池' : myBet.status === 'refunded' ? '池数据异常，爻已原路退回' : ''}}
+        {{myBet.status === 'won' ? '🎉 应验！分卦获得 ' + myBet.payout + ' 爻' : myBet.status === 'lost' ? '本次未应验，爻已进入卦池' : myBet.status === 'refunded' ? '卦池数据异常，爻已原路退回' : ''}}
       </view>
     </view>
 
@@ -60,12 +60,12 @@
         class="choice-btn poll {{pollChoice === 'YES' ? 'selected-yes' : ''}}"
         data-choice="YES"
         bindtap="onPollVote"
-      >👍 看好</view>
+      >☰ 看好</view>
       <view
         class="choice-btn poll {{pollChoice === 'NO' ? 'selected-no' : ''}}"
         data-choice="NO"
         bindtap="onPollVote"
-      >👎 不看好</view>
+      >☷ 不看好</view>
     </view>
     <view class="poll-done" wx:if="{{pollChoice}}">
       感谢参与！您已选择：{{pollChoice === 'YES' ? '看好' : '不看好'}}
@@ -80,12 +80,12 @@
         class="choice-btn {{selectedChoice === 'YES' ? 'selected-yes' : ''}}"
         data-choice="YES"
         bindtap="onSelectChoice"
-      >👍 看好</view>
+      >☰ 看好</view>
       <view
         class="choice-btn {{selectedChoice === 'NO' ? 'selected-no' : ''}}"
         data-choice="NO"
         bindtap="onSelectChoice"
-      >👎 不看好</view>
+      >☷ 不看好</view>
     </view>
 
     <block wx:if="{{selectedChoice}}">
@@ -130,13 +130,13 @@
   <view class="card action-card voted-card" wx:elif="{{myBet}}">
     <view class="voted-title">✅ 您已加入卦题</view>
     <view class="voted-line">
-      您附议了 <text class="{{myBet.choice === 'YES' ? 'green' : 'red'}}">{{myBet.choice === 'YES' ? '看好 (YES)' : '不看好 (NO)'}}</text>
+      您附议了 <text class="{{myBet.choice === 'YES' ? 'green' : 'red'}}">{{myBet.choice === 'YES' ? '看好' : '不看好'}}</text>
     </view>
     <view class="voted-line">投入 {{myBet.amount}} 爻</view>
     <view class="voted-wait" wx:if="{{market.status === 'open'}}">⏳ 池内数据在截止前仍会变动，请等待官方断卦。</view>
     <view class="voted-wait" wx:elif="{{market.status === 'locked'}}">⏸ 已停止应卦，等待官方断卦中。</view>
     <view class="voted-payout" wx:if="{{myBet.status === 'won'}}">🎉 应验，分卦获得 {{myBet.payout}} 爻！</view>
-    <view class="voted-payout lost" wx:if="{{myBet.status === 'lost'}}">本次未应验，投入爻已进入奖池。</view>
+    <view class="voted-payout lost" wx:if="{{myBet.status === 'lost'}}">本次未应验，投入爻已进入卦池。</view>
     <view class="voted-payout" wx:if="{{myBet.status === 'refunded'}}">池数据异常，爻已原路退回。</view>
   </view>
 

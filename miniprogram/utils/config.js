@@ -21,7 +21,7 @@ module.exports = {
   CLOUD_ENV: 'cloud1-d0gyxil2hba0873d3',
 
   // 审核模式：
-  //   'full'       = 完整预言市场（爻、瓜分池、榜单）
+  //   'full'       = 完整卦题市场（爻、卦池、天榜）
   //   'compliance' = 纯民意问卷（隐藏积分交互，用于微信提审）
   APP_MODE: 'full',
 
