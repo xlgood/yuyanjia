@@ -5,7 +5,7 @@ const TABS = [
   { key: 'week', label: '📅 本周之星', unit: '爻' },
   { key: 'month', label: '🌙 月度智者', unit: '爻' },
   { key: 'total', label: '🪙 爻巨亨', unit: '爻' },
-  { key: 'pk', label: '⚔️ PK胜率', unit: '胜率' }
+  { key: 'pk', label: '⚔️ 弈绩', unit: '胜率' }
 ];
 
 Page({
@@ -39,7 +39,7 @@ Page({
         this.load();
         return true;
       }
-      // 已是 PK tab：确保数据刷新
+      // 已是 对弈 tab：确保数据刷新
       this.load();
       return true;
     }

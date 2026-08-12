@@ -12,7 +12,7 @@ const _ = db.command;
 // 订阅消息模板（部署时在云函数环境变量配置；留空 = 不推送）
 const SUBSCRIBE_JUDGE_TMPL = process.env.SUBSCRIBE_JUDGE_TMPL || '';
 
-// 结算锁超过该时长视为上次运行崩溃残留，允许下个定时周期接管重试
+// 结卦锁超过该时长视为上次运行崩溃残留，允许下个定时周期接管重试
 const SETTLING_STALE_MS = 10 * 60 * 1000;
 
 // 运营告警：复用 lockMarkets 的 LOCK_WEBHOOK_URL / LOCK_WEBHOOK_TYPE，
@@ -67,12 +67,12 @@ async function sendJudgeNotify(openid, marketTitle, resultText, payoutText) {
       }
     });
   } catch (e) {
-    console.error('发送判定订阅消息失败', openid, e.message);
+    console.error('发送断卦订阅消息失败', openid, e.message);
   }
 }
 
-// 市场级结算锁：cron 与手动结算并发时只有一个能拿到锁，
-// 防止同一市场被两边同时结算造成重复派奖；崩溃残留超过阈值后可接管
+// 市场级结卦锁：cron 与手动结卦并发时只有一个能拿到锁，
+// 防止同一市场被两边同时结卦造成重复派奖；崩溃残留超过阈值后可接管
 async function claimSettlingLock(marketId) {
   const nowTs = Date.now();
   const markets = db.collection('markets');
@@ -101,20 +101,20 @@ async function claimSettlingLock(marketId) {
   return !!(res.stats && res.stats.updated);
 }
 
-// 单注结算：标记注单与发放爻放在同一事务内，任一失败整体回滚；
-// 并发结算时后到的事务读不到 active 状态而跳过，保证每注恰好结算一次。
+// 单注结卦：标记注单与发放爻放在同一事务内，任一失败整体回滚；
+// 并发结卦时后到的事务读不到 active 状态而跳过，保证每注恰好结卦一次。
 // 注：事务冲突时 wx-server-sdk 会自动重试（默认 3 次）。
 async function settleOneBet(market, bet, refundAll, totalPool, winningPool) {
   const won = bet.choice === market.result;
   const status = refundAll ? 'refunded' : (won ? 'won' : 'lost');
   let payout = 0;
   if (status === 'won') {
-    // 瓜分池公式：R = 投入 / 胜方池 × 总池，向下取整
+    // 卦池公式：R = 投入 / 胜方池 × 卦池，向下取整
     payout = Math.floor((bet.amount / winningPool) * totalPool);
   } else if (status === 'refunded') {
     payout = bet.amount;
   }
-  // 榜单口径：只累计净收益（不含本金返还），避免“总流水刷榜”
+  // 天榜口径：只累计净收益（不含本金返还），避免“总流水刷榜”
   const profit = won && !refundAll ? Math.max(payout - bet.amount, 0) : 0;
 
   return db.runTransaction(async t => {
@@ -161,7 +161,7 @@ async function settleOne(marketId) {
   // 池异常（如无人胜出）：全部原路退回，保证爻守恒
   const refundAll = totalPool <= 0 || winningPool <= 0;
 
-  // 有进行中的仲裁：不允许结算（等仲裁公示期结束）
+  // 有进行中的公断：不允许结卦（等公断公示期结束）
   const activeArb = await db.collection('arbitrations')
     .where({ marketId, status: 'pending' })
     .limit(1)
@@ -170,7 +170,7 @@ async function settleOne(marketId) {
     return { settled: false, reason: 'arbitration_pending' };
   }
 
-  // 市场级锁：抢不到说明另一个结算任务正在处理（或尚未到接管阈值）
+  // 市场级锁：抢不到说明另一个结卦修行正在处理（或尚未到接管阈值）
   const locked = await claimSettlingLock(marketId);
   if (!locked) return { settled: false, reason: 'settling_in_progress' };
 
@@ -181,7 +181,7 @@ async function settleOne(marketId) {
 
   // 注意：循环体内会把 bet.status 从 active 改为 won/lost/refunded，
   // 结果集实时缩小，因此每轮必须从头取（skip 固定为 0），
-  // 否则翻页漂移会导致部分注单永远漏结算。
+  // 否则翻页漂移会导致部分注单永远漏结卦。
   // rounds 兜底防止单条更新失败时死循环。
   let rounds = 0;
   const MAX_ROUNDS = 500;
@@ -195,20 +195,20 @@ async function settleOne(marketId) {
     if (!bets.length) break;
 
     for (const bet of bets) {
-      // 单注结算失败（如事务重试耗尽）直接中断整个市场结算，
+      // 单注结卦失败（如事务重试耗尽）直接中断整个市场结卦，
       // 市场保持 dispute_window + settling 标记，10 分钟后由下个周期接管重试
       let r;
       try {
         r = await settleOneBet(market, bet, refundAll, totalPool, winningPool);
       } catch (e) {
-        console.error('单注结算失败，等待下轮重试', marketId, bet._id, e.message || e);
-        await postWebhook(`【预言大师·结算异常】市场 ${marketId}（${market.title}）单注结算失败：${String(e.message || e).slice(0, 200)}，10 分钟后自动重试`);
+        console.error('单注结卦失败，等待下轮重试', marketId, bet._id, e.message || e);
+        await postWebhook(`【卦题大师·结卦异常】市场 ${marketId}（${market.title}）单注结卦失败：${String(e.message || e).slice(0, 200)}，10 分钟后自动重试`);
         return { settled: false, reason: 'bet_settle_failed', marketId };
       }
       if (r.skipped) continue;
       processed += 1;
 
-      // PK 胜负记录：同一 PK 的两条 bet 都结算后更新一次
+      // 对弈 胜负记录：同一 对弈 的两条 bet 都结卦后更新一次
       if (bet.pkId) {
         const entry = settledPks[bet.pkId] || (settledPks[bet.pkId] = { wonOpenids: [], allOpenids: [] });
         entry.allOpenids.push(bet.openid);
@@ -232,12 +232,12 @@ async function settleOne(marketId) {
     await sendJudgeNotify(
       n.openid,
       n.title,
-      n.won ? '预言成功' : (n.refundAll ? '数据异常，已退回' : '预言未成功'),
+      n.won ? '应验' : (n.refundAll ? '数据异常，已退回' : '未应验'),
       n.status === 'won' ? `获得 ${n.payout} 爻` : ''
     );
   }
 
-  // 结算 PK：判定胜负、更新双方 PK 统计
+  // 结卦 对弈：断卦胜负、更新双方 对弈 统计
   for (const pkId of Object.keys(settledPks)) {
     const entry = settledPks[pkId];
     let pk;
@@ -246,8 +246,8 @@ async function settleOne(marketId) {
     } catch (e) { continue; }
     if (!pk || pk.status === 'settled') continue;
 
-    // 未应战（pending）的 PK：挑战方注单已按普通表态结算完毕，
-    // 直接作废，避免“挑战了不存在的人”污染 PK 胜率榜，也防止后续清理双倍退款
+    // 未应弈（pending）的 对弈：邀弈方注单已按普通应卦结卦完毕，
+    // 直接作废，避免“邀弈了不存在的人”污染 对弈 胜率榜，也防止后续清理双倍退款
     if (pk.status !== 'accepted') {
       await db.collection('pks').doc(pkId).update({
         data: { status: 'expired', expiredAt: Date.now(), updatedAt: db.serverDate() }
@@ -286,17 +286,17 @@ exports.main = async (event) => {
   const marketId = String(event.marketId || '');
   const force = !!event.force;
 
-  // 指定市场：管理员手动结算（force 用于复核后强制结算）
+  // 指定市场：管理员手动结卦（force 用于复核后强制结卦）
   if (marketId) {
     if (!ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
     let market;
     try {
       market = (await db.collection('markets').doc(marketId).get()).data;
     } catch (e) {
-      return { ok: false, err: '预言不存在' };
+      return { ok: false, err: '卦题不存在' };
     }
-    if (market.status !== 'dispute_window') return { ok: false, err: '该预言不在公示期' };
-    // 异议通道 = 社区仲裁（settleOne 内已检查 arbitration_pending）；
+    if (market.status !== 'dispute_window') return { ok: false, err: '该卦题不在公示期' };
+    // 异议通道 = 社区公断（settleOne 内已检查 arbitration_pending）；
     // hasDispute/disputeCount 为预留字段，当前无写入方，「申诉转人工」待产品化后启用
     const r = await settleOne(marketId);
     return { ok: true, ...r };

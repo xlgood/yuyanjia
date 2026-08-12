@@ -9,7 +9,7 @@ const _ = db.command;
 // 订阅消息模板（部署时在云函数环境变量配置；留空 = 不推送）
 const SUBSCRIBE_ARBITRATION_TMPL = process.env.SUBSCRIBE_ARBITRATION_TMPL || '';
 
-// 结算锁超过该时长视为上次运行崩溃残留，允许下个定时周期接管重试
+// 结卦锁超过该时长视为上次运行崩溃残留，允许下个定时周期接管重试
 const SETTLING_STALE_MS = 10 * 60 * 1000;
 
 // 运营告警：复用 lockMarkets 的 LOCK_WEBHOOK_URL / LOCK_WEBHOOK_TYPE，零新增配置
@@ -62,14 +62,14 @@ async function sendArbitrationNotify(openid, marketTitle, resultText) {
       }
     });
   } catch (e) {
-    console.error('发送仲裁订阅消息失败', openid, e.message);
+    console.error('发送公断订阅消息失败', openid, e.message);
   }
 }
 
-// 判定仲裁是否成立：
-// 1) 支持票 > 否决票
+// 断卦公断是否成立：
+// 1) 附议票 > 反对票
 // 2) 总票数 ≥ max(ceil(参与人数 × 10%), 2)
-// 3) 支持票 ≥ 2 且 否决票 ≥ 1（防单人操纵）
+// 3) 附议票 ≥ 2 且 反对票 ≥ 1（防单人操纵）
 function arbitrationWins(arb) {
   const support = arb.supportVotes || 0;
   const oppose = arb.opposeVotes || 0;
@@ -80,8 +80,8 @@ function arbitrationWins(arb) {
   return true;
 }
 
-// 仲裁结算锁：定时器（每 5 分钟）与手动结算并发时只有一个能真正结算，
-// 防止重复退款 / 重复瓜分；崩溃残留超过阈值后可接管
+// 公断结卦锁：定时器（每 5 分钟）与手动结卦并发时只有一个能真正结卦，
+// 防止重复退款 / 重复分卦；崩溃残留超过阈值后可接管
 async function claimArbitrationLock(arbId) {
   const nowTs = Date.now();
   const arbs = db.collection('arbitrations');
@@ -94,7 +94,7 @@ async function claimArbitrationLock(arbId) {
   let arb = null;
   try {
     arb = (await arbs.doc(arbId).get()).data;
-  } catch (e) { /* 仲裁可能已删除 */ }
+  } catch (e) { /* 公断可能已删除 */ }
   if (!arb || arb.status !== 'pending' || !arb.settling) return false;
   if (nowTs - (arb.settlingAt || 0) <= SETTLING_STALE_MS) return false;
 
@@ -119,7 +119,7 @@ async function settleArbitrationId(arbId) {
   }
   if (!arb || arb.status !== 'pending') return { settled: false, reason: 'not_pending' };
 
-  // 先抢结算锁：抢不到说明另一个结算任务正在处理（或尚未到接管阈值）
+  // 先抢结卦锁：抢不到说明另一个结卦修行正在处理（或尚未到接管阈值）
   const locked = await claimArbitrationLock(arbId);
   if (!locked) return { settled: false, reason: 'settling_in_progress' };
 
@@ -128,7 +128,7 @@ async function settleArbitrationId(arbId) {
   const loserSide = wins ? 'oppose' : 'support';
   const loserPool = winnerSide === 'support' ? (arb.opposePool || 0) : (arb.supportPool || 0);
 
-  // 拉取双方投票记录
+  // 拉取双方附议记录
   const votes = [];
   let skip = 0;
   const PAGE = 100;
@@ -153,15 +153,15 @@ async function settleArbitrationId(arbId) {
   try {
     market = (await marketRef.get()).data;
   } catch (e) { /* 市场可能已被删除 */ }
-  // 无对赌兜底：若某一方 0 票（如无人投否决），没有形成有效对赌，
-  // 所有投票人保证金原路全额退回，平台不产生也不吞没爻
+  // 无对赌兜底：若某一方 0 票（如无人投反对），没有形成有效对赌，
+  // 所有附议人保证金原路全额退回，平台不产生也不吞没爻
   const noBet = winners.length === 0 || losers.length === 0;
   if (noBet) {
     for (const v of votes) {
       await db.collection('users').doc(v.openid).update({
         data: { points: _.inc(v.bond || 0), updatedAt: db.serverDate() }
       });
-      await sendArbitrationNotify(v.openid, arb.marketTitle, '仲裁无有效对赌，保证金已退回');
+      await sendArbitrationNotify(v.openid, arb.marketTitle, '公断无有效对赌，保证金已退回');
     }
     await arbRef.update({
       data: {
@@ -175,7 +175,7 @@ async function settleArbitrationId(arbId) {
     if (market) {
       await marketRef.update({
         data: {
-          // 仲裁结束即终局：直接回到可结算状态，不再重复公示
+          // 公断结束即终局：直接回到可结卦状态，不再重复公示
           status: 'dispute_window',
           disputeEndsAt: Date.now(),
           arbitrationResult: 'no_bet',
@@ -186,7 +186,7 @@ async function settleArbitrationId(arbId) {
     return { settled: true, wins: false, noBet: true, refunded: true };
   }
 
-  // 赢家：退回本金 + 按投入比例瓜分输家池
+  // 赢家：退回本金 + 按投入比例分卦输家池
   for (const v of winners) {
     const share = winnerBondTotal > 0
       ? Math.floor(((v.bond || 0) / winnerBondTotal) * loserPool)
@@ -200,14 +200,14 @@ async function settleArbitrationId(arbId) {
         updatedAt: db.serverDate()
       }
     });
-    await sendArbitrationNotify(v.openid, arb.marketTitle, wins ? '仲裁成立，判定已翻转' : '仲裁未成立，维持原判定');
+    await sendArbitrationNotify(v.openid, arb.marketTitle, wins ? '公断成立，断卦已翻转' : '公断未成立，维持原断卦');
   }
-  // 输家：本金进入瓜分池，不再退回
+  // 输家：本金进入卦池，不再退回
   for (const v of losers) {
     await db.collection('users').doc(v.openid).update({
       data: { updatedAt: db.serverDate() }
     });
-    await sendArbitrationNotify(v.openid, arb.marketTitle, wins ? '仲裁成立，你的保证金已归支持方' : '仲裁未成立，你的保证金已归否决方');
+    await sendArbitrationNotify(v.openid, arb.marketTitle, wins ? '公断成立，你的保证金已归附议方' : '公断未成立，你的保证金已归反对方');
   }
 
   const flip = wins && market && market.result;
@@ -225,7 +225,7 @@ async function settleArbitrationId(arbId) {
   if (market) {
     await marketRef.update({
       data: {
-        // 仲裁结束即终局：直接回到可结算状态，不再重复公示
+        // 公断结束即终局：直接回到可结卦状态，不再重复公示
         status: 'dispute_window',
         disputeEndsAt: Date.now(),
         result: newResult,
@@ -249,8 +249,8 @@ exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
   const arbId = String((event && event.arbitrationId) || '');
 
-  // 指定仲裁单结算：仅管理员可操作，且必须已过公示期
-  // （防止任意用户提前触发结算 / 绕过投票周期）
+  // 指定公断单结卦：仅管理员可操作，且必须已过公示期
+  // （防止任意用户提前触发结卦 / 绕过附议周期）
   if (arbId) {
     const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
     if (!ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
@@ -258,20 +258,20 @@ exports.main = async (event) => {
     try {
       target = (await db.collection('arbitrations').doc(arbId).get()).data;
     } catch (e) {
-      return { ok: false, err: '仲裁不存在' };
+      return { ok: false, err: '公断不存在' };
     }
     if (target && target.status === 'pending' && target.endsAt && target.endsAt > Date.now()) {
-      return { ok: false, err: '仲裁公示期未结束，暂不能结算' };
+      return { ok: false, err: '公断公示期未结束，暂不能结卦' };
     }
     try {
       return { ok: true, ...(await settleArbitrationId(arbId)) };
     } catch (e) {
-      await postWebhook(`【预言大师·仲裁结算异常】仲裁 ${arbId} 结算抛错：${String(e.message || e).slice(0, 200)}`);
-      return { ok: false, err: e.message || '结算失败' };
+      await postWebhook(`【卦题大师·公断结卦异常】公断 ${arbId} 结卦抛错：${String(e.message || e).slice(0, 200)}`);
+      return { ok: false, err: e.message || '结卦失败' };
     }
   }
 
-  // 批量：结算所有已过公示期的仲裁（定时触发器）
+  // 批量：结卦所有已过公示期的公断（定时触发器）
   const res = await db.collection('arbitrations')
     .where({ status: 'pending', endsAt: _.lte(Date.now()) })
     .limit(20)
@@ -281,7 +281,7 @@ exports.main = async (event) => {
     try {
       results.push(await settleArbitrationId(arb._id));
     } catch (e) {
-      await postWebhook(`【预言大师·仲裁结算异常】仲裁 ${arb._id} 结算抛错：${String(e.message || e).slice(0, 200)}，下个周期自动重试`);
+      await postWebhook(`【卦题大师·公断结卦异常】公断 ${arb._id} 结卦抛错：${String(e.message || e).slice(0, 200)}，下个周期自动重试`);
       results.push({ settled: false, reason: 'exception', arbitrationId: arb._id });
     }
   }

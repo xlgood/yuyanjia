@@ -7,7 +7,7 @@ const _ = db.command;
 // 业务常量单一来源（cloudfunctions/_shared/config.js，npm run sync:common 同步）
 const { MIN_BET_AMOUNT } = require('./common-config');
 
-const PK_EXPIRE_MS = 24 * 3600 * 1000; // 24 小时未应战自动失效
+const 对弈_EXPIRE_MS = 24 * 3600 * 1000; // 24 小时未应弈自动失效
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
@@ -19,7 +19,7 @@ exports.main = async (event) => {
     return { ok: false, err: '参数不合法' };
   }
   if (!Number.isInteger(amount) || amount < MIN_BET_AMOUNT || amount > 100000) {
-    return { ok: false, err: `发起 PK 至少投入 ${MIN_BET_AMOUNT} 爻` };
+    return { ok: false, err: `邀弈至少注爻 ${MIN_BET_AMOUNT} 爻` };
   }
 
   try {
@@ -27,13 +27,13 @@ exports.main = async (event) => {
       const marketRef = t.collection('markets').doc(marketId);
       const market = (await marketRef.get()).data;
       if (!market || market.status !== 'open') {
-        throw new Error('该预言已截止或正在结算');
+        throw new Error('该卦题已截止或正在结卦');
       }
       if (market.deadline && Number(market.deadline) <= Date.now()) {
-        throw new Error('该预言已过截止时间，停止接收表态');
+        throw new Error('该卦题已过截止时间，停止接收应卦');
       }
       if (market.needsManualReview) {
-        throw new Error('该预言已停止接收表态');
+        throw new Error('该卦题已停止接收应卦');
       }
 
       const userRef = t.collection('users').doc(OPENID);
@@ -41,22 +41,22 @@ exports.main = async (event) => {
       if (!user) throw new Error('用户不存在，请稍后重试');
       if (user.points < amount) throw new Error('爻不足');
 
-      // 同一事件同一用户只能有一条表态/PK
+      // 同一事件同一用户只能有一条应卦/对弈
       const betId = `${OPENID}_${marketId}`;
       let existingBet = null;
       try {
         existingBet = (await t.collection('bets').doc(betId).get()).data;
       } catch (e) { /* 不存在 */ }
-      if (existingBet) throw new Error('您已参与过该预言，不能重复发起 PK');
+      if (existingBet) throw new Error('您已参与过该卦题，不能重复发起 对弈');
 
-      // 同一用户对同一事件最多一个待应战 PK
+      // 同一用户对同一事件最多一个待应弈 对弈
       const pendingRes = await t.collection('pks')
         .where({ marketId, challengerId: OPENID, status: 'pending' })
         .limit(1)
         .get();
-      if (pendingRes.data.length) throw new Error('您对该预言已有未完成的 PK 挑战');
+      if (pendingRes.data.length) throw new Error('您对该卦题已有未完成的 对弈 邀弈');
 
-      const pkId = 'PK' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
+      const pkId = '对弈' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
       const nowTs = Date.now();
       const pk = {
         _id: pkId,
@@ -65,7 +65,7 @@ exports.main = async (event) => {
         challengerId: OPENID,
         challenger: {
           openid: OPENID,
-          nickname: user.nickname || '预言新人',
+          nickname: user.nickname || '卦中新客',
           avatar: user.avatar || '🔮',
           choice,
           amount
@@ -78,7 +78,7 @@ exports.main = async (event) => {
         challengerBetId: betId,
         opponentBetId: '',
         createdAt: nowTs,
-        expiresAt: nowTs + PK_EXPIRE_MS,
+        expiresAt: nowTs + 对弈_EXPIRE_MS,
         updatedAt: db.serverDate()
       };
       await t.collection('pks').doc(pkId).set({ data: pk });
@@ -108,7 +108,7 @@ exports.main = async (event) => {
       });
 
       return {
-        pk: Object.assign({}, pk, { _id: pkId, createdAt: nowTs, expiresAt: nowTs + PK_EXPIRE_MS }),
+        pk: Object.assign({}, pk, { _id: pkId, createdAt: nowTs, expiresAt: nowTs + 对弈_EXPIRE_MS }),
         user: (await userRef.get()).data
       };
     });

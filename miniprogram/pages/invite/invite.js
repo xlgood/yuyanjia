@@ -38,7 +38,7 @@ Page({
       });
   },
 
-  // Mock 模式专用：模拟一位好友注册并首次表态，验证奖励链路
+  // Mock 模式专用：模拟一位好友注册并首次应卦，验证奖励链路
   onSimulateInvite() {
     if (this.data.simulating) return;
     this.setData({ simulating: true });
@@ -46,7 +46,7 @@ Page({
       .then(res => {
         this.setData({ stats: res.stats, list: res.list });
         if (res.granted) {
-          wx.showToast({ title: `模拟成功，邀请人 +${res.granted} 爻`, icon: 'success' });
+          wx.showToast({ title: `模拟成功，邀友人 +${res.granted} 爻`, icon: 'success' });
         } else {
           wx.showToast({ title: '已达每日上限，未发放奖励', icon: 'none' });
         }
@@ -58,8 +58,8 @@ Page({
 
   onShowRules() {
     wx.showModal({
-      title: '邀请规则',
-      content: `① 分享邀请链接给好友，好友首次打开并完成一次表态，您可获得 ${this.data.inviterPoints} 爻；\n② 好友通过您的链接首次注册，额外获得 ${this.data.inviteePoints} 新手爻；\n③ 您每日最多 ${this.data.dailyCap} 次有效邀请；\n④ 爻为平台虚拟积分，仅用于参与预言与兑换虚拟荣誉。`,
+      title: '邀友规则',
+      content: `① 分享邀友链接给好友，好友首次打开并完成一次应卦，您可获得 ${this.data.inviterPoints} 爻；\n② 好友通过您的链接首次注册，额外获得 ${this.data.inviteePoints} 初入道爻；\n③ 您每日最多 ${this.data.dailyCap} 次有效邀友；\n④ 爻为平台虚拟积分，仅用于参与卦题与兑换虚拟卦勋。`,
       showCancel: false,
       confirmText: '知道了'
     });
@@ -67,12 +67,12 @@ Page({
 
   onShareAppMessage() {
     return share.appShare(
-      `🔮 我在这玩「预言大师」，一起来预测热点，双方各得爻！`,
+      `🔮 我在这玩「卦题大师」，一起来问卦热点，双方各得爻！`,
       '/pages/index/index'
     );
   },
 
   onShareTimeline() {
-    return share.timelineShare('🔮 预言大师：热点预测，测测你的洞察力');
+    return share.timelineShare('🔮 卦题大师：热点问卦，测测你的洞察力');
   }
 });

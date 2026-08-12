@@ -12,13 +12,13 @@
     <view class="d-title">{{market.title}}</view>
 
     <view class="rule-box">
-      <view class="rule-title">📌 胜负判定标准</view>
+      <view class="rule-title">📌 胜负断卦标准</view>
       <view class="rule-text">{{market.sourceOfTruth}}</view>
     </view>
 
     <view class="pool-box" wx:if="{{!compliance}}">
       <view class="pool-total">
-        <text class="pool-total-label">当前总池（双方支持爻总和）</text>
+        <text class="pool-total-label">当前卦池（双方附议爻总和）</text>
         <view class="pool-total-val">🪙 {{market.totalText}} <text class="pool-total-unit">爻</text></view>
       </view>
       <view class="rate-bar">
@@ -29,25 +29,25 @@
         <text class="green">👍 {{market.yesRate}}</text>
         <text class="red">👎 {{market.noRate}}</text>
       </view>
-      <view class="pool-participants">👥 {{participantCount}} 人参与表态</view>
+      <view class="pool-participants">👥 {{participantCount}} 人参与应卦</view>
     </view>
 
     <view class="result-box" wx:if="{{market.status === 'resolved'}}">
       <view class="result-title">
-        {{market.result === 'YES' ? '👍 官方判定：看好成立' : '👎 官方判定：不看好成立'}}
+        {{market.result === 'YES' ? '👍 官方断卦：看好成立' : '👎 官方断卦：不看好成立'}}
       </view>
-      <view class="result-sub">判定于 {{market.resolvedAtText}}，证据以判定标准中指定数据源为准。</view>
+      <view class="result-sub">断卦于 {{market.resolvedAtText}}，证据以断卦标准中指定数据源为准。</view>
       <view class="result-payout" wx:if="{{myBet}}">
-        {{myBet.status === 'won' ? '🎉 预言成功！瓜分获得 ' + myBet.payout + ' 爻' : myBet.status === 'lost' ? '本次预言未成功，爻已进入奖池' : myBet.status === 'refunded' ? '池数据异常，爻已原路退回' : ''}}
+        {{myBet.status === 'won' ? '🎉 应验！分卦获得 ' + myBet.payout + ' 爻' : myBet.status === 'lost' ? '本次未应验，爻已进入奖池' : myBet.status === 'refunded' ? '池数据异常，爻已原路退回' : ''}}
       </view>
     </view>
 
     <view class="dispute-banner" wx:if="{{market.status === 'dispute_window' || market.status === 'arbitration_window'}}">
-      ⏳ 官方已录入判定结果（{{market.result === 'YES' ? '看好' : '不看好'}}），
-      {{market.status === 'arbitration_window' ? '正在仲裁公示期，社区投票决定是否推翻判定' : '正在判定公示期，可发起社区仲裁'}}。
+      ⏳ 官方已录入断卦结果（{{market.result === 'YES' ? '看好' : '不看好'}}），
+      {{market.status === 'arbitration_window' ? '正在公断公示期，社区附议决定是否推翻断卦' : '正在断卦公示期，可发起社区公断'}}。
     </view>
     <view class="dispute-banner" wx:if="{{market.status === 'locked'}}">
-      ⏸ 已停止表态，正在等待官方判定，请留意结果公布。
+      ⏸ 已停止应卦，正在等待官方断卦，请留意结果公布。
     </view>
   </view>
 
@@ -72,7 +72,7 @@
     </view>
   </view>
 
-  <!-- 完整模式：爻表态 -->
+  <!-- 完整模式：爻应卦 -->
   <view class="card action-card" wx:elif="{{market.status === 'open' && !myBet}}">
     <view class="action-title">您的判断是？</view>
     <view class="choice-row">
@@ -89,7 +89,7 @@
     </view>
 
     <block wx:if="{{selectedChoice}}">
-      <view class="amount-tip">选择支持的爻（多档可选）</view>
+      <view class="amount-tip">选择附议的爻（多档可选）</view>
       <view class="amount-grid">
         <view
           wx:for="{{presets}}"
@@ -111,69 +111,69 @@
       </view>
       <view class="my-balance">我的爻：{{userPoints}}</view>
       <button class="primary-btn confirm-btn" bindtap="onConfirmBet" disabled="{{submitting}}">
-        {{submitting ? '提交中...' : '确认支持 ' + (selectedAmount || 0) + ' 爻'}}
+        {{submitting ? '提交中...' : '确认附议 ' + (selectedAmount || 0) + ' 爻'}}
       </button>
       <button class="pk-btn" bindtap="onCreatePk" disabled="{{submitting}}">
-        <view class="pk-btn-title">⚔️ 发起 PK 挑战</view>
-        <view class="pk-btn-sub">邀请好友应战，双方立场相反</view>
+        <view class="pk-btn-title">⚔️ 发起 对弈 邀弈</view>
+        <view class="pk-btn-sub">邀友论卦应弈，双方立场相反</view>
       </button>
     </block>
   </view>
 
-  <!-- 已锁定：等待判定 -->
+  <!-- 已锁定：等待断卦 -->
   <view class="card action-card" wx:elif="{{market.status === 'locked' && !myBet}}">
-    <view class="action-title">⏸ 已停止表态</view>
-    <view class="poll-tip">该事件已到截止时间，正在等待官方判定；结果确认并公示后将自动结算。</view>
+    <view class="action-title">⏸ 已停止应卦</view>
+    <view class="poll-tip">该事件已到截止时间，正在等待官方断卦；结果确认并公示后将自动结卦。</view>
   </view>
 
-  <!-- 已表态状态 -->
+  <!-- 已应卦状态 -->
   <view class="card action-card voted-card" wx:elif="{{myBet}}">
-    <view class="voted-title">✅ 您已加入预言</view>
+    <view class="voted-title">✅ 您已加入卦题</view>
     <view class="voted-line">
-      您支持了 <text class="{{myBet.choice === 'YES' ? 'green' : 'red'}}">{{myBet.choice === 'YES' ? '看好 (YES)' : '不看好 (NO)'}}</text>
+      您附议了 <text class="{{myBet.choice === 'YES' ? 'green' : 'red'}}">{{myBet.choice === 'YES' ? '看好 (YES)' : '不看好 (NO)'}}</text>
     </view>
     <view class="voted-line">投入 {{myBet.amount}} 爻</view>
-    <view class="voted-wait" wx:if="{{market.status === 'open'}}">⏳ 池内数据在截止前仍会变动，请等待官方判定。</view>
-    <view class="voted-wait" wx:elif="{{market.status === 'locked'}}">⏸ 已停止表态，等待官方判定中。</view>
-    <view class="voted-payout" wx:if="{{myBet.status === 'won'}}">🎉 预言成功，瓜分获得 {{myBet.payout}} 爻！</view>
-    <view class="voted-payout lost" wx:if="{{myBet.status === 'lost'}}">本次预言未成功，投入爻已进入奖池。</view>
+    <view class="voted-wait" wx:if="{{market.status === 'open'}}">⏳ 池内数据在截止前仍会变动，请等待官方断卦。</view>
+    <view class="voted-wait" wx:elif="{{market.status === 'locked'}}">⏸ 已停止应卦，等待官方断卦中。</view>
+    <view class="voted-payout" wx:if="{{myBet.status === 'won'}}">🎉 应验，分卦获得 {{myBet.payout}} 爻！</view>
+    <view class="voted-payout lost" wx:if="{{myBet.status === 'lost'}}">本次未应验，投入爻已进入奖池。</view>
     <view class="voted-payout" wx:if="{{myBet.status === 'refunded'}}">池数据异常，爻已原路退回。</view>
   </view>
 
-  <!-- 仲裁入口 -->
+  <!-- 公断入口 -->
   <view class="card arbitration-card" wx:if="{{market.status === 'dispute_window' && myBet}}">
-    <view class="action-title">⚖️ 对判定结果有异议？</view>
+    <view class="action-title">⚖️ 对断卦结果有异议？</view>
     <view class="arb-tip">
-      <block wx:if="{{participantCount < 10}}">该事件表态人数 {{participantCount}} 人，不足 10 人，暂不支持社区仲裁。</block>
-      <block wx:elif="{{activeArbitration}}">该事件已有进行中的仲裁，点击进入仲裁社区查看投票进展。</block>
-      <block wx:else>发起仲裁需锁定当前全部爻作为保证金，公示 24 小时由社区投票决定是否推翻判定。</block>
+      <block wx:if="{{participantCount < 10}}">该事件应卦人数 {{participantCount}} 人，不足 10 人，暂反对社区公断。</block>
+      <block wx:elif="{{activeArbitration}}">该事件已有进行中的公断，点击进入公断阁查看附议进展。</block>
+      <block wx:else>发起公断需锁定当前全部爻作为保证金，公示 24 小时由社区附议决定是否推翻断卦。</block>
     </view>
     <button
       class="primary-btn"
       bindtap="onArbitrationAction"
       disabled="{{!isMock && participantCount < 10}}"
-    >{{activeArbitration ? '查看仲裁进展' : '发起社区仲裁'}}</button>
+    >{{activeArbitration ? '查看公断进展' : '发起社区公断'}}</button>
   </view>
 
-  <!-- 发起仲裁确认面板 -->
+  <!-- 发起公断确认面板 -->
   <view class="mask" wx:if="{{arbConfirmVisible}}" bindtap="onArbCancel">
     <view class="modal arb-confirm" catchtap="noop">
-      <view class="modal-title">⚖️ 确认发起仲裁</view>
-      <view class="arb-confirm-tip">发起仲裁需将当前全部爻作为保证金锁定，公示期结束后按投票结果分配。</view>
+      <view class="modal-title">⚖️ 确认发起公断</view>
+      <view class="arb-confirm-tip">发起公断需将当前全部爻作为保证金锁定，公示期结束后按附议结果分配。</view>
       <view class="arb-confirm-bond">
         <view class="arb-bond-label">本次锁定保证金</view>
         <view class="arb-bond-num">🪙 {{arbBond}} 爻（当前全部）</view>
       </view>
       <view class="arb-confirm-rule">
-        仲裁成立 → 判定翻转，投对票者瓜分对方保证金；<br/>
-        仲裁不成立 → 维持原判定，你的保证金归否决方。<br/>
+        公断成立 → 断卦翻转，投对票者分卦对方保证金；<br/>
+        公断不成立 → 维持原断卦，你的保证金归反对方。<br/>
         公示期 24 小时，一旦发起不可撤回。
       </view>
       <view class="arb-reason-box">
-        <view class="arb-reason-label">仲裁理由（必填，10-200 字）</view>
+        <view class="arb-reason-label">公断理由（必填，10-200 字）</view>
         <textarea
           class="arb-reason-input"
-          placeholder="说明为什么认为当前判定有误（如：官方数据源口径、截止时点等）"
+          placeholder="说明为什么认为当前断卦有误（如：官方数据源口径、截止时点等）"
           value="{{arbReason}}"
           bindinput="onArbReasonInput"
           maxlength="200"
@@ -192,55 +192,55 @@
     <view class="modal insuff-confirm" catchtap="noop">
       <view class="modal-title">🪙 爻不足</view>
       <view class="insuff-tip">
-        本次表态需要 <text class="insuff-need">{{needAmount}}</text> 爻，
+        本次应卦需要 <text class="insuff-need">{{needAmount}}</text> 爻，
         当前拥有 <text class="insuff-have">{{userPoints}}</text> 爻，还差 <text class="insuff-gap">{{needAmount - userPoints > 0 ? needAmount - userPoints : 0}}</text> 爻。
       </view>
       <view class="insuff-ways">
-        <view class="way-row">📅 每日签到，连续签到奖励递增</view>
+        <view class="way-row">📅 每日问签，连续问签奖励递增</view>
         <view class="way-row">📺 看视频领爻，每天最多 3 次</view>
-        <view class="way-row">🛟 爻归零时还可领取破产补助</view>
+        <view class="way-row">🛟 爻归零时还可领取卦资救济</view>
       </view>
       <view class="modal-btns">
-        <button class="modal-cancel" bindtap="onCloseInsufficient">暂不表态</button>
-        <button class="modal-ok" bindtap="goTaskCenter">去任务中心获取</button>
+        <button class="modal-cancel" bindtap="onCloseInsufficient">暂不应卦</button>
+        <button class="modal-ok" bindtap="goTaskCenter">去修行台获取</button>
       </view>
     </view>
   </view>
 
   <view class="card arbitration-card" wx:if="{{market.status === 'arbitration_window'}}">
-    <view class="action-title">⚖️ 仲裁进行中</view>
-    <view class="arb-tip">社区正在投票决定是否推翻当前判定（{{activeArbitration ? activeArbitration.supportVotes : 0}} 支持 / {{activeArbitration ? activeArbitration.opposeVotes : 0}} 否决）。</view>
-    <button class="primary-btn" bindtap="goArbitration">进入仲裁社区</button>
+    <view class="action-title">⚖️ 公断进行中</view>
+    <view class="arb-tip">社区正在附议决定是否推翻当前断卦（{{activeArbitration ? activeArbitration.supportVotes : 0}} 附议 / {{activeArbitration ? activeArbitration.opposeVotes : 0}} 反对）。</view>
+    <button class="primary-btn" bindtap="goArbitration">进入公断阁</button>
   </view>
 
   <view class="card arbitration-card" wx:if="{{market.status === 'dispute_window' && arbitration && arbitration.status === 'settled'}}">
-    <view class="action-title">⚖️ 仲裁已结束</view>
+    <view class="action-title">⚖️ 公断已结束</view>
     <view class="arb-tip">
-      {{arbitration.winner === 'support' ? '仲裁成立，判定已翻转为' + (market.result === 'YES' ? '不看好' : '看好') : '仲裁未成立，维持原判定'}}
+      {{arbitration.winner === 'support' ? '公断成立，断卦已翻转为' + (market.result === 'YES' ? '不看好' : '看好') : '公断未成立，维持原断卦'}}
     </view>
-    <button class="primary-btn" bindtap="goArbitration">查看仲裁详情</button>
+    <button class="primary-btn" bindtap="goArbitration">查看公断详情</button>
   </view>
 
-  <!-- 本地 mock 模式专属：开发者模拟结算面板 -->
+  <!-- 本地 mock 模式专属：开发者模拟结卦面板 -->
   <view class="dev-card" wx:if="{{isMock && !compliance}}">
-    <view class="dev-title">🛠️ 开发者模拟结算（本地测试）</view>
+    <view class="dev-title">🛠️ 开发者模拟结卦（本地测试）</view>
     <view wx:if="{{market.status === 'open'}}">
       <view class="dev-row">
-        <button class="dev-btn yes" data-result="YES" bindtap="onDevResolve">模拟判定 YES（进公示期）</button>
-        <button class="dev-btn no" data-result="NO" bindtap="onDevResolve">模拟判定 NO（进公示期）</button>
+        <button class="dev-btn yes" data-result="YES" bindtap="onDevResolve">模拟断卦 YES（进公示期）</button>
+        <button class="dev-btn no" data-result="NO" bindtap="onDevResolve">模拟断卦 NO（进公示期）</button>
       </view>
     </view>
     <view wx:elif="{{market.status === 'dispute_window'}}">
-      <button class="dev-btn" bindtap="onDevSettle">模拟结算（瓜分）</button>
-      <button class="dev-btn" bindtap="onDevForceSettle">强制结算（跳过公示/仲裁）</button>
+      <button class="dev-btn" bindtap="onDevSettle">模拟结卦（分卦）</button>
+      <button class="dev-btn" bindtap="onDevForceSettle">强制结卦（跳过公示/公断）</button>
     </view>
-    <view class="dev-tip">此面板仅在使用本地模拟数据时显示；接入云开发后，判定与结算由管理员后台操作。</view>
+    <view class="dev-tip">此面板仅在使用本地模拟数据时显示；接入云开发后，断卦与结卦由管理员后台操作。</view>
   </view>
 </view>
 
 <view class="container" wx:else>
   <view class="empty">
     <view class="empty-icon">🔍</view>
-    <view>预言不存在或已被移除</view>
+    <view>卦题不存在或已被移除</view>
   </view>
 </view>

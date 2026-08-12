@@ -9,7 +9,7 @@
 //   4. 小程序端播放前调用 setServerSideVerificationData（基础库 >= 3.10.3）
 // 协议：URL 校验 GET（验签后原样返回 echostr）；真实回调 POST
 //      （token+timestamp+nonce+encrypt 字典序拼接 sha256 验签；
-//       encrypt URL 解码后取前 16 字节为 IV，AES-256-CBC/PKCS7 解密）。
+//       encrypt URL 解码后取前 16 字节为 IV，AES-256-CBC/对弈CS7 解密）。
 // 奖励发放与每日限额原子处理，transaction_id 去重，回调幂等。
 // 说明：本函数同时兼容云开发 HTTP 触发器与 callFunction 两种调用形态（联调用）。
 // =========================================================
@@ -47,7 +47,7 @@ function verifySignature(params) {
 }
 
 // 解密 encrypt：EncodingAESKey 尾部补一个 "=" 后 Base64 解码为 32 字节 AESKey；
-// encrypt URL 解码后前 16 字节为 IV，其余为密文，AES-256-CBC + PKCS7
+// encrypt URL 解码后前 16 字节为 IV，其余为密文，AES-256-CBC + 对弈CS7
 function decryptEncrypt(encrypt) {
   if (!encrypt || !ENCODING_AES_KEY) return null;
   // 微信 EncodingAESKey 为 43 位 base64，尾部补一个 "=" 解码为 32 字节；
@@ -72,7 +72,7 @@ function decryptEncrypt(encrypt) {
   }
 }
 
-// 原子发放广告任务奖励：transaction_id 去重 + 每日限次 + 发放爻在同一事务内完成，
+// 原子发放观演修行奖励：transaction_id 去重 + 每日限次 + 发放爻在同一事务内完成，
 // 并发或重试时只有一次生效；事务冲突时 wx-server-sdk 自动重试（默认 3 次）
 async function grantAdReward(userId, transactionId, amount) {
   try {

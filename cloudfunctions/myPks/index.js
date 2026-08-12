@@ -15,8 +15,8 @@ function toNumber(ts) {
 
 const CLEANUP_BATCH = 20;
 
-// 单条过期 PK 清理（事务）：并发清理只有一个能成功，防止双倍退款。
-// 挑战方注单若已随市场结算（won/lost/refunded），只标记失效、不退款不删注不动池。
+// 单条过期 对弈 清理（事务）：并发清理只有一个能成功，防止双倍退款。
+// 邀弈方注单若已随市场结卦（won/lost/refunded），只标记失效、不退款不删注不动池。
 async function expireOnePk(pk) {
   try {
     await db.runTransaction(async t => {
@@ -49,7 +49,7 @@ async function expireOnePk(pk) {
       });
     });
   } catch (e) {
-    console.error('清理过期 PK 失败', pk._id, e.message || e);
+    console.error('清理过期 对弈 失败', pk._id, e.message || e);
   }
 }
 
@@ -67,7 +67,7 @@ async function sweepExpiredPks(limit) {
 exports.main = async (event) => {
   const { OPENID, SOURCE } = cloud.getWXContext();
 
-  // 定时触发器兜底：用户不开 PK 页也会定期清理过期挑战（每 10 分钟）
+  // 定时触发器兜底：用户不开 对弈 页也会定期清理过期邀弈（每 10 分钟）
   if (SOURCE === 'wx_timer') {
     await sweepExpiredPks(100);
     return { ok: true, swept: true };
@@ -79,7 +79,7 @@ exports.main = async (event) => {
 
   try {
     const pks = db.collection('pks');
-    // 惰性清理：过期的待应战挑战自动失效并退回挑战者爻
+    // 惰性清理：过期的待应弈邀弈自动失效并退回邀弈者爻
     await sweepExpiredPks(CLEANUP_BATCH);
 
     const inboxRes = await pks
@@ -105,7 +105,7 @@ exports.main = async (event) => {
       ]))
       .count();
 
-    // 补充对手昵称/头像（老数据 opponent 可能缺失）
+    // 补充对手道号/头像（老数据 opponent 可能缺失）
     const users = db.collection('users');
     const ids = new Set();
     [...inbox, ...mineRes.data].forEach(pk => {
@@ -121,12 +121,12 @@ exports.main = async (event) => {
     const decorate = pk => Object.assign({}, pk, {
       challenger: pk.challenger || {
         openid: pk.challengerId,
-        nickname: (nameMap[pk.challengerId] || {}).nickname || '预言新人',
+        nickname: (nameMap[pk.challengerId] || {}).nickname || '卦中新客',
         avatar: (nameMap[pk.challengerId] || {}).avatar || '🔮'
       },
       opponent: pk.opponent || (pk.opponentId ? {
         openid: pk.opponentId,
-        nickname: (nameMap[pk.opponentId] || {}).nickname || '预言新人',
+        nickname: (nameMap[pk.opponentId] || {}).nickname || '卦中新客',
         avatar: (nameMap[pk.opponentId] || {}).avatar || '🔮'
       } : null),
       expiresIn: Math.max(0, (pk.expiresAt || 0) - Date.now())

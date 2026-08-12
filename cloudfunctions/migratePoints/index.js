@@ -1,9 +1,9 @@
 // =========================================================
-// 一次性数据迁移：榜单积分改「净收益」口径 + inviteCount 历史回填
+// 一次性数据迁移：天榜积分改「净收益」口径 + inviteCount 历史回填
 //
 // 背景：旧版本 weekPoints/monthPoints/totalPoints 按含本金的 payout 累计，
 //       inviteCount 从未在云端递增。本函数从 bets / arbitrations / invites
-//       重建各用户的榜单分与邀请数（幂等，可重复执行）。
+//       重建各用户的天榜分与邀友数（幂等，可重复执行）。
 //
 // 调用方式：云开发控制台 → 云函数 → migratePoints → 云端测试（需管理员身份或非客户端来源）
 // =========================================================
@@ -60,7 +60,7 @@ exports.main = async () => {
     const acc = {};
     const getAcc = id => (acc[id] || (acc[id] = { total: 0, week: 0, month: 0, inviteCount: 0 }));
 
-    // 1) 市场表态净收益：won 的 payout - amount；lost/refunded 不计
+    // 1) 市场应卦净收益：won 的 payout - amount；lost/refunded 不计
     const settledBets = await fetchAll('bets', { status: _.in(['won', 'lost', 'refunded']) });
     for (const bet of settledBets) {
       if (bet.status !== 'won') continue;
@@ -73,7 +73,7 @@ exports.main = async () => {
       if (ts >= monthStart) a.month += profit;
     }
 
-    // 2) 仲裁瓜分净收益：胜方按投入比例分到的 share 计入榜单分
+    // 2) 公断分卦净收益：胜方按投入比例分到的 share 计入天榜分
     const settledArbs = await fetchAll('arbitrations', { status: 'settled', winner: _.in(['support', 'oppose']) });
     for (const arb of settledArbs) {
       const winnerSide = arb.winner;
@@ -93,7 +93,7 @@ exports.main = async () => {
       }
     }
 
-    // 3) 邀请奖励：每次有效邀请 +50（计入周/月/总），inviteCount 回填
+    // 3) 邀友奖励：每次有效邀友 +50（计入周/月/总），inviteCount 回填
     const rewardedInvites = await fetchAll('invites', { inviterRewarded: true });
     for (const inv of rewardedInvites) {
       const ts = toNumber(inv.rewardedAt);

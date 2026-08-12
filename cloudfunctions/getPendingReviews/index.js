@@ -15,7 +15,7 @@ exports.main = async () => {
   if (!ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
 
   const nowTs = Date.now();
-  // 1) 人工判定到期：manual 类型且已过截止（或即将截止），等待运营验证
+  // 1) 人工断卦到期：manual 类型且已过截止（或即将截止），等待运营验证
   const manualRes = await db.collection('markets')
     .where({
       status: _.in(['open', 'locked']),
@@ -28,14 +28,14 @@ exports.main = async () => {
     m.resolutionSpec && m.resolutionSpec.dataSource && m.resolutionSpec.dataSource.type === 'manual'
   );
 
-  // 2) 自动判定失败转人工
+  // 2) 自动断卦失败转人工
   const failRes = await db.collection('markets')
     .where({ needsManualReview: true })
     .limit(50)
     .get();
   const failList = failRes.data;
 
-  // 3) 公示期（已判定待结算/可复核）
+  // 3) 公示期（已断卦待结卦/可复核）
   const disputeRes = await db.collection('markets')
     .where(_.or([
       { status: 'dispute_window' }

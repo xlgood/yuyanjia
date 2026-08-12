@@ -61,7 +61,7 @@ Page({
           .catch(() => {});
       })
       .catch(err => {
-        console.error('[预言大师] 刷新用户失败', err);
+        console.error('[卦题大师] 刷新用户失败', err);
       });
   },
 
@@ -155,7 +155,7 @@ Page({
     playRewardedVideo()
       .then(result => {
         if (!result || !result.ended) {
-          const err = new Error('需完整观看广告才能领取补助');
+          const err = new Error('需完整观演广告才能领取补助');
           err.noToast = false;
           throw err;
         }
@@ -199,7 +199,7 @@ Page({
   },
 
   goPkLeaderboard() {
-    // 榜单是 tabBar 页面，必须用 switchTab；用全局标记传递“进入即切 PK 榜”信号
+    // 天榜是 tabBar 页面，必须用 switchTab；用全局标记传递“进入即切 对弈 榜”信号
     getApp().globalData.pkLbRequest = true;
     wx.switchTab({ url: '/pages/leaderboard/leaderboard' });
   },
@@ -215,7 +215,7 @@ Page({
         getApp().setUser(user);
         this.setData({ user, pkOpen: open });
         wx.showToast({
-          title: open ? '已开启：可被邀请 PK' : '已关闭：不会被邀请 PK',
+          title: open ? '已开启：可被邀友 对弈' : '已关闭：不会被邀友 对弈',
           icon: 'none'
         });
       })
@@ -224,8 +224,8 @@ Page({
 
   onShowRules() {
     wx.showModal({
-      title: '玩法与判定规则',
-      content: '① 每个预言上线前绑定唯一判定标准与官方数据源；\n② 判定录入后进入 5 小时异议公示期（跨夜顺延），无异议后按瓜分池公式结算；\n③ 正确方按投入占比瓜分总池，系统向下取整；\n④ 爻为平台虚拟积分，仅用于参与活动与兑换虚拟荣誉，不可兑换现金或可变现实物。',
+      title: '玩法与断卦规则',
+      content: '① 每个卦题上线前绑定唯一断卦标准与官方数据源；\n② 断卦录入后进入 5 小时异议公示期（跨夜顺延），无异议后按卦池公式结卦；\n③ 正确方按投入占比分卦卦池，系统向下取整；\n④ 爻为平台虚拟积分，仅用于参与活动与兑换虚拟卦勋，不可兑换现金或可变现实物。',
       showCancel: false,
       confirmText: '知道了'
     });
@@ -234,10 +234,10 @@ Page({
   noop() {},
 
   onShareAppMessage() {
-    return share.appShare('🔮 预言大师：来挑战 7 连胜，测测你的预言力', '/pages/index/index');
+    return share.appShare('🔮 卦题大师：来邀弈 7 连胜，测测你的卦题力', '/pages/index/index');
   },
 
   onShareTimeline() {
-    return share.timelineShare('🔮 预言大师：来挑战 7 连胜，测测你的预言力');
+    return share.timelineShare('🔮 卦题大师：来邀弈 7 连胜，测测你的卦题力');
   }
 });

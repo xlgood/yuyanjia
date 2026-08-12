@@ -5,7 +5,7 @@ const db = cloud.database();
 const _ = db.command;
 
 // 业务常量单一来源（cloudfunctions/_shared/config.js，npm run sync:common 同步）；
-// 邀请奖励支持环境变量覆盖（login/placeBet/inviteStats 共用）
+// 邀友奖励附议环境变量覆盖（login/placeBet/inviteStats 共用）
 const { INVITE_INVITER_POINTS, INVITE_DAILY_CAP, MIN_BET_AMOUNT } = require('./common-config');
 const INVITER_POINTS = Number(process.env.INVITE_INVITER_POINTS) || INVITE_INVITER_POINTS;
 const DAILY_CAP = Number(process.env.INVITE_DAILY_CAP) || INVITE_DAILY_CAP;
@@ -20,12 +20,12 @@ exports.main = async (event) => {
     return { ok: false, err: '参数不合法' };
   }
   if (!Number.isInteger(amount) || amount < MIN_BET_AMOUNT || amount > 100000) {
-    return { ok: false, err: `每次表态至少投入 ${MIN_BET_AMOUNT} 爻` };
+    return { ok: false, err: `每卦至少注爻 ${MIN_BET_AMOUNT} 爻` };
   }
 
   try {
-    // 已有 PK（发起或应战）则不能普通表态，反之亦然。
-    // 查询放事务外（官方文档：事务仅支持单记录操作）；核心防重仍靠 betId 唯一文档
+    // 已有 对弈（发起或应弈）则不能普通应卦，反之亦然。
+    // 查询放事务外（官方文档：事务仅附议单记录操作）；核心防重仍靠 betId 唯一文档
     const myPkRes = await db.collection('pks')
       .where({
         marketId,
@@ -35,31 +35,31 @@ exports.main = async (event) => {
       .limit(1)
       .get();
     if (myPkRes.data.length) {
-      return { ok: false, err: '您已参与该预言的 PK 挑战，不能重复表态' };
+      return { ok: false, err: '您已参与该卦题的 对弈 邀弈，不能重复应卦' };
     }
 
     const result = await db.runTransaction(async t => {
       const marketRef = t.collection('markets').doc(marketId);
       const market = (await marketRef.get()).data;
       if (!market || market.status !== 'open') {
-        throw new Error('该预言已截止或正在结算');
+        throw new Error('该卦题已截止或正在结卦');
       }
       // 截止时间是硬约束：防止结果出炉后、状态切换前的窗口期内信息套利
       if (market.deadline && Number(market.deadline) <= Date.now()) {
-        throw new Error('该预言已过截止时间，停止接收表态');
+        throw new Error('该卦题已过截止时间，停止接收应卦');
       }
       if (market.needsManualReview) {
-        throw new Error('该预言已停止接收表态');
+        throw new Error('该卦题已停止接收应卦');
       }
 
-      // bets._id = openid_marketId，天然唯一，避免同一人重复表态
+      // bets._id = openid_marketId，天然唯一，避免同一人重复应卦
       const betId = `${OPENID}_${marketId}`;
       const betRef = t.collection('bets').doc(betId);
       let existing = null;
       try {
         existing = (await betRef.get()).data;
       } catch (e) { /* 不存在 */ }
-      if (existing) throw new Error('您已参与过该预言');
+      if (existing) throw new Error('您已参与过该卦题');
 
       const userRef = t.collection('users').doc(OPENID);
       const user = (await userRef.get()).data;
@@ -72,7 +72,7 @@ exports.main = async (event) => {
       });
       await userRef.update({ data: { points: _.inc(-amount), updatedAt: db.serverDate() } });
 
-      // 邀请裂变：被邀请人完成首次表态，邀请人获得奖励（每日上限防刷）
+      // 邀友裂变：被邀友人完成首次应卦，邀友人获得奖励（每日上限防刷）
       let inviteRewardGranted = 0;
       if (user.invitedBy && !user.inviteRewarded) {
         const today = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
@@ -80,7 +80,7 @@ exports.main = async (event) => {
         const inviter = (await inviterRef.get()).data;
         if (inviter) {
           const dailyUsed = inviter.inviteRewardDate === today ? (inviter.inviteRewardToday || 0) : 0;
-          // 无论当日奖励额度是否用完，都计入累计有效邀请（邀请荣誉据此解锁）
+          // 无论当日奖励额度是否用完，都计入累计有效邀友（邀友卦勋据此解锁）
           const inviterData = { inviteCount: _.inc(1), updatedAt: db.serverDate() };
           if (dailyUsed < DAILY_CAP) {
             Object.assign(inviterData, {

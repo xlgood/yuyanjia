@@ -3,16 +3,16 @@
 
   <view wx:elif="{{!arbitration}}" class="empty">
     <view class="empty-icon">⚖️</view>
-    <view>该事件暂无仲裁</view>
+    <view>该事件暂无公断</view>
   </view>
 
   <block wx:else>
     <view class="card head-card">
-      <view class="head-title">⚖️ 社区仲裁</view>
+      <view class="head-title">⚖️ 社区公断</view>
       <view class="head-status {{arbitration.status}}">{{arbitration.statusText}}</view>
       <view class="head-time" wx:if="{{arbitration.status === 'pending'}}">⏳ 剩余 {{arbitration.timeLeft}}（共 24 小时公示期）</view>
       <view class="head-market" bindtap="goMarket">{{arbitration.marketTitle}}</view>
-      <view class="head-rule">原判定：{{arbitration.result === 'YES' ? '👍 看好成立' : '👎 不看好成立'}} · 发起人主张判定应为反方向</view>
+      <view class="head-rule">原断卦：{{arbitration.result === 'YES' ? '👍 看好成立' : '👎 不看好成立'}} · 发起人主张断卦应为反方向</view>
     </view>
 
     <view class="card challenger-card">
@@ -25,47 +25,47 @@
         </view>
       </view>
       <view class="reason-box" wx:if="{{arbitration.reason}}">
-        <view class="reason-label">仲裁理由</view>
+        <view class="reason-label">公断理由</view>
         <view class="reason-text">{{arbitration.reason}}</view>
       </view>
     </view>
 
     <view class="card vote-card">
-      <view class="sec-label">当前投票</view>
+      <view class="sec-label">当前附议</view>
       <view class="vote-bar">
         <view class="vote-bar-support" style="width: {{arbitration.supportRateNum}}%"></view>
       </view>
       <view class="vote-nums">
-        <text class="green">👍 支持 {{arbitration.supportVotes}} 票（{{arbitration.supportRate}}）</text>
-        <text class="red">👎 否决 {{arbitration.opposeVotes}} 票（{{arbitration.opposeRate}}）</text>
+        <text class="green">👍 附议 {{arbitration.supportVotes}} 票（{{arbitration.supportRate}}）</text>
+        <text class="red">👎 反对 {{arbitration.opposeVotes}} 票（{{arbitration.opposeRate}}）</text>
       </view>
       <view class="vote-min">{{arbitration.minVotesText}}</view>
     </view>
 
-    <!-- 投票区 -->
+    <!-- 附议区 -->
     <view class="card action-card" wx:if="{{arbitration.status === 'pending' && !myVote}}">
-      <view class="sec-label">参与投票（需缴纳保证金）</view>
+      <view class="sec-label">参与附议（需缴纳保证金）</view>
       <view class="bond-row">
         <text class="bond-label">保证金</text>
         <input class="bond-input" type="number" value="{{bond}}" bindinput="onBondInput" />
         <text class="bond-unit">爻（≥ 100）</text>
       </view>
       <view class="vote-btns">
-        <button class="vote-btn oppose" data-side="oppose" bindtap="onVote" disabled="{{!eligible || submitting}}">👎 否决仲裁</button>
-        <button class="vote-btn support" data-side="support" bindtap="onVote" disabled="{{!eligible || submitting}}">👍 支持仲裁</button>
+        <button class="vote-btn oppose" data-side="oppose" bindtap="onVote" disabled="{{!eligible || submitting}}">👎 反对公断</button>
+        <button class="vote-btn support" data-side="support" bindtap="onVote" disabled="{{!eligible || submitting}}">👍 附议公断</button>
       </view>
-      <view class="eligibility" wx:if="{{!eligible}}">投票资格：预言成功 ≥ 5 次或已结算 PK ≥ 3 场，当前不满足</view>
-      <view class="vote-rule">投对票的人按投入比例瓜分投错票的人的保证金；同一仲裁每人限一票，同时只能参与 1 个仲裁。</view>
+      <view class="eligibility" wx:if="{{!eligible}}">附议资格：应验 ≥ 5 次或已结卦 对弈 ≥ 3 场，当前不满足</view>
+      <view class="vote-rule">投对票的人按投入比例分卦投错票的人的保证金；同一公断每人限一票，同时只能参与 1 个公断。</view>
     </view>
 
     <view class="card voted-card" wx:if="{{myVote}}">
-      <view class="sec-label">我的投票</view>
-      <view class="voted-line">已投：{{myVote.side === 'support' ? '👍 支持仲裁' : '👎 否决仲裁'}}（保证金 {{myVote.bond}} 爻）</view>
+      <view class="sec-label">我的附议</view>
+      <view class="voted-line">已投：{{myVote.side === 'support' ? '👍 附议公断' : '👎 反对公断'}}（保证金 {{myVote.bond}} 爻）</view>
       <view class="voted-line" wx:if="{{arbitration.status === 'settled'}}">
-        {{arbitration.winner === myVote.side ? '🎉 你投对了，保证金和瓜分奖励已发放' : '本次投错，保证金已归对方'}}
+        {{arbitration.winner === myVote.side ? '🎉 你投对了，保证金和分卦奖励已发放' : '本次投错，保证金已归对方'}}
       </view>
     </view>
 
-    <view class="footnote">仲裁保证金在公示期内锁定，结束后按胜负分配，平台不收取任何费用。爻为虚拟积分，不可兑换现金或实物。</view>
+    <view class="footnote">公断保证金在公示期内锁定，结束后按胜负分配，平台不收取任何费用。爻为虚拟积分，不可兑换现金或实物。</view>
   </block>
 </view>

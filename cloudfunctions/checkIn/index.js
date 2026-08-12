@@ -24,13 +24,13 @@ exports.main = async () => {
 
   const today = todayKey();
   const yesterday = todayKey(-1);
-  if (user.lastCheckInDate === today) return { ok: false, err: '今日已签到' };
+  if (user.lastCheckInDate === today) return { ok: false, err: '今日问签已定' };
 
   const streak = user.lastCheckInDate === yesterday ? (user.checkInStreak || 0) + 1 : 1;
   const bonus = Math.min(Math.max(streak - 1, 0), CHECKIN_STREAK_CAP - 1) * CHECKIN_STREAK_BONUS;
   const granted = CHECKIN_BASE_POINTS + bonus;
 
-  // 原子抢占「今日签到名额」：并发重复请求只有一个能命中，防止双领
+  // 原子抢占「今日问签名额」：并发重复请求只有一个能命中，防止双领
   const claim = await users
     .where({ _id: OPENID, lastCheckInDate: _.neq(today) })
     .update({
@@ -43,7 +43,7 @@ exports.main = async () => {
       }
     });
   if (!claim.stats || !claim.stats.updated) {
-    return { ok: false, err: '今日已签到' };
+    return { ok: false, err: '今日问签已定' };
   }
 
   user = (await users.doc(OPENID).get()).data;

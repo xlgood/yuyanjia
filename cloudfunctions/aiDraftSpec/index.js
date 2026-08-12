@@ -1,8 +1,8 @@
 // =========================================================
-// AI 起草判定条件（DeepSeek）
+// AI 起草断卦条件（DeepSeek）
 // 输入：事件标题 + 分类 + 截止时间 + 数据源注册表
 // 输出：resolutionSpec 草稿（AI 只起草规则，最终由运营确认后发布，
-//       判定执行仍由 resolver 规则引擎 + 公示期兜底，AI 不参与裁决）
+//       断卦执行仍由 resolver 规则引擎 + 公示期兜底，AI 不参与裁决）
 // =========================================================
 const cloud = require('wx-server-sdk');
 const https = require('https');
@@ -29,7 +29,7 @@ const LOCAL_SENSITIVE_WORDS = [
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
-// 微信官方内容安全（AI 判定草稿在展示给运营前先过检）；未开通云调用时回退本地词表
+// 微信官方内容安全（AI 断卦草稿在展示给运营前先过检）；未开通云调用时回退本地词表
 async function securityCheck(content) {
   if (!content) return true;
   try {
@@ -109,12 +109,12 @@ exports.main = async (event) => {
     notes: String(s.notes || '').slice(0, 100)
   }));
 
-  const systemPrompt = '你是预测市场「预言大师」的判定条件起草助手。你的职责是把事件改写成严格二值化（YES/NO）、机器可执行的判定条件（resolutionSpec）。你只起草规则，不裁决结果。';
-  const userPrompt = `请为以下预测事件起草判定条件。
+  const systemPrompt = '你是问卦市场「卦题大师」的断卦条件起草助手。你的职责是把事件改写成严格二值化（YES/NO）、机器可执行的断卦条件（resolutionSpec）。你只起草规则，不裁决结果。';
+  const userPrompt = `请为以下问卦事件起草断卦条件。
 
 事件描述：${title}
 分类：${category || '未指定'}
-判定时点（截止）：${deadlineText || '未指定'}
+断卦时点（截止）：${deadlineText || '未指定'}
 
 可选数据源（只能从其中选择 provider，禁止编造数据源）：
 ${JSON.stringify(sourceList)}
@@ -128,16 +128,16 @@ ${JSON.stringify(sourceList)}
   "operator": ">=|>|<=|<|==|!=|contains|in",
   "value": 阈值（数值或字符串，contains/in 时可为字符串或数组）,
   "unit": "单位，如 ℃/元/分",
-  "humanReadable": "给用户看的判定说明（中文，必须包含：数据源、判定时点、比较规则、缺失数据处理），与上述字段严格一致"
+  "humanReadable": "给用户看的断卦说明（中文，必须包含：数据源、断卦时点、比较规则、缺失数据处理），与上述字段严格一致"
 }
 
 硬性规则：
 1. 优先 numeric（有可机读数据源时）；只有无法机读时才选 manual；
 2. 边界规则固定为：数据缺失时爻原路退回；临界值按条件严格比较，平局判 NO；
-3. humanReadable 用合规词汇（支持率/预言成功，禁用下注/赔率/庄家）；
-4. 【单一结算源】provider 只能唯一指定一个官方数据源（必须来自上面列表），humanReadable 中只允许出现这一个结算源，禁止“以 A 为准、B 做参考”的多源表述；
-5. 【物理截止】humanReadable 必须包含明确的判定时点（截止时间），并注明“截止时点之后产生的任何信息不作为判定证据”；
-6. 【二元性】判定条件必须保证结果严格二值（成立/不成立），不存在第三种结果；若事件可能取消/延期，写明“数据缺失或事件未发生时爻原路退回”；
+3. humanReadable 用合规词汇（卦意占比/应验，禁用下注/赔率/庄家）；
+4. 【单一结卦源】provider 只能唯一指定一个官方数据源（必须来自上面列表），humanReadable 中只允许出现这一个结卦源，禁止“以 A 为准、B 做参考”的多源表述；
+5. 【物理截止】humanReadable 必须包含明确的断卦时点（截止时间），并注明“截止时点之后产生的任何信息不作为断卦证据”；
+6. 【二元性】断卦条件必须保证结果严格二值（成立/不成立），不存在第三种结果；若事件可能取消/延期，写明“数据缺失或事件未发生时爻原路退回”；
 7. 【敏感红线】若事件属于政治选举、社会争议、司法案件、公共卫生突发事件等敏感话题，直接返回 {"mode":"manual","provider":"","humanReadable":"事件涉及敏感红线，禁止发布"}。`;
 
   let resp;
@@ -167,9 +167,9 @@ ${JSON.stringify(sourceList)}
 
   if (parsed.mode === 'manual') {
     const humanReadable = String(parsed.humanReadable || '').trim();
-    if (humanReadable.length < 10) return { ok: false, err: 'AI 未返回有效的判定说明，请重试' };
+    if (humanReadable.length < 10) return { ok: false, err: 'AI 未返回有效的断卦说明，请重试' };
     const hrPass = await securityCheck(humanReadable.slice(0, 500));
-    if (!hrPass) return { ok: false, err: 'AI 生成的判定说明包含敏感内容，请重试或改用手动填写' };
+    if (!hrPass) return { ok: false, err: 'AI 生成的断卦说明包含敏感内容，请重试或改用手动填写' };
     return {
       ok: true,
       spec: {
@@ -187,13 +187,13 @@ ${JSON.stringify(sourceList)}
   if (!sources.some(s => String(s.name || '') === provider)) {
     return { ok: false, err: `AI 引用了未注册数据源「${provider}」，请重试或改用手动填写` };
   }
-  if (!OPERATORS.includes(parsed.operator)) return { ok: false, err: 'AI 返回了不支持的比较符，请重试' };
+  if (!OPERATORS.includes(parsed.operator)) return { ok: false, err: 'AI 返回了反对的比较符，请重试' };
   const transform = TRANSFORMS.includes(parsed.transform) ? parsed.transform : 'int';
   const value = transform === 'string' ? String(parsed.value) : Number(parsed.value);
   if (value === '' || (transform !== 'string' && isNaN(value))) return { ok: false, err: 'AI 返回的阈值无效，请重试' };
 
   const hrCheck = await securityCheck(String(parsed.humanReadable || '').slice(0, 500));
-  if (!hrCheck) return { ok: false, err: 'AI 生成的判定说明包含敏感内容，请重试或改用手动填写' };
+  if (!hrCheck) return { ok: false, err: 'AI 生成的断卦说明包含敏感内容，请重试或改用手动填写' };
 
   return {
     ok: true,

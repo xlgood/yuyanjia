@@ -30,11 +30,11 @@ exports.main = async (event) => {
   try {
     market = (await db.collection('markets').doc(marketId).get()).data;
   } catch (e) {
-    return { ok: false, err: '预言不存在' };
+    return { ok: false, err: '卦题不存在' };
   }
-  // 允许在 open/locked（等待判定）时录入首次判定，也允许在公示期内由管理员复核覆盖判定
+  // 允许在 open/locked（等待断卦）时录入首次断卦，也允许在公示期内由管理员复核覆盖断卦
   if (market.status !== 'open' && market.status !== 'locked' && market.status !== 'dispute_window') {
-    return { ok: false, err: '该预言已结算' };
+    return { ok: false, err: '该卦题已结卦' };
   }
 
   const nowTs = Date.now();
@@ -42,7 +42,7 @@ exports.main = async (event) => {
     data: {
       status: 'dispute_window',
       result,
-      // 未传 evidenceUrl 时保留原有证据链接（覆盖判定时避免清空存证）
+      // 未传 evidenceUrl 时保留原有证据链接（覆盖断卦时避免清空存证）
       evidenceUrl: event.evidenceUrl !== undefined ? String(event.evidenceUrl || '') : (market.evidenceUrl || ''),
       hasDispute: false,
       // 人工录入后清除「待人工复核」标记，否则会重复出现在复核队列

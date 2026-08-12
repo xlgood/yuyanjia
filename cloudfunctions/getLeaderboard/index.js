@@ -1,13 +1,13 @@
 const cloud = require('wx-server-sdk');
 
 // =========================================================
-// 榜单查询（物化缓存版）
+// 天榜查询（物化缓存版）
 // 之前每次请求都做 3 次全集合 count + top N 实时拉取，用户量上来后
 // 读放大严重。改为：top 榜读「物化缓存」集合 leaderboards/{type}，
 // 缓存 TTL 内直接返回（LEADERBOARD_CACHE_MINUTES 可调，默认 10 分钟）；
 // 过期后由本次请求方惰性重建（CAS 写入，并发只让一个生效，输家读新缓存）。
 // 仅「我的排名/追赶差值」仍需 2 次轻量 count（按唯一主键字段查询，有索引）。
-// 注意：排名是 10 分钟内近似值，榜单场景可接受；要绝对实时可缩短 TTL。
+// 注意：排名是 10 分钟内近似值，天榜场景可接受；要绝对实时可缩短 TTL。
 // =========================================================
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
@@ -20,8 +20,8 @@ const FIELD_MAP = {
   total: 'totalPoints'
 };
 const TYPES = Object.keys(FIELD_MAP);
-// PK 榜最少场次门槛：与 rankSnapshot / pkLeaderboard 保持一致
-const PK_MIN_GAMES = 5;
+// 对弈 榜最少场次门槛：与 rankSnapshot / pkLeaderboard 保持一致
+const 对弈_MIN_GAMES = 5;
 const TOP_SIZE = 200;                       // 缓存最多存 200 名
 const CACHE_TTL_MS = (Number(process.env.LEADERBOARD_CACHE_MINUTES) || 10) * 60 * 1000;
 
@@ -40,14 +40,14 @@ async function computeRegularTop(field) {
     .filter(u => (u[field] || 0) > 0)
     .map(u => ({
       openid: u._id,
-      nickname: u.nickname || '预言新人',
+      nickname: u.nickname || '卦中新客',
       avatarUrl: u.avatarUrl || '',
       value: u[field] || 0
     }));
   return { type: null, list, total: list.length, updatedAt: Date.now() };
 }
 
-// 计算 PK 榜 top（聚合已结算 PK 胜率，与 rankSnapshot 口径一致）
+// 计算 对弈 榜 top（聚合已结卦 对弈 胜率，与 rankSnapshot 口径一致）
 async function computePkTop() {
   const pkStats = {};
   let skip = 0;
@@ -70,7 +70,7 @@ async function computePkTop() {
     skip += 100;
   }
   const entries = Object.keys(pkStats)
-    .filter(openid => pkStats[openid].total >= PK_MIN_GAMES)
+    .filter(openid => pkStats[openid].total >= 对弈_MIN_GAMES)
     .map(openid => {
       const s = pkStats[openid];
       const winRate = s.total > 0 ? s.wins / s.total : 0;
@@ -80,7 +80,7 @@ async function computePkTop() {
     .sort((a, b) => b.winRate - a.winRate)
     .slice(0, TOP_SIZE);
 
-  // 补充昵称/头像（一次批量取）
+  // 补充道号/头像（一次批量取）
   const ids = entries.map(e => e.openid);
   const nameMap = {};
   if (ids.length) {
@@ -88,9 +88,9 @@ async function computePkTop() {
       .where({ _id: _.in(ids) })
       .field({ nickname: true, avatarUrl: true })
       .get();
-    uRes.data.forEach(u => { nameMap[u._id] = { nickname: u.nickname || '预言新人', avatarUrl: u.avatarUrl || '' }; });
+    uRes.data.forEach(u => { nameMap[u._id] = { nickname: u.nickname || '卦中新客', avatarUrl: u.avatarUrl || '' }; });
   }
-  const list = entries.map(e => Object.assign({}, e, nameMap[e.openid] || { nickname: '预言新人', avatarUrl: '' }));
+  const list = entries.map(e => Object.assign({}, e, nameMap[e.openid] || { nickname: '卦中新客', avatarUrl: '' }));
   return { type: 'pk', list, total: list.length, updatedAt: Date.now() };
 }
 
@@ -167,7 +167,7 @@ async function handle(event) {
       }
     } catch (e) { /* 按 0 处理 */ }
   } else {
-    // PK 榜：我的排名 = 胜率高于我的用户数 + 1（复用同一份物化数据即可）
+    // 对弈 榜：我的排名 = 胜率高于我的用户数 + 1（复用同一份物化数据即可）
     const myPk = (cached.list || []).find(i => i.openid === OPENID);
     if (myPk) myRank = cached.list.indexOf(myPk) + 1;
     else {

@@ -1,17 +1,17 @@
 // =========================================================
-// 自动判定执行器（resolver）
+// 自动断卦执行器（resolver）
 // 每 10 分钟扫描「已过截止时间 + 带 resolutionSpec」的合约，
-// 按数据源类型调用适配器拉取官方数据并自动判定：
+// 按数据源类型调用适配器拉取官方数据并自动断卦：
 //   - 成功：写入 result / 证据，状态 → dispute_window（12h 公示）
 //   - 失败：记录日志并重试，连续 3 次失败转人工复核
-// 之后由 settleMarket 定时器自动结算，全链路无人值守。
+// 之后由 settleMarket 定时器自动结卦，全链路无人值守。
 // =========================================================
 const cloud = require('wx-server-sdk');
 
 // 公示期时长（小时，默认 5；可通过 DISPUTE_WINDOW_HOURS 调整）
 const DISPUTE_WINDOW_MS = (Number(process.env.DISPUTE_WINDOW_HOURS) || 5) * 3600 * 1000;
 const MAX_ATTEMPTS = 3;
-const GRACE_MS = 5 * 60 * 1000; // 截止后等待 5 分钟再判定（等官方数据刷新）
+const GRACE_MS = 5 * 60 * 1000; // 截止后等待 5 分钟再断卦（等官方数据刷新）
 
 // 公示结束时间：窗口时长 + 跨夜顺延（若结束落在北京时间 00:00~10:00，顺延到当天 10:00）
 function computeDisputeEndsAt(nowTs) {
@@ -65,7 +65,7 @@ function postWebhook(content) {
 }
 
 // =========================================================
-// 适配器（原 adapters/ 目录，因 CLI 打包不支持子目录已内联，
+// 适配器（原 adapters/ 目录，因 CLI 打包反对子目录已内联，
 // 功能与拆分版本完全一致；GUI 部署两种写法均可）
 // =========================================================
 const http = require('http');
@@ -112,13 +112,13 @@ function evaluate(actual, cond) {
     case '!=': return actual !== target;
     case 'contains': return String(actual).indexOf(String(target)) >= 0;
     case 'in': return Array.isArray(target) && target.indexOf(actual) >= 0;
-    default: throw new Error('不支持的运算符: ' + cond.operator);
+    default: throw new Error('反对的运算符: ' + cond.operator);
   }
 }
 
 async function resolveGenericJson(spec) {
   const ds = spec.dataSource;
-  if (ds.type !== 'api') throw new Error('generic-json 适配器仅支持 dataSource.type=api');
+  if (ds.type !== 'api') throw new Error('generic-json 适配器仅附议 dataSource.type=api');
 
   const { raw, json } = await fetchJson(ds.url, ds.timeoutMs);
   let actual = getPath(json, ds.field);
@@ -180,13 +180,13 @@ exports.main = async () => {
     if (m.needsManualReview) continue;
     const attempts = (m.resolutionAttempts || 0) + 1;
     const spec = m.resolutionSpec;
-    // manual 类型由运营人工录入判定（见 resolveMarket），不参与自动判定
+    // manual 类型由运营人工录入断卦（见 resolveMarket），不参与自动断卦
     if (spec && spec.dataSource && spec.dataSource.type === 'manual') continue;
     const adapter = ADAPTERS[spec && spec.dataSource && spec.dataSource.type];
 
     if (!adapter) {
       await flagManual(m._id, attempts, '无对应数据源适配器: ' + (spec && spec.dataSource && spec.dataSource.type));
-      await postWebhook(`【预言大师·判定告警】事件「${String(m.title || m._id).slice(0, 30)}」无对应数据源适配器，已转人工`);
+      await postWebhook(`【卦题大师·断卦告警】事件「${String(m.title || m._id).slice(0, 30)}」无对应数据源适配器，已转人工`);
       summary.manual.push(m._id);
       continue;
     }
@@ -224,7 +224,7 @@ exports.main = async () => {
         await db.collection('markets').doc(m._id).update({
           data: { needsManualReview: true, resolutionAttempts: attempts, updatedAt: db.serverDate() }
         });
-        await postWebhook(`【预言大师·判定告警】事件「${String(m.title || m._id).slice(0, 30)}」自动判定连续 ${attempts} 次失败，已转人工复核`);
+        await postWebhook(`【卦题大师·断卦告警】事件「${String(m.title || m._id).slice(0, 30)}」自动断卦连续 ${attempts} 次失败，已转人工复核`);
         summary.manual.push(m._id);
       } else {
         await db.collection('markets').doc(m._id).update({
@@ -244,7 +244,7 @@ async function log(marketId, method, data) {
       data: Object.assign({ marketId, method, createdAt: db.serverDate() }, data)
     });
   } catch (e) {
-    console.error('写入判定日志失败', marketId, e);
+    console.error('写入断卦日志失败', marketId, e);
   }
 }
 

@@ -1,11 +1,11 @@
 // =========================================================
 // 锁定市场（定时触发，每分钟）
 // 截止时间一到，把 status=open 的市场切为 locked：
-//   - 用户端立即显示「已停止表态，等待官方判定」
-//   - resolver 只扫描 locked 市场做判定
+//   - 用户端立即显示「已停止应卦，等待官方断卦」
+//   - resolver 只扫描 locked 市场做断卦
 // 附带能力：
 //   - 锁定/超时转人工时向企业微信或飞书机器人推送（LOCK_WEBHOOK_URL）
-//   - 判定超时兜底：锁定超过 LOCK_STALE_HOURS（默认 24h）仍未判定 → needsManualReview
+//   - 断卦超时兜底：锁定超过 LOCK_STALE_HOURS（默认 24h）仍未断卦 → needsManualReview
 // 环境变量：
 //   LOCK_WEBHOOK_URL   企业微信/飞书机器人 webhook（留空不推送）
 //   LOCK_WEBHOOK_TYPE  wecom（默认）| feishu
@@ -74,7 +74,7 @@ async function lockDueMarkets() {
   return locked;
 }
 
-// 判定超时兜底：锁定超过阈值仍未判定 → 转人工复核队列并提示
+// 断卦超时兜底：锁定超过阈值仍未断卦 → 转人工复核队列并提示
 async function flagStaleLocked() {
   const nowTs = Date.now();
   const res = await db.collection('markets')
@@ -102,10 +102,10 @@ exports.main = async () => {
     if (WEBHOOK_URL && (locked.length || flagged.length)) {
       const parts = [];
       if (locked.length) {
-        parts.push(`【预言大师】${locked.length} 个事件已锁定，需判定：\n${locked.map(m => `- ${m.title}`).join('\n')}`);
+        parts.push(`【卦题大师】${locked.length} 个事件已锁定，需断卦：\n${locked.map(m => `- ${m.title}`).join('\n')}`);
       }
       if (flagged.length) {
-        parts.push(`【判定超时已转人工】${flagged.length} 个事件锁定超过阈值：\n${flagged.map(m => `- ${m.title}`).join('\n')}`);
+        parts.push(`【断卦超时已转人工】${flagged.length} 个事件锁定超过阈值：\n${flagged.map(m => `- ${m.title}`).join('\n')}`);
       }
       await postWebhook(parts.join('\n\n'));
     }

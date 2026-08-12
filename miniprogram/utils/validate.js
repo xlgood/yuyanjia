@@ -1,4 +1,4 @@
-// 昵称等用户输入的前后端共用校验
+// 道号等用户输入的前后端共用校验
 const {
   NICKNAME_MAX_LEN, SENSITIVE_WORDS,
   ARBITRATION_REASON_MIN_LEN, ARBITRATION_REASON_MAX_LEN,
@@ -11,18 +11,18 @@ const INJECTION_RE = /[<>`\\]|javascript\s*:|on\w+\s*=|alert\s*\(|<script|%3c|%3
 
 function validateNickname(name) {
   const value = String(name == null ? '' : name).trim();
-  if (!value) return { ok: false, err: '昵称不能为空' };
+  if (!value) return { ok: false, err: '道号不能为空' };
   if (value.length > NICKNAME_MAX_LEN) {
-    return { ok: false, err: `昵称不能超过 ${NICKNAME_MAX_LEN} 个字` };
+    return { ok: false, err: `道号不能超过 ${NICKNAME_MAX_LEN} 个字` };
   }
-  if (CONTROL_RE.test(value)) return { ok: false, err: '昵称包含非法控制字符' };
+  if (CONTROL_RE.test(value)) return { ok: false, err: '道号包含非法控制字符' };
   if (INJECTION_RE.test(value)) {
-    return { ok: false, err: '昵称包含不允许的字符（< > 引号 脚本等）' };
+    return { ok: false, err: '道号包含不允许的字符（< > 引号 脚本等）' };
   }
   const lower = value.toLowerCase();
   for (let i = 0; i < SENSITIVE_WORDS.length; i++) {
     if (lower.indexOf(SENSITIVE_WORDS[i]) >= 0) {
-      return { ok: false, err: '昵称包含敏感词汇，请更换' };
+      return { ok: false, err: '道号包含敏感词汇，请更换' };
     }
   }
   return { ok: true, value };
@@ -30,12 +30,12 @@ function validateNickname(name) {
 
 function validateArbitrationReason(reason) {
   const value = String(reason == null ? '' : reason).trim();
-  if (!value) return { ok: false, err: '请填写仲裁理由' };
+  if (!value) return { ok: false, err: '请填写公断理由' };
   if (value.length < ARBITRATION_REASON_MIN_LEN) {
-    return { ok: false, err: `仲裁理由至少 ${ARBITRATION_REASON_MIN_LEN} 个字` };
+    return { ok: false, err: `公断理由至少 ${ARBITRATION_REASON_MIN_LEN} 个字` };
   }
   if (value.length > ARBITRATION_REASON_MAX_LEN) {
-    return { ok: false, err: `仲裁理由不能超过 ${ARBITRATION_REASON_MAX_LEN} 个字` };
+    return { ok: false, err: `公断理由不能超过 ${ARBITRATION_REASON_MAX_LEN} 个字` };
   }
   if (CONTROL_RE.test(value)) return { ok: false, err: '理由包含非法控制字符' };
   if (INJECTION_RE.test(value)) {

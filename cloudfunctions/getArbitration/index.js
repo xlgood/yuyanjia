@@ -9,7 +9,7 @@ exports.main = async (event) => {
   const marketId = String(event.marketId || '');
 
   try {
-    // 查找该事件进行中或最近的仲裁
+    // 查找该事件进行中或最近的公断
     const res = await db.collection('arbitrations')
       .where({ marketId })
       .orderBy('createdAt', 'desc')
@@ -24,7 +24,7 @@ exports.main = async (event) => {
       .get();
     const myVote = myVoteRes.data[0] || null;
 
-    // 参与资格判定（前端展示用；won/lost/refunded 均算已结算表态）
+    // 参与资格断卦（前端展示用；won/lost/refunded 均算已结卦应卦）
     let eligible = false;
     const settledBets = await db.collection('bets').where({ openid: OPENID, status: _.in(['won', 'lost', 'refunded']) }).count();
     const settledPks = await db.collection('pks').where({ status: 'settled', participantIds: OPENID }).count();
@@ -39,6 +39,6 @@ exports.main = async (event) => {
       eligible
     };
   } catch (e) {
-    return { ok: false, err: e.message || '加载仲裁失败' };
+    return { ok: false, err: e.message || '加载公断失败' };
   }
 };

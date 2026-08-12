@@ -15,7 +15,8 @@ module.exports = {
   MIN_BET_AMOUNT: 10,                      // 表态/PK 最低投入爻数
 
   // 系统预设头像（只允许从列表中选择，不允许用户上传，降低审核风险）
-  AVATARS: ['🔮', '🦉', '🦊', '🐯', '🐼', '🦁', '🐸', '🦄', '🤖', '👑', '⭐', '🌈'],
+  // 国潮卦爻版：八卦卦象 × 太极 × 玄机符号；正式资源包为 SVG 卦爻头像
+  AVATARS: ['☰', '☱', '☲', '☳', '☴', '☵', '☶', '☷', '☯', '🔮', '🏮', '🎋'],
 
   // 昵称长度上限（字）
   NICKNAME_MAX_LEN: 12,
@@ -56,24 +57,25 @@ module.exports = {
   INVITE_DAILY_CAP: 10,        // 邀请人每日最多计次人数（防小号刷）
 
   // =========================================================
-  // 荣誉体系（自动解锁，不消耗爻）
-  // type: milestone = 成就里程碑 / rank = 榜单荣誉
-  // rank 荣誉：tier 1 = 前三名专属，tier 2 = 4-10 名
+  // 卦勋体系（自动点亮，不消耗爻）· 国潮卦爻版
+  // type: milestone = 成就里程碑 / rank = 榜上卦勋
+  // rank 卦勋：tier 1 = 前三名专属，tier 2 = 4-10 名
+  // emoji 为过渡占位，正式资源包为 SVG 印章徽章（docs/UI设计方案.md）
   // =========================================================
   HONORS: [
     // 成就里程碑
-    { id: 'honor_first_bet', type: 'milestone', name: '初露锋芒', emoji: '🌟', desc: '完成首次表态' },
+    { id: 'honor_first_bet', type: 'milestone', name: '初露锋芒', emoji: '🌟', desc: '完成首次应卦' },
     { id: 'honor_streak_3', type: 'milestone', name: '三连神算', emoji: '🔥', desc: '达成 3 连胜' },
-    { id: 'honor_streak_7', type: 'milestone', name: '七连胜传奇', emoji: '⚡', desc: '达成 7 连胜' },
-    { id: 'honor_streak_10', type: 'milestone', name: '十连胜神话', emoji: '🌋', desc: '达成 10 连胜' },
-    { id: 'honor_bet_50', type: 'milestone', name: '资深预言家', emoji: '🧠', desc: '累计参与 50 次表态' },
-    { id: 'honor_bet_200', type: 'milestone', name: '预言宗师', emoji: '👑', desc: '累计参与 200 次表态' },
-    { id: 'honor_pk_first', type: 'milestone', name: '擂台新秀', emoji: '⚔️', desc: '完成首次 PK 对局' },
-    { id: 'honor_pk_10', type: 'milestone', name: '百战拳王', emoji: '🥊', desc: '累计完成 10 场 PK' },
-    { id: 'honor_invite_first', type: 'milestone', name: '人脉王', emoji: '🤝', desc: '首次成功邀请好友' },
-    { id: 'honor_invite_10', type: 'milestone', name: '号召力爆棚', emoji: '📣', desc: '累计成功邀请 10 位好友' },
+    { id: 'honor_streak_7', type: 'milestone', name: '七曜连胜', emoji: '✨', desc: '达成 7 连胜' },
+    { id: 'honor_streak_10', type: 'milestone', name: '十曜封神', emoji: '☀️', desc: '达成 10 连胜' },
+    { id: 'honor_bet_50', type: 'milestone', name: '洞见行者', emoji: '👁️', desc: '累计应卦 50 次' },
+    { id: 'honor_bet_200', type: 'milestone', name: '爻道宗师', emoji: '👑', desc: '累计应卦 200 次' },
+    { id: 'honor_pk_first', type: 'milestone', name: '擂台新秀', emoji: '🛡️', desc: '完成首次对弈' },
+    { id: 'honor_pk_10', type: 'milestone', name: '百战不殆', emoji: '⚔️', desc: '累计完成 10 场对弈' },
+    { id: 'honor_invite_first', type: 'milestone', name: '一呼百应', emoji: '🤝', desc: '首次成功邀友' },
+    { id: 'honor_invite_10', type: 'milestone', name: '众望所归', emoji: '📯', desc: '累计邀友 10 位' },
 
-    // 榜单荣誉：连胜榜
+    // 榜上卦勋：连胜榜
     { id: 'rank_streak_top3', type: 'rank', rankType: 'streak', tier: 1, name: '连胜榜·前三甲', emoji: '🏆', desc: '连胜榜历史进入前三名' },
     { id: 'rank_streak_top10', type: 'rank', rankType: 'streak', tier: 2, name: '连胜榜·十强', emoji: '🎖️', desc: '连胜榜历史进入前十名' },
     // 周榜
@@ -86,8 +88,8 @@ module.exports = {
     { id: 'rank_total_top3', type: 'rank', rankType: 'total', tier: 1, name: '总榜·巅峰王者', emoji: '💎', desc: '总榜历史进入前三名' },
     { id: 'rank_total_top10', type: 'rank', rankType: 'total', tier: 2, name: '总榜·百炼成钢', emoji: '🛡️', desc: '总榜历史进入前十名' },
     // PK 榜
-    { id: 'rank_pk_top3', type: 'rank', rankType: 'pk', tier: 1, name: 'PK 榜·不败战神', emoji: '🗡️', desc: 'PK 榜历史进入前三名' },
-    { id: 'rank_pk_top10', type: 'rank', rankType: 'pk', tier: 2, name: 'PK 榜·擂台十强', emoji: '🛡️', desc: 'PK 榜历史进入前十名' }
+    { id: 'rank_pk_top3', type: 'rank', rankType: 'pk', tier: 1, name: '弈榜·不败战神', emoji: '🗡️', desc: '对弈榜历史进入前三名' },
+    { id: 'rank_pk_top10', type: 'rank', rankType: 'pk', tier: 2, name: '弈榜·擂台十强', emoji: '🛡️', desc: '对弈榜历史进入前十名' }
   ],
 
   CHOICE_TEXT: {
@@ -97,24 +99,27 @@ module.exports = {
 
   BET_STATUS: {
     active: '进行中',
-    won: '预言成功',
-    lost: '预言未成功',
+    won: '应验',
+    lost: '未应验',
     refunded: '已退回',
-    disputed: '申诉中'
+    disputed: '公断中'
   },
 
   MARKET_STATUS: {
     open: '进行中',
-    locked: '等待判定',
-    dispute_window: '判定公示中',
-    resolved: '已结算'
+    locked: '等待断卦',
+    dispute_window: '昭示期中',
+    resolved: '已结卦'
   },
 
-  // 文档中的词汇「马甲化」对照表（用于文案自查）
+  // 词汇「马甲化」对照表（用于文案自查与审核口径）
   WORD_MAP: {
-    '下注/投注/竞猜': '支持/表态/投票',
-    '赔率/胜率': '支持率/共识指数/预言度',
+    '下注/投注/竞猜': '应卦/参与/附议',
+    '赔率/胜率': '卦意占比/共识指数/弈绩',
     '筹码/积分余额': '爻/智慧积分/预言豆',
-    '输/赢/庄家': '预言成功/预言未成功/官方判定'
+    '输/赢/庄家': '应验/未应验/官方断卦',
+    '奖金/彩金/返水': '卦资/结卦返还/卦勋',
+    '中奖/中彩': '应验/达成所愿',
+    '博彩/赌博/对赌': '预测互动/观点交锋/邀弈'
   }
 };

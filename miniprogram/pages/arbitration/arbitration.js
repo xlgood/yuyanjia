@@ -27,7 +27,7 @@ Page({
 
   refresh() {
     if (!this.data.id) {
-      // 无 ID：加载最近一个仲裁（从详情页/我的页进入）
+      // 无 ID：加载最近一个公断（从详情页/我的页进入）
       this.setData({ loading: false });
       return;
     }
@@ -59,7 +59,7 @@ Page({
       opposeRate: (arb.supportVotes + arb.opposeVotes) > 0
         ? Math.round((arb.opposeVotes / (arb.supportVotes + arb.opposeVotes)) * 100) + '%'
         : '--',
-      minVotesText: `需总票数 ≥ ${arb.minVotes}（参与 ${arb.participantCount} 人 × 10%），且支持票 > 否决票`,
+      minVotesText: `需总票数 ≥ ${arb.minVotes}（参与 ${arb.participantCount} 人 × 10%），且附议票 > 反对票`,
       statusText: arb.status === 'pending' ? '公示中' : (arb.status === 'settled' ? '已结束' : arb.status)
     });
   },
@@ -80,7 +80,7 @@ Page({
     const { arbitration, bond, myVote, submitting } = this.data;
     if (!arbitration || submitting || myVote) return;
     if (arbitration.status !== 'pending') {
-      wx.showToast({ title: '仲裁已结束', icon: 'none' });
+      wx.showToast({ title: '公断已结束', icon: 'none' });
       return;
     }
     if (bond < VOTE_BOND_MIN) {
@@ -88,18 +88,18 @@ Page({
       return;
     }
     wx.showModal({
-      title: side === 'support' ? '支持仲裁' : '否决仲裁',
-      content: `缴纳 ${bond} 爻保证金。${side === 'support' ? '若仲裁成立，您将瓜分否决方保证金；若不成立，保证金归否决方。' : '若仲裁未成立，您将瓜分支持方保证金；若成立，保证金归支持方。'}`,
-      confirmText: '确认投票',
+      title: side === 'support' ? '附议公断' : '反对公断',
+      content: `缴纳 ${bond} 爻保证金。${side === 'support' ? '若公断成立，您将分卦反对方保证金；若不成立，保证金归反对方。' : '若公断未成立，您将分卦附议方保证金；若成立，保证金归附议方。'}`,
+      confirmText: '确认附议',
       success: res => {
         if (!res.confirm) return;
         this.setData({ submitting: true });
         api.voteArbitration({ arbitrationId: arbitration._id, side, bond })
           .then(() => {
-            wx.showToast({ title: '投票成功，保证金已锁定', icon: 'success' });
+            wx.showToast({ title: '附议成功，保证金已锁定', icon: 'success' });
             this.refresh();
           })
-          .catch(err => wx.showToast({ title: err.message || '投票失败', icon: 'none' }))
+          .catch(err => wx.showToast({ title: err.message || '附议失败', icon: 'none' }))
           .finally(() => this.setData({ submitting: false }));
       }
     });

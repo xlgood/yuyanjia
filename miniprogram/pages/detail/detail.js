@@ -120,7 +120,7 @@ Page({
     const doCreate = () => api.createArbitration({ marketId: this.data.id, reason })
       .then(res => {
         wx.hideLoading();
-        wx.showToast({ title: '仲裁已发起，进入公示期', icon: 'success' });
+        wx.showToast({ title: '公断已发起，进入公示期', icon: 'success' });
         this.loadDetail();
         this.loadArbitration();
         subscribe.requestArbitration();
@@ -213,20 +213,20 @@ Page({
     const { market, myBet, selectedChoice, selectedAmount, submitting } = this.data;
     if (submitting) return;
     if (!market || market.status !== 'open') {
-      wx.showToast({ title: '该预言已截止', icon: 'none' });
+      wx.showToast({ title: '该卦题已截止', icon: 'none' });
       return;
     }
     if (myBet) {
-      wx.showToast({ title: '您已表态过啦', icon: 'none' });
+      wx.showToast({ title: '您已定下卦意', icon: 'none' });
       return;
     }
     if (!selectedChoice) {
-      wx.showToast({ title: '请先选择看好或不看好', icon: 'none' });
+      wx.showToast({ title: '请先定下您的卦意', icon: 'none' });
       return;
     }
     const amount = Number(selectedAmount);
     if (!amount || amount < MIN_BET_AMOUNT) {
-      wx.showToast({ title: `每次表态至少投入 ${MIN_BET_AMOUNT} 爻`, icon: 'none' });
+      wx.showToast({ title: `每卦至少注爻 ${MIN_BET_AMOUNT} 爻`, icon: 'none' });
       return;
     }
     const app = getApp();
@@ -242,7 +242,7 @@ Page({
     this.setData({ submitting: true });
     api.placeBet({ marketId: market._id, choice: selectedChoice, amount })
       .then(res => {
-        wx.showToast({ title: '表态成功，等待判定', icon: 'success' });
+        wx.showToast({ title: '应卦成功，等待断卦', icon: 'success' });
         app.setUser(res.user);
         this.setData({ submitting: false, userPoints: res.user.points });
         this.loadDetail();
@@ -270,51 +270,51 @@ Page({
     wx.showToast({ title: '感谢参与民意调查', icon: 'success' });
   },
 
-  // 以下为本地 mock 模式的开发调试功能（对应文档原型中的模拟结算面板）
+  // 以下为本地 mock 模式的开发调试功能（对应文档原型中的模拟结卦面板）
   onDevResolve(e) {
     const result = e.currentTarget.dataset.result;
     const marketId = this.data.market._id;
-    wx.showLoading({ title: '录入判定中' });
+    wx.showLoading({ title: '录入断卦中' });
     api.resolveMarket({ marketId, result })
       .then(() => {
         wx.hideLoading();
-        wx.showToast({ title: '判定已录入，进入公示期', icon: 'success' });
+        wx.showToast({ title: '断卦已录入，进入公示期', icon: 'success' });
         this.loadDetail();
         this.loadArbitration();
       })
       .catch(err => {
         wx.hideLoading();
-        wx.showToast({ title: err.message || '结算失败', icon: 'none' });
+        wx.showToast({ title: err.message || '结卦失败', icon: 'none' });
       });
   },
 
   onDevForceSettle() {
     const marketId = this.data.market._id;
-    wx.showLoading({ title: '强制结算中' });
+    wx.showLoading({ title: '强制结卦中' });
     api.settleMarket({ marketId, force: true })
       .then(() => {
         wx.hideLoading();
-        wx.showToast({ title: '结算完成', icon: 'success' });
+        wx.showToast({ title: '结卦完成', icon: 'success' });
         this.loadDetail();
       })
       .catch(err => {
         wx.hideLoading();
-        wx.showToast({ title: err.message || '结算失败', icon: 'none' });
+        wx.showToast({ title: err.message || '结卦失败', icon: 'none' });
       });
   },
 
   onDevSettle() {
     const marketId = this.data.market._id;
-    wx.showLoading({ title: '模拟结算中' });
+    wx.showLoading({ title: '模拟结卦中' });
     api.settleMarket({ marketId })
       .then(() => {
         wx.hideLoading();
-        wx.showToast({ title: '结算完成', icon: 'success' });
+        wx.showToast({ title: '结卦完成', icon: 'success' });
         this.loadDetail();
       })
       .catch(err => {
         wx.hideLoading();
-        wx.showToast({ title: err.message || '结算失败', icon: 'none' });
+        wx.showToast({ title: err.message || '结卦失败', icon: 'none' });
       });
   },
 
@@ -323,21 +323,21 @@ Page({
   onCreatePk() {
     const { market, selectedChoice, selectedAmount, customAmount } = this.data;
     if (!market || market.status !== 'open') {
-      wx.showToast({ title: '该预言已截止，无法发起 PK', icon: 'none' });
+      wx.showToast({ title: '该卦题已截止，无法发起 对弈', icon: 'none' });
       return;
     }
     if (!selectedChoice) {
-      wx.showToast({ title: '请先选择您的立场（看好/不看好）', icon: 'none' });
+      wx.showToast({ title: '请先定下您的卦意（应 / 否）', icon: 'none' });
       return;
     }
     const amount = customAmount ? Number(customAmount) : selectedAmount;
     if (!amount || amount < MIN_BET_AMOUNT) {
-      wx.showToast({ title: `发起 PK 至少投入 ${MIN_BET_AMOUNT} 爻`, icon: 'none' });
+      wx.showToast({ title: `邀弈至少注爻 ${MIN_BET_AMOUNT} 爻`, icon: 'none' });
       return;
     }
     wx.showModal({
-      title: '发起 PK 挑战',
-      content: `以「${selectedChoice === 'YES' ? '看好' : '不看好'}」立场发起挑战，投入 ${amount} 爻？对方应战后将锁定反向立场，爻先入预言池，判定后按瓜分规则结算。`,
+      title: '发起 对弈 邀弈',
+      content: `以「${selectedChoice === 'YES' ? '看好' : '不看好'}」立场邀弈，投入 ${amount} 爻？对方应弈后将锁定反向立场，爻先入卦题池，断卦后按分卦规则结卦。`,
       confirmText: '发起',
       success: res => {
         if (!res.confirm) return;
@@ -346,8 +346,8 @@ Page({
           .then(result => {
             getApp().setUser(result.user);
             wx.showModal({
-              title: '挑战已发出',
-              content: '把 PK 中心分享给好友，对方接受后双方立场锁定，等待预言判定自动结算。',
+              title: '邀弈已发出',
+              content: '把 对弈 中心分享给好友，对方接受后双方立场锁定，等待卦题断卦自动结卦。',
               showCancel: false,
               confirmText: '去分享',
               success: () => {
@@ -365,13 +365,13 @@ Page({
 
   onShareAppMessage() {
     const { market } = this.data;
-    if (!market) return share.appShare('🔮 预言大师', '/pages/index/index');
+    if (!market) return share.appShare('🔮 卦题大师', '/pages/index/index');
     return share.appShare(`${market.title} —— 来测测你的判断！`, `/pages/detail/detail?id=${market._id}`);
   },
 
   onShareTimeline() {
     const { market } = this.data;
-    if (!market) return share.timelineShare('🔮 预言大师：热点预测，测测你的洞察力');
+    if (!market) return share.timelineShare('🔮 卦题大师：热点问卦，测测你的洞察力');
     return share.timelineShare(`🔮 ${market.title}`);
   }
 });

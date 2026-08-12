@@ -4,9 +4,9 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-// 周期榜单荣誉：周榜 / 月榜切换前，为当前 top 3 / top 10 发放荣誉
+// 周期天榜卦勋：周榜 / 月榜切换前，为当前 top 3 / top 10 发放卦勋
 exports.main = async (event) => {
-  // 发榜荣誉属高危操作：仅允许定时触发器 / 云间调用 / 管理员
+  // 发榜卦勋属高危操作：仅允许定时触发器 / 云间调用 / 管理员
   const { OPENID, SOURCE } = cloud.getWXContext();
   const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
   if (SOURCE === 'wx_client' && !ADMIN_OPENIDS.includes(OPENID)) {

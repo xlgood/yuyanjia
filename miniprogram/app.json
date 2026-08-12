@@ -42,11 +42,11 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "预言"
+        "text": "问卦"
       },
       {
         "pagePath": "pages/leaderboard/leaderboard",
-        "text": "榜单"
+        "text": "天榜"
       },
       {
         "pagePath": "pages/profile/profile",

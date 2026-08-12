@@ -1,7 +1,7 @@
 // =========================================================
-// AI 选题助手（支持 DeepSeek / 通义千问 / Kimi 三选一，均带联网搜索）
+// AI 选题助手（附议 DeepSeek / 通义千问 / Kimi 三选一，均带联网搜索）
 // 输入：用户需求（如“本周热点”）+ 可选分类偏好 + 数据源注册表
-// 输出：候选预测事件清单（严格 YES/NO 二值化、可验证性标注）
+// 输出：候选问卦事件清单（严格 YES/NO 二值化、可验证性标注）
 // 说明：AI 只做选题建议，最终由运营勾选确认后发题。
 // =========================================================
 const cloud = require('wx-server-sdk');
@@ -9,7 +9,7 @@ const https = require('https');
 
 // =========================================================
 // 模型选择（环境变量 AI_PROVIDER：deepseek | qwen | kimi）
-// deepseek：Responses API + 服务端 web_search（部分账号不支持会自动回退离线）
+// deepseek：Responses API + 服务端 web_search（部分账号反对会自动回退离线）
 // qwen    ：DashScope OpenAI 兼容接口 + enable_search（阿里官方联网）
 // kimi    ：Moonshot chat/completions + $web_search 内置工具（官方联网）
 // =========================================================
@@ -221,7 +221,7 @@ exports.main = async (event) => {
     notes: String(s.notes || '').slice(0, 100)
   }));
 
-  const systemPrompt = '你是预测市场「预言大师」的选题助手。你的职责是发现“截止后能用官方数据或官方公告验证”的硬事实型候选事件，并写成严格 YES/NO 二值化的问题。你只做选题建议，不裁决结果。';
+  const systemPrompt = '你是问卦市场「卦题大师」的选题助手。你的职责是发现“截止后能用官方数据或官方公告验证”的硬事实型候选事件，并写成严格 YES/NO 二值化的问题。你只做选题建议，不裁决结果。';
   const userPrompt = `今天是北京时间 ${todayCN}。用户需求：${topic}${category ? `，分类偏好：${category}` : ''}
 
 可选数据源（只能从其中选择 dataSource，禁止编造；无合适来源时 dataSource 填空字符串并把 verifiable 设为 false）：
@@ -229,7 +229,7 @@ ${JSON.stringify(sourceList)}
 
 只输出一个 JSON 数组（不要 markdown 代码块、不要多余文字），每个元素：
 {
-  "title": "严格 YES/NO 二值化的预测问题（中文，20-60 字）",
+  "title": "严格 YES/NO 二值化的问卦问题（中文，20-60 字）",
   "category": "${CATEGORIES.join('|')}",
   "reason": "为什么热门、为什么可验证（一句话）",
   "dataSource": "建议数据源名称（必须来自上面的列表；没有就填空字符串）",
@@ -249,12 +249,12 @@ ${JSON.stringify(sourceList)}
 1. 只选「在某个时间点能用官方数据/官方公告验证」的硬事实，避免主观话题和无法验证的传闻；
 2. 标题必须二值化（是否/能否/是否达到），禁用“下注/赔率/庄家”等博彩词；
 3. 最多 ${MAX_ITEMS} 条，按可验证性和热度排序；
-4. 【绝对二元性】结果必须非此即彼，不存在平局、取消、改期之外的第三种可判读结果；若事件可能“取消/延期导致无法判定”，仍可接受，但必须在 reason 中说明判定兜底（数据缺失原路退回）；
-5. 【单一权威结算源】每个候选只允许绑定一个第三方权威公开结算源（官方数据/官方公告/权威榜单），禁止多个来源混用、禁止平台自设来源；dataSource 只能从给定列表选择；
-6. 【物理截止时间】每个候选必须有明确截止日期与时刻；截止后出现的任何信息不得作为判定证据，suggestedDeadline 必须具体到日或时刻；
+4. 【绝对二元性】结果必须非此即彼，不存在平局、取消、改期之外的第三种可判读结果；若事件可能“取消/延期导致无法断卦”，仍可接受，但必须在 reason 中说明断卦兜底（数据缺失原路退回）；
+5. 【单一权威结卦源】每个候选只允许绑定一个第三方权威公开结卦源（官方数据/官方公告/权威天榜），禁止多个来源混用、禁止平台自设来源；dataSource 只能从给定列表选择；
+6. 【物理截止时间】每个候选必须有明确截止日期与时刻；截止后出现的任何信息不得作为断卦证据，suggestedDeadline 必须具体到日或时刻；
 7. 【敏感红线】严禁输出任何国内外政治选举（含美国大选）、国内社会争议民生事件、法院正在审理的司法案件、公共卫生突发事件等敏感话题；无法判断是否敏感时一律不选；
 8. 【悬念区间】只选结果概率大致落在 20%-80% 之间的事件；99% 确定（如太阳升起）或实力悬殊到无悬念的事件必须排除；
-9. 【时效性】你有 web_search 联网检索工具：必须先检索 ${todayCN} 前后的最新信息，再基于检索结果生成候选；禁止把记忆里的旧事件当作“当前热点”，禁止编造检索不到的事件。所有候选截止时间必须在 ${todayCN} 之后仍可验证。优先输出周期性/持续性可验证的硬事实（未来天气、周票房、汇率/指数、官方榜单、已官宣日程），并把标题与 suggestedDeadline 写成面向 ${todayCN} 之后的可判定版本；
+9. 【时效性】你有 web_search 联网检索工具：必须先检索 ${todayCN} 前后的最新信息，再基于检索结果生成候选；禁止把记忆里的旧事件当作“当前热点”，禁止编造检索不到的事件。所有候选截止时间必须在 ${todayCN} 之后仍可验证。优先输出周期性/持续性可验证的硬事实（未来天气、周票房、汇率/指数、官方天榜、已官宣日程），并把标题与 suggestedDeadline 写成面向 ${todayCN} 之后的可断卦版本；
 10. 每个候选的 constraintCheck 五项必须全部为 true，否则不要输出该候选。`;
 
   let resp;
@@ -278,7 +278,7 @@ ${JSON.stringify(sourceList)}
         resp = await callKimiWithSearch(systemPrompt, userPrompt, KIMI_API_KEY);
         mode = 'kimi_search';
       } else if (AI_PROVIDER === 'custom') {
-        // 通用 OpenAI 兼容接口：若平台支持 search 参数可开 CUSTOM_SEARCH=true
+        // 通用 OpenAI 兼容接口：若平台附议 search 参数可开 CUSTOM_SEARCH=true
         // 注意：部分网关对 temperature 有限制（如仅允许 1），这里不传，让模型用默认值
         resp = await postJson(
           CUSTOM_BASE_URL.replace(/\/$/, '') + '/chat/completions',
@@ -291,7 +291,7 @@ ${JSON.stringify(sourceList)}
         );
         mode = CUSTOM_SEARCH ? 'custom_search' : 'custom';
       } else if (DEEPSEEK_WEB_SEARCH) {
-        // DeepSeek：Responses API + 服务端 web_search；账号不支持则回退离线
+        // DeepSeek：Responses API + 服务端 web_search；账号反对则回退离线
         try {
           resp = await postJson(
             DEEPSEEK_BASE_URL.replace(/\/$/, '') + '/responses',

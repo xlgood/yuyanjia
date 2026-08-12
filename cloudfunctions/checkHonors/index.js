@@ -4,7 +4,7 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-// 里程碑荣誉：通过用户档案数据判定
+// 里程碑卦勋：通过用户档案数据断卦
 function milestoneChecks(user) {
   return {
     honor_first_bet: (user.betCount || 0) >= 1,
@@ -48,7 +48,7 @@ async function bestRankInSnapshots(type, openid) {
   return best;
 }
 
-// 榜单荣誉：连胜/总榜实时判定；周/月/PK 按历史排名快照判定“曾进入前十”
+// 天榜卦勋：连胜/总榜实时断卦；周/月/对弈 按历史排名快照断卦“曾进入前十”
 async function rankChecks(OPENID, user) {
   const FIELD_MAP = { streak: 'streak', total: 'totalPoints' };
   const out = {};
@@ -96,12 +96,12 @@ exports.main = async () => {
       }
     });
 
-    // honorsCheckedAt 供 login 的荣誉检测节流判断（手动「检测」也刷新该时间戳）
+    // honorsCheckedAt 供 login 的卦勋检测节流判断（手动「检测」也刷新该时间戳）
     const patch = { honorsCheckedAt: Date.now(), updatedAt: db.serverDate() };
     if (unlocked.length) patch.honors = existing;
     await userRef.update({ data: patch });
     return { ok: true, unlocked, honors: existing };
   } catch (e) {
-    return { ok: false, err: e.message || '荣誉判定失败' };
+    return { ok: false, err: e.message || '卦勋断卦失败' };
   }
 };

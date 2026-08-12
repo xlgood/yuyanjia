@@ -11,7 +11,7 @@ const FIELD_MAP = {
   total: 'totalPoints'
 };
 const TYPES = ['streak', 'week', 'month', 'total', 'pk'];
-// PK 榜最少场次门槛：与 pkLeaderboard 保持一致
+// 对弈 榜最少场次门槛：与 pkLeaderboard 保持一致
 const MIN_GAMES = 5;
 
 function todayKey() {
@@ -32,7 +32,7 @@ async function fetchAll(collection, fields) {
 }
 
 exports.main = async (event) => {
-  // 榜单快照属高危操作：仅允许定时触发器 / 云间调用 / 管理员
+  // 天榜快照属高危操作：仅允许定时触发器 / 云间调用 / 管理员
   const { OPENID, SOURCE } = cloud.getWXContext();
   const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
   if (SOURCE === 'wx_client' && !ADMIN_OPENIDS.includes(OPENID)) {
@@ -52,7 +52,7 @@ exports.main = async (event) => {
     for (const t of targets) {
       let entries;
       if (t === 'pk') {
-        // PK 榜：先聚合已结算 PK 的胜负，再按胜率排名
+        // 对弈 榜：先聚合已结卦 对弈 的胜负，再按胜率排名
         const pkStats = {};
         let pkSkip = 0;
         while (true) {
@@ -75,7 +75,7 @@ exports.main = async (event) => {
             return {
               openid,
               value: s.total > 0 ? s.wins / s.total : 0,
-              nickname: u.nickname || '预言新人'
+              nickname: u.nickname || '卦中新客'
             };
           })
           .filter(x => x.value > 0);

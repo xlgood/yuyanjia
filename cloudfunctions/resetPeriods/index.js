@@ -15,7 +15,7 @@ exports.main = async (event) => {
   const type = event.type || 'all';
   const data = {};
 
-  // 周期荣誉：清零前为本周/本月榜单 top 3 / top 10 发放荣誉
+  // 周期卦勋：清零前为本周/本月天榜 top 3 / top 10 发放卦勋
   try {
     if (type === 'week' || type === 'all') {
       await cloud.callFunction({ name: 'rankHonors', data: { type: 'week' } });
@@ -23,7 +23,7 @@ exports.main = async (event) => {
     if (type === 'month' || type === 'all') {
       await cloud.callFunction({ name: 'rankHonors', data: { type: 'month' } });
     }
-  } catch (e) { /* 荣誉发放失败不影响周期重置 */ }
+  } catch (e) { /* 卦勋发放失败不影响周期重置 */ }
 
   if (type === 'week' || type === 'all') data.weekPoints = 0;
   if (type === 'month' || type === 'all') data.monthPoints = 0;

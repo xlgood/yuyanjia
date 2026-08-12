@@ -56,10 +56,10 @@ Page({
     api.checkIn()
       .then(res => {
         getApp().setUser(res.user);
-        wx.showToast({ title: `签到成功 +${res.checkIn.granted} 爻`, icon: 'success' });
+        wx.showToast({ title: `问签已定 +${res.checkIn.granted} 爻`, icon: 'success' });
         this.refresh();
       })
-      .catch(err => wx.showToast({ title: err.message || '签到失败', icon: 'none' }))
+      .catch(err => wx.showToast({ title: err.message || '问签失败', icon: 'none' }))
       .finally(() => this.setData({ claiming: false }));
   },
 
@@ -77,7 +77,7 @@ Page({
         if (!result.ended) {
           wx.hideLoading();
           wx.showToast({
-            title: result.reason === 'ad_error' ? '广告加载失败，请稍后再试' : '完整观看广告后才能领取',
+            title: result.reason === 'ad_error' ? '广告加载失败，请稍后再试' : '完整观演广告后才能领取',
             icon: 'none'
           });
           return null;

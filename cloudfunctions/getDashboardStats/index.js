@@ -91,7 +91,7 @@ exports.main = async () => {
       stats.methodDist.manual = (stats.methodDist.manual || 0) + 1;
       stats.autoStats[provider].fail++;
     } else if (m.status === 'resolved') {
-      // 已结算但没有自动判定记录 → 视为人工录入判定
+      // 已结卦但没有自动断卦记录 → 视为人工录入断卦
       stats.methodDist.manual = (stats.methodDist.manual || 0) + 1;
     } else {
       stats.methodDist.none = (stats.methodDist.none || 0) + 1;
@@ -114,9 +114,9 @@ exports.main = async () => {
     })
     .sort((a, b) => b.ok - a.ok);
   stats.methodDist = [
-    { method: 'auto_api', label: 'API 自动判定', count: stats.methodDist.auto_api || 0 },
-    { method: 'manual', label: '人工录入判定', count: stats.methodDist.manual || 0 },
-    { method: 'none', label: '未判定', count: stats.methodDist.none || 0 }
+    { method: 'auto_api', label: 'API 自动断卦', count: stats.methodDist.auto_api || 0 },
+    { method: 'manual', label: '人工录入断卦', count: stats.methodDist.manual || 0 },
+    { method: 'none', label: '未断卦', count: stats.methodDist.none || 0 }
   ];
 
   return { ok: true, stats };

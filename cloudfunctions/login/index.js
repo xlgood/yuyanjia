@@ -2,14 +2,14 @@ const cloud = require('wx-server-sdk');
 
 // 业务常量单一来源：cloudfunctions/_shared/config.js（npm run sync:common 同步）
 const { INIT_POINTS, INVITE_INVITER_POINTS, INVITE_INVITEE_POINTS } = require('./common-config');
-// 邀请奖励支持环境变量覆盖（login/placeBet/inviteStats 共用同一组环境变量）
-const INVITEE_POINTS = Number(process.env.INVITE_INVITEE_POINTS) || INVITE_INVITEE_POINTS; // 被邀请人新手加成
-const INVITER_POINTS = Number(process.env.INVITE_INVITER_POINTS) || INVITE_INVITER_POINTS; // 邀请人奖励（首次表态后发放，见 placeBet）
+// 邀友奖励附议环境变量覆盖（login/placeBet/inviteStats 共用同一组环境变量）
+const INVITEE_POINTS = Number(process.env.INVITE_INVITEE_POINTS) || INVITE_INVITEE_POINTS; // 被邀友人初入道加成
+const INVITER_POINTS = Number(process.env.INVITE_INVITER_POINTS) || INVITE_INVITER_POINTS; // 邀友人奖励（首次应卦后发放，见 placeBet）
 // 每日计次上限 INVITE_DAILY_CAP 由 placeBet 在实际发奖时校验，本函数不再占用名额
 
-// 荣誉检测节流：login 被高频调用（app 启动 + 页面 onShow 刷新），而 checkHonors 内部
+// 卦勋检测节流：login 被高频调用（app 启动 + 页面 onShow 刷新），而 checkHonors 内部
 // 含多次 count + 排名快照扫描，每次都跑成本过高。间隔内直接跳过；
-// 荣誉墙页保留手动「检测」入口（checkHonors 直调）作为即时解锁兜底。
+// 卦勋墙页保留手动「检测」入口（checkHonors 直调）作为即时解锁兜底。
 const HONORS_CHECK_INTERVAL_MS = (Number(process.env.HONORS_CHECK_INTERVAL_MINUTES) || 10) * 60 * 1000;
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
@@ -30,13 +30,13 @@ exports.main = async (event) => {
         const hr = await cloud.callFunction({ name: 'checkHonors', data: {} });
         if (hr.result && hr.result.ok) unlockedHonors = hr.result.unlocked || [];
         await users.doc(OPENID).update({ data: { honorsCheckedAt: Date.now() } });
-      } catch (e) { /* 荣誉检查失败不影响登录 */ }
+      } catch (e) { /* 卦勋检查失败不影响登录 */ }
     }
     return { ok: true, user: res.data, unlockedHonors };
   } catch (e) {
     // 用户不存在：创建档案（事务内完成，用户 _id 即 openid，方便事务与查询）
     const user = {
-      nickname: '预言新人',
+      nickname: '卦中新客',
       avatarUrl: '',
       avatar: '🔮',
       points: INIT_POINTS,
@@ -55,13 +55,13 @@ exports.main = async (event) => {
       title: '',
       badges: [],
       honors: [],
-      // 邀请裂变字段
+      // 邀友裂变字段
       invitedBy: '',
       inviteRewarded: false,
       inviteCount: 0,
       inviteRewardDate: '',
       inviteRewardToday: 0,
-      // PK 对战字段
+      // 对弈 对战字段
       pkOpen: true,
       pkWins: 0,
       pkLosses: 0,
@@ -81,20 +81,20 @@ exports.main = async (event) => {
         } catch (e2) { /* 不存在 */ }
         if (existing) return;
 
-        // 邀请归属：仅当邀请码合法、且不是自己邀请自己时生效。
-        // 注意：注册时只记录归属，不占用邀请人当日奖励名额——
-        // 名额在被邀请人完成首次表态、实际发奖时才占用（见 placeBet）。
+        // 邀友归属：仅当邀友码合法、且不是自己邀友自己时生效。
+        // 注意：注册时只记录归属，不占用邀友人当日奖励名额——
+        // 名额在被邀友人完成首次应卦、实际发奖时才占用（见 placeBet）。
         if (inviteCode && inviteCode !== OPENID) {
           let inviter = null;
           try {
             inviter = (await t.collection('users').doc(inviteCode).get()).data;
-          } catch (e2) { /* 邀请码不存在：静默忽略 */ }
+          } catch (e2) { /* 邀友码不存在：静默忽略 */ }
           if (inviter && inviter._id !== OPENID) {
             inviteFrom = inviter._id;
           }
         }
 
-        // 被邀请人新手加成随档案一并落库（不再只在返回对象里加，避免重登丢失）
+        // 被邀友人初入道加成随档案一并落库（不再只在返回对象里加，避免重登丢失）
         await t.collection('users').doc(OPENID).set({
           data: Object.assign({}, user, {
             invitedBy: inviteFrom,
@@ -102,7 +102,7 @@ exports.main = async (event) => {
           })
         });
 
-        // 记录邀请关系（invites._id = inviter_openid 天然去重）
+        // 记录邀友关系（invites._id = inviter_openid 天然去重）
         if (inviteFrom) {
           await t.collection('invites').doc(`${inviteFrom}_${OPENID}`).set({
             data: {
@@ -123,7 +123,7 @@ exports.main = async (event) => {
       return { ok: false, err: '注册失败，请稍后重试' };
     }
 
-    // 事务已把新手加成落库，这里同步返回对象的展示口径
+    // 事务已把初入道加成落库，这里同步返回对象的展示口径
     if (inviteFrom) {
       user.invitedBy = inviteFrom;
       user.points += INVITEE_POINTS;

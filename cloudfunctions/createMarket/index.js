@@ -9,7 +9,7 @@ const { CATEGORIES, OPERATORS, TRANSFORMS } = require('./common-config');
 const BINARY_WORDS = ['是否', '能否', '会不会', '能不能', '有没有', '是否达到', '是否突破', '是否超过', '是否低于', '会不会突破', '是否赢得', '是否获胜'];
 // 敏感红线：政治选举 / 社会争议 / 司法案件 / 公共卫生突发事件
 const SENSITIVE_WORDS = [
-  '选举', '大选', '总统', '特朗普', '拜登', '投票结果', '议会', '国会',
+  '选举', '大选', '总统', '特朗普', '拜登', '附议结果', '议会', '国会',
   '审判', '开庭', '判决', '起诉', '立案', '在审', '庭审',
   '游行', '抗议', '罢工', '骚乱', '示威', '聚集',
   '疫情', '封控', '确诊', '疑似病例', '公共卫生事件'
@@ -23,7 +23,7 @@ const LOCAL_SENSITIVE_WORDS = SENSITIVE_WORDS.concat([
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
-// 微信官方内容安全检测（标题/判定说明全链路）；未开通云调用时回退本地词表
+// 微信官方内容安全检测（标题/断卦说明全链路）；未开通云调用时回退本地词表
 async function securityCheck(content) {
   if (!content) return true;
   try {
@@ -55,31 +55,31 @@ exports.main = async (event) => {
   // 硬性约束 4：敏感红线
   const hit = SENSITIVE_WORDS.find(w => title.indexOf(w) >= 0);
   if (hit) return { ok: false, err: `标题涉及敏感红线（${hit}），禁止发布` };
-  // 内容安全全链路：标题 / 判定说明 / 用户可见文案统一过微信官方检测
+  // 内容安全全链路：标题 / 断卦说明 / 用户可见文案统一过微信官方检测
   const titlePass = await securityCheck(title);
   if (!titlePass) return { ok: false, err: '标题包含敏感内容，禁止发布' };
-  if (!sourceOfTruth) return { ok: false, err: '缺少判定标准说明' };
+  if (!sourceOfTruth) return { ok: false, err: '缺少断卦标准说明' };
   if (!deadline || deadline <= Date.now()) return { ok: false, err: '截止时间必须晚于当前时间' };
   if (deadline - Date.now() > 90 * 24 * 3600 * 1000) {
-    return { ok: false, err: '截止时间过远（超过 90 天），预测周期过长，请调整' };
+    return { ok: false, err: '截止时间过远（超过 90 天），问卦周期过长，请调整' };
   }
 
-  // 机读判定规范校验
-  //   - type=manual：事实型事件，无需数值条件，运营在截止后人工录入官方判定 + 铁证链接
+  // 机读断卦规范校验
+  //   - type=manual：事实型事件，无需数值条件，运营在截止后人工录入官方断卦 + 铁证链接
   //   - type=api/weather：数值型事件，必须带可执行的 condition
   if (!spec || !spec.dataSource || !spec.dataSource.type) {
     return { ok: false, err: '缺少 resolutionSpec（至少需要 dataSource.type）' };
   }
   if (spec.dataSource.type === 'manual') {
-    if (!spec.humanReadable) return { ok: false, err: 'manual 类型必须提供 humanReadable 判定说明' };
+    if (!spec.humanReadable) return { ok: false, err: 'manual 类型必须提供 humanReadable 断卦说明' };
   } else {
-    if (!spec.condition) return { ok: false, err: '缺少判定条件 condition' };
-    if (!OPERATORS.includes(spec.condition.operator)) return { ok: false, err: '判定运算符不支持' };
-    if (spec.condition.value === undefined || spec.condition.value === null) return { ok: false, err: '判定阈值缺失' };
+    if (!spec.condition) return { ok: false, err: '缺少断卦条件 condition' };
+    if (!OPERATORS.includes(spec.condition.operator)) return { ok: false, err: '断卦运算符反对' };
+    if (spec.condition.value === undefined || spec.condition.value === null) return { ok: false, err: '断卦阈值缺失' };
   }
 
   // 硬性约束 2：先注册、后发题——api/weather 类型必须引用注册表中的数据源，
-  // 并提供可执行的 url / field / transform；判定说明中不得同时出现多个数据源名称
+  // 并提供可执行的 url / field / transform；断卦说明中不得同时出现多个数据源名称
   let knownSources = [];
   try {
     const dsRes = await db.collection('data_sources').limit(200).get();
@@ -100,23 +100,23 @@ exports.main = async (event) => {
     }
     if (!sourceUrl) return { ok: false, err: 'api/weather 类型必须提供数据源 url' };
     if (!String(spec.dataSource.field || '').trim()) return { ok: false, err: 'api/weather 类型必须提供取值字段 field' };
-    if (!TRANSFORMS.includes(spec.dataSource.transform)) return { ok: false, err: 'transform 仅支持 int / float / string' };
+    if (!TRANSFORMS.includes(spec.dataSource.transform)) return { ok: false, err: 'transform 仅附议 int / float / string' };
   }
   if (spec.humanReadable) {
     const hr = String(spec.humanReadable);
     const hitNames = knownSources.filter(s => s.name && hr.indexOf(s.name) >= 0).map(s => s.name);
     if (hitNames.length > 1) {
-      return { ok: false, err: `判定说明出现多个数据源（${hitNames.join('、')}），只能指定一个结算源` };
+      return { ok: false, err: `断卦说明出现多个数据源（${hitNames.join('、')}），只能指定一个结卦源` };
     }
   }
 
   if (spec.humanReadable) {
     const hrPass = await securityCheck(String(spec.humanReadable).slice(0, 500));
-    if (!hrPass) return { ok: false, err: '判定说明包含敏感内容，请修改后发布' };
+    if (!hrPass) return { ok: false, err: '断卦说明包含敏感内容，请修改后发布' };
   }
   if (sourceOfTruth) {
     const stPass = await securityCheck(sourceOfTruth.slice(0, 500));
-    if (!stPass) return { ok: false, err: '判定标准说明包含敏感内容，请修改后发布' };
+    if (!stPass) return { ok: false, err: '断卦标准说明包含敏感内容，请修改后发布' };
   }
   const doc = {
     category,
@@ -125,7 +125,7 @@ exports.main = async (event) => {
     deadline,
     yesPool: 0,
     noPool: 0,
-    totalPool: 0, // 冗余字段：热门榜按此索引排序（表态/PK 时原子维护）
+    totalPool: 0, // 冗余字段：热门榜按此索引排序（应卦/对弈 时原子维护）
     status: 'open',
     result: null,
     evidenceUrl: '',

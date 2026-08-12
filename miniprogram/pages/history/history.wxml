@@ -3,7 +3,7 @@
 
   <view wx:elif="{{list.length === 0}}" class="empty">
     <view class="empty-icon">📜</view>
-    <view>还没有预言记录，去首页开启你的第一卦吧</view>
+    <view>还没有卦题记录，去首页开启你的第一卦吧</view>
   </view>
 
   <view wx:else>

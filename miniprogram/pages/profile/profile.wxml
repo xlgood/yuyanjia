@@ -12,7 +12,7 @@
       <view class="p-edit">
         <text bindtap="onEditAvatar">更换头像</text>
         <text class="p-edit-sep">·</text>
-        <text bindtap="onEditNickname">编辑昵称</text>
+        <text bindtap="onEditNickname">编辑道号</text>
       </view>
     </view>
   </view>
@@ -51,7 +51,7 @@
     </view>
 
     <view class="card badges-card" wx:if="{{displayBadges.length}}">
-      <view class="badges-label">我的荣誉</view>
+      <view class="badges-label">我的卦勋</view>
       <view class="badges-row">
         <text class="badge" wx:for="{{displayBadges}}" wx:key="*this" wx:for-item="b">{{b}}</text>
       </view>
@@ -61,33 +61,33 @@
   <view class="card menu-card">
     <view class="menu-item pk-toggle-row">
       <text class="menu-icon">⚔️</text>
-      <text class="menu-text">允许好友向我发起 PK</text>
+      <text class="menu-text">允许好友向我发起 对弈</text>
       <switch checked="{{pkOpen}}" bindchange="onTogglePkOpen" color="#c03a2b" />
     </view>
     <view class="menu-item" bindtap="goPk">
       <text class="menu-icon">🛡️</text>
-      <text class="menu-text">PK 挑战中心</text>
-      <text class="menu-sub" wx:if="{{pkInboxCount > 0}}">{{pkInboxCount}} 个新挑战</text>
+      <text class="menu-text">对弈弈台</text>
+      <text class="menu-sub" wx:if="{{pkInboxCount > 0}}">{{pkInboxCount}} 个新邀弈</text>
       <text class="menu-arrow">›</text>
     </view>
     <view class="menu-item" bindtap="goPkLeaderboard">
       <text class="menu-icon">🏆</text>
-      <text class="menu-text">PK 胜率榜</text>
+      <text class="menu-text">对弈 胜率榜</text>
       <text class="menu-arrow">›</text>
     </view>
     <view class="menu-item" bindtap="goArbitrationCenter">
       <text class="menu-icon">⚖️</text>
-      <text class="menu-text">仲裁社区</text>
+      <text class="menu-text">公断阁</text>
       <text class="menu-arrow">›</text>
     </view>
     <view class="menu-item" bindtap="goTask">
       <text class="menu-icon">🎁</text>
-      <text class="menu-text">任务中心（每日签到 / 看视频领爻）</text>
+      <text class="menu-text">修行台（每日问签 / 看视频领爻）</text>
       <text class="menu-arrow">›</text>
     </view>
     <view class="menu-item" bindtap="goShop">
       <text class="menu-icon">🛍️</text>
-      <text class="menu-text">荣誉墙</text>
+      <text class="menu-text">卦勋墙</text>
       <text class="menu-arrow">›</text>
     </view>
     <view class="menu-item" wx:if="{{isAdmin}}" bindtap="goAdmin">
@@ -97,19 +97,19 @@
     </view>
     <view class="menu-item" bindtap="goHistory">
       <text class="menu-icon">📜</text>
-      <text class="menu-text">我的预言记录</text>
+      <text class="menu-text">我的卦录</text>
       <text class="menu-arrow">›</text>
     </view>
     <view class="menu-item" bindtap="onClaimRelief">
       <text class="menu-icon">🛟</text>
-      <text class="menu-text">破产补助（分享/看广告复活）</text>
+      <text class="menu-text">卦资救济（分享/看广告复活）</text>
       <text class="menu-sub" wx:if="{{user && user.points <= 0 && reliefLeft}}">{{reliefLeft}}</text>
       <text class="menu-arrow">›</text>
     </view>
     <view class="menu-item" bindtap="goInvite">
       <text class="menu-icon">📣</text>
-      <text class="menu-text">邀请好友，双方各得 {{invitePoints}} 爻</text>
-      <text class="menu-sub" wx:if="{{inviteTotal > 0}}">已邀请 {{inviteTotal}} 人</text>
+      <text class="menu-text">邀友论卦，双方各得 {{invitePoints}} 爻</text>
+      <text class="menu-sub" wx:if="{{inviteTotal > 0}}">已邀友 {{inviteTotal}} 人</text>
       <text class="menu-arrow">›</text>
     </view>
   </view>
@@ -117,24 +117,24 @@
   <view class="card rule-card" bindtap="onShowRules">
     <view class="menu-item">
       <text class="menu-icon">📖</text>
-      <text class="menu-text">玩法与判定规则</text>
+      <text class="menu-text">玩法与断卦规则</text>
       <text class="menu-arrow">›</text>
     </view>
   </view>
 
   <view class="footnote">
-    爻为平台虚拟积分，仅用于参与预言活动与兑换虚拟荣誉，不可兑换现金或实物。
+    爻为平台虚拟积分，仅用于参与卦题活动与兑换虚拟卦勋，不可兑换现金或实物。
   </view>
 
   <view class="mask" wx:if="{{editVisible}}" bindtap="onCloseEdit">
     <view class="modal" catchtap="noop">
-      <view class="modal-title">编辑昵称</view>
+      <view class="modal-title">编辑道号</view>
       <input
         class="modal-input"
         value="{{nicknameInput}}"
         bindinput="onNicknameInput"
         maxlength="{{nicknameMax}}"
-        placeholder="输入新昵称（1-12 个字）"
+        placeholder="输入新道号（1-12 个字）"
       />
       <view class="modal-btns">
         <button class="modal-cancel" bindtap="onCloseEdit">取消</button>
@@ -145,7 +145,7 @@
 
   <view class="mask" wx:if="{{avatarVisible}}" bindtap="onCloseAvatar">
     <view class="modal" catchtap="noop">
-      <view class="modal-title">选择头像（系统预设，不支持上传）</view>
+      <view class="modal-title">选择头像（系统预设，反对上传）</view>
       <view class="avatar-grid">
         <view
           wx:for="{{avatarOptions}}"

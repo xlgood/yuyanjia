@@ -1,9 +1,9 @@
 const cloud = require('wx-server-sdk');
 
 // =========================================================
-// PK 胜率榜（物化缓存版）
+// 对弈 胜率榜（物化缓存版）
 // 与 getLeaderboard 共享 leaderboards/pk 物化文档：胜率聚合成本高
-// （每次要全量扫已结算 PK），由 getLeaderboard 在缓存过期时惰性重建，
+// （每次要全量扫已结卦 对弈），由 getLeaderboard 在缓存过期时惰性重建，
 // 本函数只读缓存并补充“我的排名/追赶/趋势”，单次调用零聚合开销。
 // 响应契约与旧版一致（winRate 为整数百分比、含 rate/avatarUrl）。
 // =========================================================
@@ -50,12 +50,12 @@ async function loadPkCache() {
   const nameMap = {};
   if (ids.length) {
     const uRes = await db.collection('users').where({ _id: _.in(ids) }).field({ nickname: true, avatarUrl: true }).get();
-    uRes.data.forEach(u => { nameMap[u._id] = { nickname: u.nickname || '预言新人', avatarUrl: u.avatarUrl || '' }; });
+    uRes.data.forEach(u => { nameMap[u._id] = { nickname: u.nickname || '卦中新客', avatarUrl: u.avatarUrl || '' }; });
   }
   const list = ids
     .map(id => ({
       openid: id,
-      nickname: (nameMap[id] || {}).nickname || '预言新人',
+      nickname: (nameMap[id] || {}).nickname || '卦中新客',
       avatarUrl: (nameMap[id] || {}).avatarUrl || '',
       wins: stats[id].wins,
       losses: stats[id].total - stats[id].wins,

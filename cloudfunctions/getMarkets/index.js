@@ -8,7 +8,7 @@ exports.main = async (event) => {
   const page = Math.max(Number((event && event.page) || 1), 1);
   const pageSize = Math.min(Math.max(Number((event && event.pageSize) || 20), 1), 50);
 
-  // 「热门」：按冗余字段 totalPool（YES+NO 之和，表态/PK 时原子维护）索引查询。
+  // 「热门」：按冗余字段 totalPool（YES+NO 之和，应卦/对弈 时原子维护）索引查询。
   // 前置：markets 需建复合索引 status + totalPool（降序），且已跑过 migratePoints 回填 totalPool；
   // 未建索引时云数据库会报错，需在控制台「索引管理」补充。
   if (event.hot) {

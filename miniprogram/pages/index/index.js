@@ -120,10 +120,10 @@ Page({
   },
 
   onShareAppMessage() {
-    return share.appShare('🔮 预言大师：来测测你的热点洞察力', '/pages/index/index');
+    return share.appShare('🔮 卦题大师：来测测你的热点洞察力', '/pages/index/index');
   },
 
   onShareTimeline() {
-    return share.timelineShare('🔮 预言大师：热点预测，测测你的洞察力');
+    return share.timelineShare('🔮 卦题大师：热点问卦，测测你的洞察力');
   }
 });

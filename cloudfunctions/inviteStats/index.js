@@ -13,7 +13,7 @@ function toNumber(ts) {
   return 0;
 }
 
-// 邀请奖励配置：三个函数（login/placeBet/inviteStats）共用同一组环境变量，缺省值保持一致
+// 邀友奖励配置：三个函数（login/placeBet/inviteStats）共用同一组环境变量，缺省值保持一致
 const INVITE_DAILY_CAP = Number(process.env.INVITE_DAILY_CAP) || 10;
 
 exports.main = async () => {
@@ -25,7 +25,7 @@ exports.main = async () => {
     const invites = db.collection('invites');
     const me = (await users.doc(OPENID).get()).data;
 
-    // 我的邀请记录（按时间倒序，先全量拉取用于准确统计，再截取最近 50 条展示）
+    // 我的邀友记录（按时间倒序，先全量拉取用于准确统计，再截取最近 50 条展示）
     const allInvites = [];
     let skip = 0;
     const PAGE = 100;
@@ -48,7 +48,7 @@ exports.main = async () => {
     const weekRewarded = allInvites.filter(i => i.inviterRewarded && toNumber(i.rewardedAt) >= weekStart).length;
     const pendingCount = allInvites.filter(i => !i.inviterRewarded).length;
 
-    // 补上邀请人昵称（用于展示“我邀请了谁”）
+    // 补上邀友人道号（用于展示“我邀友了谁”）
     const inviteeIds = list.map(i => i.inviteeId);
     let nameMap = {};
     if (inviteeIds.length) {
@@ -56,7 +56,7 @@ exports.main = async () => {
       userRes.data.forEach(u => { nameMap[u._id] = { nickname: u.nickname, avatar: u.avatar }; });
     }
     const decorated = list.map(i => Object.assign({}, i, {
-      invitee: nameMap[i.inviteeId] || { nickname: '预言新人', avatar: '🔮' }
+      invitee: nameMap[i.inviteeId] || { nickname: '卦中新客', avatar: '🔮' }
     }));
 
     return {
@@ -74,6 +74,6 @@ exports.main = async () => {
       list: decorated
     };
   } catch (e) {
-    return { ok: false, err: e.message || '加载邀请数据失败' };
+    return { ok: false, err: e.message || '加载邀友数据失败' };
   }
 };

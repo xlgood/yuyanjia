@@ -49,7 +49,7 @@ function seedState() {
       category: '影视娱乐',
       title: '截至本周日 24:00，电影《星际远征》在“猫眼专业版”上的累计综合票房是否突破 5.00 亿元？',
       deadline: now() + 3 * DAY,
-      sourceOfTruth: '以猫眼专业版 App 官方数据为准，精确到个位数。最终票房 ≥ 5.00 亿则“预言成功”，否则“预言未成功”。',
+      sourceOfTruth: '以猫眼专业版 App 官方数据为准，精确到个位数。最终票房 ≥ 5.00 亿则“应验”，否则“未应验”。',
       yesPool: 120,
       noPool: 80,
       status: 'open',
@@ -62,7 +62,7 @@ function seedState() {
       category: '科技数码',
       title: '在下周二下午的品牌新品发布会上，官方正式亮相的下一代旗舰手机起步售价是否低于 5999 元？',
       deadline: now() + 4 * DAY + 6 * HOUR,
-      sourceOfTruth: '以品牌官方直播、官网售价页为准。起步价 < 5999 元则“预言成功”，否则“预言未成功”。',
+      sourceOfTruth: '以品牌官方直播、官网售价页为准。起步价 < 5999 元则“应验”，否则“未应验”。',
       yesPool: 50,
       noPool: 150,
       status: 'open',
@@ -75,7 +75,7 @@ function seedState() {
       category: '游戏电竞',
       title: '在今晚 19:00 的 LPL 职业联赛第一局中，A 队能否在开局 15 分钟内击杀第一条大龙？',
       deadline: now() + 5 * HOUR,
-      sourceOfTruth: '以 LPL 官方赛事数据面板为准。15 分钟内击杀则“预言成功”，否则“预言未成功”。',
+      sourceOfTruth: '以 LPL 官方赛事数据面板为准。15 分钟内击杀则“应验”，否则“未应验”。',
       yesPool: 30,
       noPool: 120,
       status: 'open',
@@ -88,7 +88,7 @@ function seedState() {
       category: '体育竞技',
       title: '在明早进行的 NBA 焦点战中，球星詹姆斯单场最终个人得分是否大于 25.5 分？',
       deadline: now() + 18 * HOUR,
-      sourceOfTruth: '以 NBA 官方赛后数据统计为准。得分 ≥ 26 分则“预言成功”，否则“预言未成功”。',
+      sourceOfTruth: '以 NBA 官方赛后数据统计为准。得分 ≥ 26 分则“应验”，否则“未应验”。',
       yesPool: 100,
       noPool: 90,
       status: 'open',
@@ -101,7 +101,7 @@ function seedState() {
       category: '趣味民生',
       title: '根据中央气象局官方实况，明天 14:00 北京市南郊观象台整点实时气温是否达到或超过 35.0 摄氏度？',
       deadline: now() + 24 * HOUR,
-      sourceOfTruth: '以中国气象网官方实况数据为准。温度 ≥ 35.0℃ 则“预言成功”，否则“预言未成功”。',
+      sourceOfTruth: '以中国气象网官方实况数据为准。温度 ≥ 35.0℃ 则“应验”，否则“未应验”。',
       yesPool: 140,
       noPool: 60,
       status: 'open',
@@ -114,7 +114,7 @@ function seedState() {
       category: '影视娱乐',
       title: '本周五开播的年度大剧《长安十二时辰外传》在豆瓣的官方开分是否 ≥ 8.0 分？',
       deadline: now() + 2 * DAY,
-      sourceOfTruth: '以豆瓣官方评分页为准（开分后 24 小时内的首个稳定分值）。≥ 8.0 分则“预言成功”，否则“预言未成功”。',
+      sourceOfTruth: '以豆瓣官方评分页为准（开分后 24 小时内的首个稳定分值）。≥ 8.0 分则“应验”，否则“未应验”。',
       yesPool: 220,
       noPool: 80,
       status: 'open',
@@ -127,7 +127,7 @@ function seedState() {
       category: '科技数码',
       title: '下周旗舰发布会官方是否宣布搭载自研端侧 AI 大模型（以发布会 PPT 画面为准）？',
       deadline: now() + 5 * DAY,
-      sourceOfTruth: '以品牌官方直播发布会 PPT 画面 / 官网参数页为准。出现“自研端侧 AI 大模型”字样则“预言成功”，否则“预言未成功”。',
+      sourceOfTruth: '以品牌官方直播发布会 PPT 画面 / 官网参数页为准。出现“自研端侧 AI 大模型”字样则“应验”，否则“未应验”。',
       yesPool: 360,
       noPool: 40,
       status: 'open',
@@ -140,7 +140,7 @@ function seedState() {
       category: '体育竞技',
       title: '本周末中超焦点战，上海海港主场对阵北京国安，主队是否获胜？',
       deadline: now() + 2 * DAY + 12 * HOUR,
-      sourceOfTruth: '以中超联赛官方赛后数据面板为准。常规时间主队获胜则“预言成功”，否则“预言未成功”。',
+      sourceOfTruth: '以中超联赛官方赛后数据面板为准。常规时间主队获胜则“应验”，否则“未应验”。',
       yesPool: 180,
       noPool: 120,
       status: 'open',
@@ -153,7 +153,7 @@ function seedState() {
       category: '科技数码',
       title: '某头部手机品牌是否于本月内官宣下一代旗舰机型的发布日期（以官方微博/官网公告为准）？',
       deadline: now() - HOUR,
-      sourceOfTruth: '以品牌官方微博或官网公告为准。出现官方发布日期声明则“预言成功”，否则“预言未成功”。',
+      sourceOfTruth: '以品牌官方微博或官网公告为准。出现官方发布日期声明则“应验”，否则“未应验”。',
       yesPool: 0,
       noPool: 0,
       status: 'open',
@@ -164,7 +164,7 @@ function seedState() {
       resolutionSpec: {
         version: 1,
         dataSource: { type: 'manual', provider: '官方公告' },
-        humanReadable: '以品牌官方微博或官网公告为准。出现官方发布日期声明则“预言成功”，否则“预言未成功”。'
+        humanReadable: '以品牌官方微博或官网公告为准。出现官方发布日期声明则“应验”，否则“未应验”。'
       }
     },
     {
@@ -173,7 +173,7 @@ function seedState() {
       title: '历史示例：昨日 14:00 北京南郊观象台整点气温是否 ≥ 35.0℃？',
       deadline: now() - DAY,
       createdAt: now() - 2 * DAY,
-      sourceOfTruth: '以中国气象网官方实况数据为准，≥ 35.0℃ 则“预言成功”，否则“预言未成功”。',
+      sourceOfTruth: '以中国气象网官方实况数据为准，≥ 35.0℃ 则“应验”，否则“未应验”。',
       yesPool: 90,
       noPool: 110,
       status: 'resolved',
@@ -184,7 +184,7 @@ function seedState() {
         version: 1,
         dataSource: { type: 'api', provider: '中国气象网', url: 'http://www.weather.com.cn/data/sk/101010100.html', field: 'weatherinfo.temp', transform: 'int' },
         condition: { operator: '>=', value: 35, unit: '℃' },
-        humanReadable: '以中国气象网官方实况数据为准，≥ 35.0℃ 则“预言成功”，否则“预言未成功”。'
+        humanReadable: '以中国气象网官方实况数据为准，≥ 35.0℃ 则“应验”，否则“未应验”。'
       },
       resolutionMethod: 'auto_api',
       resolutionAttempts: 1,
@@ -197,7 +197,7 @@ function seedState() {
       title: '历史示例：昨日人民币兑美元中间价是否低于 7.10？',
       deadline: now() - DAY,
       createdAt: now() - 3 * DAY,
-      sourceOfTruth: '以中国人民银行官网当日中间价为准，< 7.10 则“预言成功”，否则“预言未成功”。',
+      sourceOfTruth: '以中国人民银行官网当日中间价为准，< 7.10 则“应验”，否则“未应验”。',
       yesPool: 120,
       noPool: 80,
       status: 'resolved',
@@ -208,7 +208,7 @@ function seedState() {
         version: 1,
         dataSource: { type: 'api', provider: '人民银行人民币汇率中间价', url: 'https://www.pbc.gov.cn/rmyh/rmhq/index.html', field: 'rate', transform: 'float' },
         condition: { operator: '<', value: 7.1 },
-        humanReadable: '以中国人民银行官网当日中间价为准，< 7.10 则“预言成功”，否则“预言未成功”。'
+        humanReadable: '以中国人民银行官网当日中间价为准，< 7.10 则“应验”，否则“未应验”。'
       },
       resolutionMethod: 'auto_api',
       resolutionAttempts: 1,
@@ -223,7 +223,7 @@ function seedState() {
   });
 
   const users = [
-    { _id: 'u1', nickname: '预言大师·诸葛', avatarUrl: '', streak: 12, bestStreak: 15, weekPoints: 3200, monthPoints: 12800, totalPoints: 45600, points: 3200, inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u1', nickname: '卦题大师·诸葛', avatarUrl: '', streak: 12, bestStreak: 15, weekPoints: 3200, monthPoints: 12800, totalPoints: 45600, points: 3200, inviteRewardDate: '', inviteRewardToday: 0 },
     { _id: 'u2', nickname: '数码极客阿杰', avatarUrl: '', streak: 9, bestStreak: 11, weekPoints: 2850, monthPoints: 10400, totalPoints: 38900, points: 2850, inviteRewardDate: '', inviteRewardToday: 0 },
     { _id: 'u3', nickname: '猫眼老影迷', avatarUrl: '', streak: 8, bestStreak: 9, weekPoints: 2400, monthPoints: 9600, totalPoints: 33200, points: 2400, inviteRewardDate: '', inviteRewardToday: 0 },
     { _id: 'u4', nickname: '篮球先知老王', avatarUrl: '', streak: 7, bestStreak: 8, weekPoints: 2100, monthPoints: 8800, totalPoints: 30100, points: 2100, inviteRewardDate: '', inviteRewardToday: 0 },
@@ -232,23 +232,23 @@ function seedState() {
     { _id: 'u7', nickname: '吃瓜群众甲', avatarUrl: '', streak: 4, bestStreak: 5, weekPoints: 1200, monthPoints: 5100, totalPoints: 18700, points: 1200, inviteRewardDate: '', inviteRewardToday: 0 },
     { _id: 'u8', nickname: '理性分析菌', avatarUrl: '', streak: 3, bestStreak: 5, weekPoints: 900, monthPoints: 4300, totalPoints: 15600, points: 900, inviteRewardDate: '', inviteRewardToday: 0 },
     { _id: 'u9', nickname: '都市夜猫子', avatarUrl: '', streak: 2, bestStreak: 4, weekPoints: 600, monthPoints: 3200, totalPoints: 12100, points: 600, inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u10', nickname: '新手上路', avatarUrl: '', streak: 1, bestStreak: 2, weekPoints: 300, monthPoints: 1800, totalPoints: 7600, points: 300, inviteRewardDate: '', inviteRewardToday: 0 }
+    { _id: 'u10', nickname: '初入道上路', avatarUrl: '', streak: 1, bestStreak: 2, weekPoints: 300, monthPoints: 1800, totalPoints: 7600, points: 300, inviteRewardDate: '', inviteRewardToday: 0 }
   ];
 
   const dataSources = [
-    { _id: 'SRC-WEATHER-CMA', name: '中国气象网实时天气', category: '趣味民生', type: 'api', access: 'free', url: 'http://www.weather.com.cn/data/sk/101010100.html', notes: '免费公开接口，判定时抓取整点实况并存证', status: 'verified' },
+    { _id: 'SRC-WEATHER-CMA', name: '中国气象网实时天气', category: '趣味民生', type: 'api', access: 'free', url: 'http://www.weather.com.cn/data/sk/101010100.html', notes: '免费公开接口，断卦时抓取整点实况并存证', status: 'verified' },
     { _id: 'SRC-FX-PBOC', name: '人民银行人民币汇率中间价', category: '财经宏观', type: 'api', access: 'free', url: 'https://www.pbc.gov.cn/rmyh/rmhq/index.html', notes: '官网公开数据，节假日停发需按日历处理', status: 'verified' },
     { _id: 'SRC-STATS-NBS', name: '国家统计局数据发布', category: '财经宏观', type: 'api', access: 'free', url: 'https://data.stats.gov.cn', notes: 'CPI/PMI 等定期发布，接口解析成本较高', status: 'trial' },
     { _id: 'SRC-SPORTS-FEED', name: '体育赛事数据商', category: '体育竞技', type: 'api', access: 'paid', url: '', notes: '一个供应商覆盖篮球足球电竞多个赛事，需商务授权', status: 'pending' },
     { _id: 'SRC-MOVIE-BOXOFFICE', name: '猫眼/灯塔专业版票房', category: '影视娱乐', type: 'api', access: 'paid', url: '', notes: '无公开 API，需商务授权；未接入前用官方票房页截图+人工录入', status: 'pending' },
-    { _id: 'SRC-DOUBAN-SCORE', name: '豆瓣评分页', category: '影视娱乐', type: 'web', access: 'free', url: 'https://movie.douban.com', notes: '页面稳定但反爬较强，判定时抓一次并截图存证', status: 'trial' },
+    { _id: 'SRC-DOUBAN-SCORE', name: '豆瓣评分页', category: '影视娱乐', type: 'web', access: 'free', url: 'https://movie.douban.com', notes: '页面稳定但反爬较强，断卦时抓一次并截图存证', status: 'trial' },
     { _id: 'SRC-LAUNCH-PAGE', name: '品牌发布会/官网参数页', category: '科技数码', type: 'web', access: 'free', url: '', notes: '事实型事件，抓一次存证即可，也可人工录入+铁证链接', status: 'verified' },
-    { _id: 'SRC-EVENT-FACT', name: '官方公告/官宣（通用）', category: '全品类', type: 'manual', access: 'free', url: '', notes: '事实型事件通用通道：运营录入官方判定 + 官方链接/截图铁证', status: 'verified' }
+    { _id: 'SRC-EVENT-FACT', name: '官方公告/官宣（通用）', category: '全品类', type: 'manual', access: 'free', url: '', notes: '事实型事件通用通道：运营录入官方断卦 + 官方链接/截图铁证', status: 'verified' }
   ];
 
   const me = {
       _id: MOCK_OPENID,
-      nickname: '预言新人',
+      nickname: '卦中新客',
       avatarUrl: '',
       avatar: '🔮',
       points: config.INIT_POINTS,
@@ -269,13 +269,13 @@ function seedState() {
       honors: [],
       betCount: 0,
       pkCount: 0,
-      // 邀请裂变字段
+      // 邀友裂变字段
       invitedBy: '',
       inviteRewarded: false,
       inviteCount: 0,
       inviteRewardDate: '',
       inviteRewardToday: 0,
-      // PK 对战字段
+      // 对弈 对战字段
       pkOpen: true,
       pkWins: 0,
       pkLosses: 0
@@ -316,7 +316,7 @@ function seedState() {
   };
 }
 
-// 为旧缓存补齐模拟快照（演示榜单趋势箭头用）
+// 为旧缓存补齐模拟快照（演示天榜趋势箭头用）
 function buildMockSnapshots(me, users) {
   const yesterday = dayKey(now() - DAY);
   const mk = (type, valueOf, yPos) => {
@@ -379,7 +379,7 @@ function findUser(state, id) {
   return state.users.find(u => u._id === id);
 }
 
-// 演示用：确保虚拟用户存在于 state.users，避免结算/瓜分时找不到人而错发给当前用户
+// 演示用：确保虚拟用户存在于 state.users，避免结卦/分卦时找不到人而错发给当前用户
 function ensureMockUser(state, id, nickname) {
   if (state.users.some(u => u._id === id)) return;
   state.users.push({
@@ -416,7 +416,7 @@ function buildInviteStats(state) {
   };
 }
 
-// 惰性清理：过期的待应战 PK 退回挑战者爻
+// 惰性清理：过期的待应弈 对弈 退回邀弈者爻
 function expirePks(state) {
   const nowTs = now();
   let changed = false;
@@ -447,7 +447,7 @@ function pkOpponentInfo(state, pk, meId) {
   return u ? { openid: otherId, nickname: u.nickname, avatar: u.avatar, choice: '', amount: 0 } : null;
 }
 
-// 荣誉自动判定：里程碑 + 实时榜单（连胜/总榜）
+// 卦勋自动断卦：里程碑 + 实时天榜（连胜/总榜）
 function checkHonorsForState(state) {
   const me = state.user;
   if (!me.honors) me.honors = [];
@@ -493,10 +493,10 @@ function checkHonorsForState(state) {
 function settleMarketState(state, marketId) {
   const market = findMarket(state, marketId);
   if (!market || market.status !== 'dispute_window') {
-    return { ok: false, err: '当前状态不可结算' };
+    return { ok: false, err: '当前状态不可结卦' };
   }
   if (state.arbitrations.some(a => a.marketId === marketId && a.status === 'pending')) {
-    return { ok: false, err: '该事件有进行中的仲裁，请等待仲裁公示期结束' };
+    return { ok: false, err: '该事件有进行中的公断，请等待公断公示期结束' };
   }
   const totalPool = (market.yesPool || 0) + (market.noPool || 0);
   const winningPool = market.result === 'YES' ? market.yesPool || 0 : market.noPool || 0;
@@ -537,12 +537,12 @@ function settleMarketState(state, marketId) {
     }
   });
 
-  // 结算 PK：判定胜负、更新双方统计
+  // 结卦 对弈：断卦胜负、更新双方统计
   Object.keys(settledPks).forEach(pkId => {
     const entry = settledPks[pkId];
     const pk = state.pks.find(p => p._id === pkId);
     if (!pk || pk.status === 'settled') return;
-    // 与云端一致：未应战（pending）的 PK 直接作废，不进入 PK 榜统计
+    // 与云端一致：未应弈（pending）的 对弈 直接作废，不进入 对弈 榜统计
     if (pk.status !== 'accepted') {
       pk.status = 'expired';
       pk.expiredAt = now();
@@ -572,7 +572,7 @@ function call(name, data = {}) {
   switch (name) {
     case 'login': {
       const inviteCode = String((data && data.invite) || '');
-      // 邀请链接进入：模拟“新用户通过邀请链接首次打开”（切换到新的被邀请人档案）
+      // 邀友链接进入：模拟“新用户通过邀友链接首次打开”（切换到新的被邀友人档案）
       if (inviteCode && inviteCode !== MOCK_OPENID) {
         const inviter = findUser(state, inviteCode);
         if (inviter && !findUser(state, 'MOCK_INVITEE')) {
@@ -620,7 +620,7 @@ function call(name, data = {}) {
     }
 
     case 'simulateInvite': {
-      // 开发/演示用：模拟一位好友通过分享链接注册并完成首次表态
+      // 开发/演示用：模拟一位好友通过分享链接注册并完成首次应卦
       state.inviteeSeq = (state.inviteeSeq || 0) + 1;
       const inviteeId = 'MOCK_INVITEE_' + state.inviteeSeq;
       const invitee = {
@@ -678,19 +678,19 @@ function call(name, data = {}) {
       const choice = data.choice;
       const amount = Number(data.amount);
       const market = findMarket(state, marketId);
-      if (!market || market.status !== 'open') return { ok: false, err: '该预言已截止或正在结算' };
-      if (market.needsManualReview) return { ok: false, err: '该预言已停止接收表态' };
+      if (!market || market.status !== 'open') return { ok: false, err: '该卦题已截止或正在结卦' };
+      if (market.needsManualReview) return { ok: false, err: '该卦题已停止接收应卦' };
       if (choice !== 'YES' && choice !== 'NO') return { ok: false, err: '参数不合法' };
       if (!Number.isInteger(amount) || amount < MIN_BET_AMOUNT) return { ok: false, err: `至少投入 ${MIN_BET_AMOUNT} 爻` };
       if (state.user.points < amount) return { ok: false, err: '爻不足' };
       const betKey = `${state.user._id}_${marketId}`;
-      if (state.bets[betKey]) return { ok: false, err: '您已参与过该预言，不能重复发起 PK' };
+      if (state.bets[betKey]) return { ok: false, err: '您已参与过该卦题，不能重复发起 对弈' };
       if (state.pks.some(p => p.marketId === marketId && p.challengerId === state.user._id && p.status === 'pending')) {
-        return { ok: false, err: '您对该预言已有未完成的 PK 挑战' };
+        return { ok: false, err: '您对该卦题已有未完成的 对弈 邀弈' };
       }
 
       state.pkSeq = (state.pkSeq || 0) + 1;
-      const pkId = 'PK' + state.pkSeq;
+      const pkId = '对弈' + state.pkSeq;
       const nowTs = now();
       const pk = {
         _id: pkId,
@@ -741,11 +741,11 @@ function call(name, data = {}) {
       const accept = !!data.accept;
       expirePks(state);
       const pk = state.pks.find(p => p._id === pkId);
-      if (!pk) return { ok: false, err: '挑战不存在' };
-      if (pk.status !== 'pending') return { ok: false, err: '该挑战已处理' };
-      if (accept && pk.challengerId === state.user._id) return { ok: false, err: '不能应战自己发起的挑战' };
+      if (!pk) return { ok: false, err: '邀弈不存在' };
+      if (pk.status !== 'pending') return { ok: false, err: '该邀弈已处理' };
+      if (accept && pk.challengerId === state.user._id) return { ok: false, err: '不可应弈自己发起的邀弈' };
       const market = findMarket(state, pk.marketId);
-      if (!market || market.status !== 'open') return { ok: false, err: '该预言已截止' };
+      if (!market || market.status !== 'open') return { ok: false, err: '该卦题已截止' };
 
       if (!accept) {
         pk.status = 'declined';
@@ -760,9 +760,9 @@ function call(name, data = {}) {
 
       const oppChoice = pk.challenger.choice === 'YES' ? 'NO' : 'YES';
       const amount = pk.challenger.amount;
-      if (state.user.points < amount) return { ok: false, err: '爻不足，无法应战' };
+      if (state.user.points < amount) return { ok: false, err: '爻不足，无法应弈' };
       const betKey = `${state.user._id}_${pk.marketId}`;
-      if (state.bets[betKey]) return { ok: false, err: '您已参与过该预言，不能应战' };
+      if (state.bets[betKey]) return { ok: false, err: '您已参与过该卦题，不能应弈' };
 
       state.user.points -= amount;
       if (oppChoice === 'YES') market.yesPool += amount;
@@ -839,7 +839,7 @@ function call(name, data = {}) {
           const u = findUser(state, id);
           return {
             openid: id,
-            nickname: (u && u.nickname) || '预言新人',
+            nickname: (u && u.nickname) || '卦中新客',
             avatar: (u && u.avatar) || '🔮',
             wins: stats[id].wins,
             losses: stats[id].losses,
@@ -885,19 +885,19 @@ function call(name, data = {}) {
     }
 
     case 'simulatePkChallenge': {
-      // 开发/演示用：模拟一位好友发起 PK 挑战
+      // 开发/演示用：模拟一位好友发起 对弈 邀弈
       const marketId = String(data.marketId || 'M003');
       const market = findMarket(state, marketId);
-      if (!market || market.status !== 'open') return { ok: false, err: '该预言不可发起挑战' };
+      if (!market || market.status !== 'open') return { ok: false, err: '该卦题不可邀弈' };
       if (state.pks.some(p => p.marketId === marketId && p.status === 'pending' && p.challengerId !== state.user._id)) {
-        return { ok: false, err: '该预言已有待处理的挑战' };
+        return { ok: false, err: '该卦题已有待处理的邀弈' };
       }
       state.pkSeq = (state.pkSeq || 0) + 1;
-      const pkId = 'PK' + state.pkSeq;
+      const pkId = '对弈' + state.pkSeq;
       const nowTs = now();
       const challenger = {
         openid: 'MOCK_CHALLENGER',
-        nickname: data.challenger && data.challenger.nickname || '测试挑战者',
+        nickname: data.challenger && data.challenger.nickname || '测试邀弈者',
         avatar: data.challenger && data.challenger.avatar || '🐯',
         choice: data.challenger && data.challenger.choice || 'YES',
         amount: data.challenger && data.challenger.amount || 100
@@ -927,7 +927,7 @@ function call(name, data = {}) {
       const list = clone(state.invites.filter(i => i.inviterId === MOCK_OPENID));
       list.forEach(i => {
         const u = findUser(state, i.inviteeId);
-        i.invitee = u ? { nickname: u.nickname, avatar: u.avatar } : { nickname: '预言新人', avatar: '🔮' };
+        i.invitee = u ? { nickname: u.nickname, avatar: u.avatar } : { nickname: '卦中新客', avatar: '🔮' };
       });
       return { ok: true, stats, list };
     }
@@ -961,7 +961,7 @@ function call(name, data = {}) {
 
     case 'getMarketDetail': {
       const market = findMarket(state, data.marketId);
-      if (!market) return { ok: false, err: '预言不存在' };
+      if (!market) return { ok: false, err: '卦题不存在' };
       const myBet = state.bets[`${state.user._id}_${data.marketId}`] || null;
       const myDispute = state.disputes[`${state.user._id}_${data.marketId}`] || null;
       const participantCount = Object.keys(state.bets).filter(k => state.bets[k].marketId === data.marketId).length;
@@ -982,31 +982,31 @@ function call(name, data = {}) {
       if (!reasonCheck.ok) return { ok: false, err: reasonCheck.err };
       const reason = reasonCheck.value;
       const market = findMarket(state, marketId);
-      if (!market) return { ok: false, err: '预言不存在' };
-      if (market.status !== 'dispute_window') return { ok: false, err: '当前不在判定公示期，无法发起仲裁' };
+      if (!market) return { ok: false, err: '卦题不存在' };
+      if (market.status !== 'dispute_window') return { ok: false, err: '当前不在断卦公示期，无法发起公断' };
       const participantCount = Object.keys(state.bets).filter(k => state.bets[k].marketId === marketId).length;
-      if (participantCount < 10) return { ok: false, err: `该事件表态人数不足 10 人，暂不支持社区仲裁（当前 ${participantCount} 人）` };
+      if (participantCount < 10) return { ok: false, err: `该事件应卦人数不足 10 人，暂反对社区公断（当前 ${participantCount} 人）` };
 
-      // 资格：已结算表态 ≥ 5 或 已结算 PK ≥ 3
+      // 资格：已结卦应卦 ≥ 5 或 已结卦 对弈 ≥ 3
       const settledBets = Object.keys(state.bets).filter(k => state.bets[k].openid === state.user._id && state.bets[k].status === 'won').length;
       const settledPks = state.pks.filter(p => p.status === 'settled' && p.participantIds && p.participantIds.includes(state.user._id)).length;
       if (settledBets < 5 && settledPks < 3) {
-        return { ok: false, err: '仲裁参与资格：需已结算表态 ≥ 5 次或已结算 PK ≥ 3 场' };
+        return { ok: false, err: '公断参与资格：需已结卦应卦 ≥ 5 次或已结卦 对弈 ≥ 3 场' };
       }
 
       const bond = state.user.points;
-      if (bond < VOTE_BOND_MIN) return { ok: false, err: `爻不足，发起仲裁需要至少 ${VOTE_BOND_MIN} 爻` };
+      if (bond < VOTE_BOND_MIN) return { ok: false, err: `爻不足，发起公断需要至少 ${VOTE_BOND_MIN} 爻` };
       if (state.arbitrations.some(a => a.marketId === marketId && a.status === 'pending')) {
-        return { ok: false, err: '该事件已有进行中的仲裁' };
+        return { ok: false, err: '该事件已有进行中的公断' };
       }
       if (state.arbitrations.some(a => a.status === 'pending' && a.challenger.openid === state.user._id)) {
-        return { ok: false, err: '您同时只能参与 1 个仲裁' };
+        return { ok: false, err: '您同时只能参与 1 个公断' };
       }
       const lastArb = state.arbitrations
         .filter(a => a.challenger.openid === state.user._id)
         .sort((a, b) => b.createdAt - a.createdAt)[0];
       if (lastArb && lastArb.status === 'pending' && now() - lastArb.createdAt < 24 * 3600 * 1000) {
-        return { ok: false, err: '24 小时内只能发起 1 次仲裁' };
+        return { ok: false, err: '24 小时内只能发起 1 次公断' };
       }
 
       const arbId = 'ARB' + (state.arbitrations.length + 1);
@@ -1060,23 +1060,23 @@ function call(name, data = {}) {
       const side = data.side;
       const bond = Math.floor(Number(data.bond) || 0);
       const arb = state.arbitrations.find(a => a._id === arbId);
-      if (!arb) return { ok: false, err: '仲裁不存在' };
-      if (arb.status !== 'pending') return { ok: false, err: '仲裁已结束' };
-      if (now() > arb.endsAt) return { ok: false, err: '仲裁公示期已结束' };
+      if (!arb) return { ok: false, err: '公断不存在' };
+      if (arb.status !== 'pending') return { ok: false, err: '公断已结束' };
+      if (now() > arb.endsAt) return { ok: false, err: '公断公示期已结束' };
       if (side !== 'support' && side !== 'oppose') return { ok: false, err: '参数不合法' };
-      if (bond < VOTE_BOND_MIN) return { ok: false, err: '投票保证金至少 ' + VOTE_BOND_MIN + ' 爻' };
+      if (bond < VOTE_BOND_MIN) return { ok: false, err: '附议保证金至少 ' + VOTE_BOND_MIN + ' 爻' };
 
       const settledBets = Object.keys(state.bets).filter(k => state.bets[k].openid === state.user._id && state.bets[k].status === 'won').length;
       const settledPks = state.pks.filter(p => p.status === 'settled' && p.participantIds && p.participantIds.includes(state.user._id)).length;
       if (settledBets < 5 && settledPks < 3) {
-        return { ok: false, err: '仲裁参与资格：需已结算表态 ≥ 5 次或已结算 PK ≥ 3 场' };
+        return { ok: false, err: '公断参与资格：需已结卦应卦 ≥ 5 次或已结卦 对弈 ≥ 3 场' };
       }
       const voteKey = `${arbId}_${state.user._id}`;
       if (state.arbitrationVotes[voteKey]) return { ok: false, err: '您已投过票' };
       const activeArbs = state.arbitrations.filter(a => a.status === 'pending');
       for (const a of activeArbs) {
         if (state.arbitrationVotes[`${a._id}_${state.user._id}`]) {
-          return { ok: false, err: '您同时只能参与 1 个仲裁' };
+          return { ok: false, err: '您同时只能参与 1 个公断' };
         }
       }
       if (state.user.points < bond) return { ok: false, err: '爻不足' };
@@ -1099,8 +1099,8 @@ function call(name, data = {}) {
     case 'settleArbitration': {
       const arbId = String(data.arbitrationId || '');
       const arb = state.arbitrations.find(a => a._id === arbId);
-      if (!arb) return { ok: false, err: '仲裁不存在' };
-      if (arb.status !== 'pending') return { ok: false, err: '仲裁已结束' };
+      if (!arb) return { ok: false, err: '公断不存在' };
+      if (arb.status !== 'pending') return { ok: false, err: '公断已结束' };
 
       const wins = arb.supportVotes > arb.opposeVotes
         && (arb.supportVotes + arb.opposeVotes) >= arb.minVotes
@@ -1159,10 +1159,10 @@ function call(name, data = {}) {
     }
 
     case 'mockSeedArbitration': {
-      // 开发/演示用：为指定市场注入多人表态，满足发起仲裁的参与人数门槛
+      // 开发/演示用：为指定市场注入多人应卦，满足发起公断的参与人数门槛
       const marketId = String(data.marketId || 'M001');
       const market = findMarket(state, marketId);
-      if (!market) return { ok: false, err: '预言不存在' };
+      if (!market) return { ok: false, err: '卦题不存在' };
       const existingCount = Object.keys(state.bets).filter(k => state.bets[k].marketId === marketId).length;
       if (existingCount >= 10) return { ok: true, participantCount: existingCount };
 
@@ -1185,7 +1185,7 @@ function call(name, data = {}) {
           createdAt: now() - i * 3600 * 1000
         };
       }
-      // 给当前用户补 5 条已结算表态，满足仲裁投票资格
+      // 给当前用户补 5 条已结卦应卦，满足公断附议资格
       for (let i = 0; i < 5; i++) {
         const key = `${state.user._id}_SEED_WON_${i}`;
         if (state.bets[key]) continue;
@@ -1195,7 +1195,7 @@ function call(name, data = {}) {
           openid: state.user._id,
           choice: 'YES',
           amount: 10,
-          marketTitle: '历史结算示例 ' + i,
+          marketTitle: '历史结卦示例 ' + i,
           marketCategory: '科技数码',
           marketDeadline: 0,
           status: 'won',
@@ -1209,17 +1209,17 @@ function call(name, data = {}) {
     }
 
     case 'mockSeedVotes': {
-      // 开发/演示用：为仲裁注入支持/否决投票（虚拟社区用户），演示瓜分结算
+      // 开发/演示用：为公断注入附议/反对附议（虚拟社区用户），演示分卦结卦
       const arbId = String(data.arbitrationId || '');
       const arb = state.arbitrations.find(a => a._id === arbId);
-      if (!arb) return { ok: false, err: '仲裁不存在' };
+      if (!arb) return { ok: false, err: '公断不存在' };
       const supportN = Number(data.support) || 2;
       const opposeN = Number(data.oppose) || 1;
       for (let i = 1; i <= supportN; i++) {
         const uid = 'MOCK_VOTER_S' + i;
         const key = `${arbId}_${uid}`;
         if (state.arbitrationVotes[key]) continue;
-        ensureMockUser(state, uid, '虚拟支持者 ' + i);
+        ensureMockUser(state, uid, '虚拟附议者 ' + i);
         state.arbitrationVotes[key] = {
           arbitrationId: arbId, marketId: arb.marketId, openid: uid, side: 'support', bond: 50, isChallenger: false, createdAt: now()
         };
@@ -1230,7 +1230,7 @@ function call(name, data = {}) {
         const uid = 'MOCK_VOTER_O' + i;
         const key = `${arbId}_${uid}`;
         if (state.arbitrationVotes[key]) continue;
-        ensureMockUser(state, uid, '虚拟否决者 ' + i);
+        ensureMockUser(state, uid, '虚拟反对者 ' + i);
         state.arbitrationVotes[key] = {
           arbitrationId: arbId, marketId: arb.marketId, openid: uid, side: 'oppose', bond: 50, isChallenger: false, createdAt: now()
         };
@@ -1243,18 +1243,18 @@ function call(name, data = {}) {
 
     case 'placeBet': {
       const market = findMarket(state, data.marketId);
-      if (!market) return { ok: false, err: '预言不存在' };
-      if (market.status !== 'open') return { ok: false, err: '该预言已截止或正在结算' };
-      if (market.needsManualReview) return { ok: false, err: '该预言已停止接收表态' };
+      if (!market) return { ok: false, err: '卦题不存在' };
+      if (market.status !== 'open') return { ok: false, err: '该卦题已截止或正在结卦' };
+      if (market.needsManualReview) return { ok: false, err: '该卦题已停止接收应卦' };
       if (!data.choice || (data.choice !== 'YES' && data.choice !== 'NO')) return { ok: false, err: '参数不合法' };
       const amount = Number(data.amount);
       if (!Number.isInteger(amount) || amount < MIN_BET_AMOUNT) return { ok: false, err: `至少投入 ${MIN_BET_AMOUNT} 爻` };
       if (state.user.points < amount) return { ok: false, err: '爻不足' };
 
       const betId = `${state.user._id}_${market._id}`;
-      if (state.bets[betId]) return { ok: false, err: '您已参与过该预言' };
+      if (state.bets[betId]) return { ok: false, err: '您已参与过该卦题' };
       if (state.pks.some(p => p.marketId === market._id && p.participantIds && p.participantIds.includes(state.user._id) && (p.status === 'pending' || p.status === 'accepted'))) {
-        return { ok: false, err: '您已参与该预言的 PK 挑战，不能重复表态' };
+        return { ok: false, err: '您已参与该卦题的 对弈 邀弈，不能重复应卦' };
       }
 
       state.user.points -= amount;
@@ -1278,7 +1278,7 @@ function call(name, data = {}) {
       };
       state.bets[betId] = myBet;
 
-      // 邀请裂变：被邀请人首次表态 → 邀请人得奖励
+      // 邀友裂变：被邀友人首次应卦 → 邀友人得奖励
       let inviteRewardGranted = 0;
       if (state.user.invitedBy && !state.user.inviteRewarded) {
         const inviter = findUser(state, state.user.invitedBy);
@@ -1374,9 +1374,9 @@ function call(name, data = {}) {
       const sensitive = ['选举', '大选', '总统', '审判', '开庭', '判决', '起诉', '游行', '抗议', '疫情', '确诊', '封控'].find(w => title.indexOf(w) >= 0);
       if (sensitive) return { ok: false, err: `标题涉及敏感红线（${sensitive}），禁止发布` };
       if (!deadline || deadline <= now()) return { ok: false, err: '截止时间必须晚于当前时间' };
-      if (!spec || !spec.dataSource || !spec.dataSource.type) return { ok: false, err: '缺少判定规范' };
+      if (!spec || !spec.dataSource || !spec.dataSource.type) return { ok: false, err: '缺少断卦规范' };
       // 与云端一致：api/weather 必须引用注册数据源并提供 url/field/transform；
-      // 判定说明中不得同时出现多个已注册数据源名称
+      // 断卦说明中不得同时出现多个已注册数据源名称
       const sourceType = spec.dataSource.type;
       const sourceName = String(spec.dataSource.name || spec.dataSource.provider || '').trim();
       const sourceUrl = String(spec.dataSource.url || '').trim();
@@ -1392,14 +1392,14 @@ function call(name, data = {}) {
           return { ok: false, err: 'api/weather 类型必须提供数据源 url 与取值字段 field' };
         }
         if (!['int', 'float', 'string'].includes(spec.dataSource.transform)) {
-          return { ok: false, err: 'transform 仅支持 int / float / string' };
+          return { ok: false, err: 'transform 仅附议 int / float / string' };
         }
       }
       if (spec.humanReadable) {
         const hr = String(spec.humanReadable);
         const hitNames = state.dataSources.filter(s => s.name && hr.indexOf(s.name) >= 0).map(s => s.name);
         if (hitNames.length > 1) {
-          return { ok: false, err: `判定说明出现多个数据源（${hitNames.join('、')}），只能指定一个结算源` };
+          return { ok: false, err: `断卦说明出现多个数据源（${hitNames.join('、')}），只能指定一个结卦源` };
         }
       }
       const marketId = 'M' + String(state.markets.length + 1).padStart(3, '0');
@@ -1504,9 +1504,9 @@ function call(name, data = {}) {
         })
         .sort((a, b) => b.ok - a.ok);
       stats.methodDist = [
-        { method: 'auto_api', label: 'API 自动判定', count: stats.methodDist.auto_api || 0 },
-        { method: 'manual', label: '人工录入判定', count: stats.methodDist.manual || 0 },
-        { method: 'none', label: '未判定', count: stats.methodDist.none || 0 }
+        { method: 'auto_api', label: 'API 自动断卦', count: stats.methodDist.auto_api || 0 },
+        { method: 'manual', label: '人工录入断卦', count: stats.methodDist.manual || 0 },
+        { method: 'none', label: '未断卦', count: stats.methodDist.none || 0 }
       ];
       return { ok: true, stats };
     }
@@ -1597,10 +1597,10 @@ function call(name, data = {}) {
 
     case 'submitDispute': {
       const market = findMarket(state, data.marketId);
-      if (!market) return { ok: false, err: '预言不存在' };
+      if (!market) return { ok: false, err: '卦题不存在' };
       if (market.status !== 'dispute_window') return { ok: false, err: '当前不在异议公示期' };
       const betId = `${state.user._id}_${market._id}`;
-      if (!state.bets[betId]) return { ok: false, err: '您未参与该预言' };
+      if (!state.bets[betId]) return { ok: false, err: '您未参与该卦题' };
       const reason = String(data.reason || '').trim();
       if (reason.length < 5) return { ok: false, err: '请填写至少 5 个字的异议理由' };
       if (state.disputes[betId]) return { ok: false, err: '您已提交过申诉' };
@@ -1620,8 +1620,8 @@ function call(name, data = {}) {
 
     case 'resolveMarket': {
       const market = findMarket(state, data.marketId);
-      if (!market) return { ok: false, err: '预言不存在' };
-      if (!['open', 'locked'].includes(market.status)) return { ok: false, err: '该预言已进入判定或已结算' };
+      if (!market) return { ok: false, err: '卦题不存在' };
+      if (!['open', 'locked'].includes(market.status)) return { ok: false, err: '该卦题已进入断卦或已结卦' };
       if (!data.result || (data.result !== 'YES' && data.result !== 'NO')) return { ok: false, err: '参数不合法' };
       market.status = 'dispute_window';
       market.result = data.result;
@@ -1635,10 +1635,10 @@ function call(name, data = {}) {
 
     case 'settleMarket': {
       const market = findMarket(state, data.marketId);
-      if (!market) return { ok: false, err: '预言不存在' };
-      if (market.status !== 'dispute_window') return { ok: false, err: '该预言不在公示期' };
+      if (!market) return { ok: false, err: '卦题不存在' };
+      if (market.status !== 'dispute_window') return { ok: false, err: '该卦题不在公示期' };
       if (market.hasDispute && !data.force) {
-        return { ok: false, err: '存在申诉，需人工复核后再结算（可传 force=true 强制结算）' };
+        return { ok: false, err: '存在申诉，需人工复核后再结卦（可传 force=true 强制结卦）' };
       }
       const r = settleMarketState(state, market._id);
       if (r.ok) save(state);
@@ -1661,7 +1661,7 @@ function call(name, data = {}) {
             operator: '>=',
             value: 35,
             unit: '℃',
-            humanReadable: `根据「${src.name}」官方实况，判定时点整点气温 ≥ 35.0℃ 则“预言成功”，否则“预言未成功”；数据缺失时爻原路退回。（Mock 示例草稿，正式环境由 DeepSeek 生成）`
+            humanReadable: `根据「${src.name}」官方实况，断卦时点整点气温 ≥ 35.0℃ 则“应验”，否则“未应验”；数据缺失时爻原路退回。（Mock 示例草稿，正式环境由 DeepSeek 生成）`
           }
         };
       }
@@ -1670,7 +1670,7 @@ function call(name, data = {}) {
         spec: {
           mode: 'manual',
           provider: '官方公告',
-          humanReadable: '以品牌官方公告/官微为准，出现明确官方声明则“预言成功”，否则“预言未成功”；数据缺失时爻原路退回。（Mock 示例草稿，正式环境由 DeepSeek 生成）'
+          humanReadable: '以品牌官方公告/官微为准，出现明确官方声明则“应验”，否则“未应验”；数据缺失时爻原路退回。（Mock 示例草稿，正式环境由 DeepSeek 生成）'
         }
       };
     }
@@ -1684,7 +1684,7 @@ function call(name, data = {}) {
             _id: 'c0',
             title: '明天 14:00 北京南郊观象台整点气温是否 ≥ 35.0℃？',
             category: '趣味民生',
-            reason: '气象局官方实况接口可自动判定（Mock 示例，正式环境由 DeepSeek 生成）',
+            reason: '气象局官方实况接口可自动断卦（Mock 示例，正式环境由 DeepSeek 生成）',
             dataSource: '中国气象网',
             suggestedDeadline: '明天 14:00',
             verifiable: true,
@@ -1706,7 +1706,7 @@ function call(name, data = {}) {
             _id: 'c2',
             title: '本周末热映新片首日综合票房是否突破 8000 万元？',
             category: '影视娱乐',
-            reason: '需票房数据商授权，未接入前建议人工判定（Mock 示例）',
+            reason: '需票房数据商授权，未接入前建议人工断卦（Mock 示例）',
             dataSource: '',
             suggestedDeadline: '本周日 24:00',
             verifiable: false
@@ -1728,7 +1728,7 @@ function call(name, data = {}) {
       const today = fmt.todayKey();
       const yesterday = fmt.todayKey(-1);
       const u = state.user;
-      if (u.lastCheckInDate === today) return { ok: false, err: '今日已签到' };
+      if (u.lastCheckInDate === today) return { ok: false, err: '今日问签已定' };
       const streak = u.lastCheckInDate === yesterday ? (u.checkInStreak || 0) + 1 : 1;
       const bonus = Math.min(Math.max(streak - 1, 0), CHECKIN_STREAK_CAP - 1) * CHECKIN_STREAK_BONUS;
       const granted = CHECKIN_BASE_POINTS + bonus;

@@ -1,20 +1,20 @@
 <view class="container">
   <view class="tab-bar">
     <view class="tab-item {{tab === 'inbox' ? 'active' : ''}}" data-tab="inbox" bindtap="onSwitchTab">
-      收到的挑战
+      收到的邀弈
       <text class="tab-badge" wx:if="{{inbox.length}}">{{inbox.length}}</text>
     </view>
-    <view class="tab-item {{tab === 'mine' ? 'active' : ''}}" data-tab="mine" bindtap="onSwitchTab">我的 PK</view>
+    <view class="tab-item {{tab === 'mine' ? 'active' : ''}}" data-tab="mine" bindtap="onSwitchTab">我的 对弈</view>
   </view>
 
   <view wx:if="{{loading}}" class="loading">加载中...</view>
 
   <block wx:elif="{{tab === 'inbox'}}">
-    <!-- 收到的挑战 -->
+    <!-- 收到的邀弈 -->
     <view class="empty" wx:if="{{inbox.length === 0}}">
       <view class="empty-icon">🛡️</view>
-      <view>暂无收到的挑战</view>
-      <view class="empty-sub">去预言详情页发起挑战，或分享 PK 中心邀请好友来战</view>
+      <view>暂无收到的邀弈</view>
+      <view class="empty-sub">去卦题详情页邀弈，或分享 对弈 中心邀友论卦来战</view>
     </view>
     <view
       class="card pk-card {{highlightPk === item._id ? 'highlight' : ''}}"
@@ -43,16 +43,16 @@
       </view>
       <view class="pk-actions">
         <button class="pk-btn decline" data-id="{{item._id}}" bindtap="onDecline" disabled="{{processingId === item._id}}">拒绝</button>
-        <button class="pk-btn accept" data-id="{{item._id}}" bindtap="onAccept" disabled="{{processingId === item._id}}">接受挑战</button>
+        <button class="pk-btn accept" data-id="{{item._id}}" bindtap="onAccept" disabled="{{processingId === item._id}}">接受邀弈</button>
       </view>
     </view>
   </block>
 
   <block wx:else>
-    <!-- 我的 PK 记录 -->
+    <!-- 我的 对弈 记录 -->
     <view class="empty" wx:if="{{list.length === 0}}">
       <view class="empty-icon">⚔️</view>
-      <view>还没有 PK 记录</view>
+      <view>还没有 对弈 记录</view>
     </view>
     <view class="card pk-card" wx:for="{{list}}" wx:key="_id">
       <view class="pk-head">
@@ -77,14 +77,14 @@
       <view class="pk-result" wx:if="{{item.resultText}}">{{item.resultText}}</view>
     </view>
     <view class="load-more" wx:if="{{hasMore}}" bindtap="loadMore">{{loadingMore ? '加载中...' : '加载更多（已显示 ' + list.length + ' / ' + total + ' 条）'}}</view>
-    <view class="list-end" wx:if="{{!hasMore && total > 0}}">— 已加载全部 {{total}} 条 PK 记录 —</view>
+    <view class="list-end" wx:if="{{!hasMore && total > 0}}">— 已加载全部 {{total}} 条 对弈 记录 —</view>
   </block>
 
   <view class="card dev-card" wx:if="{{isMock}}">
     <view class="dev-title">🛠️ 开发者模拟（本地测试）</view>
-    <view class="dev-tip">模拟好友向你发起 PK，验证应战/拒绝流程。</view>
-    <button class="dev-btn" bindtap="onSimulateChallenge">模拟好友发起挑战</button>
+    <view class="dev-tip">模拟好友向你发起 对弈，验证应弈/拒绝流程。</view>
+    <button class="dev-btn" bindtap="onSimulateChallenge">模拟好友邀弈</button>
   </view>
 
-  <view class="footnote">PK 双方必须持相反立场，判定与结算沿用预言事件规则。爻为虚拟积分，不可兑换现金或实物。</view>
+  <view class="footnote">对弈 双方必须持相反立场，断卦与结卦沿用卦题事件规则。爻为虚拟积分，不可兑换现金或实物。</view>
 </view>

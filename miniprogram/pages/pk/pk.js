@@ -4,11 +4,11 @@ const share = require('../../utils/share');
 const fmt = require('../../utils/format');
 
 const STATUS_TEXT = {
-  pending: '待应战',
-  accepted: '已应战，待判定',
+  pending: '待应弈',
+  accepted: '已应弈，待断卦',
   declined: '已拒绝',
   expired: '已过期',
-  settled: '已结算'
+  settled: '已结卦'
 };
 
 Page({
@@ -72,7 +72,7 @@ Page({
   decorate(pk) {
     const opp = pk.opponent || (pk.opponentId ? {
       openid: pk.opponentId,
-      nickname: '预言新人',
+      nickname: '卦中新客',
       avatar: '🔮',
       choice: '',
       amount: 0
@@ -85,7 +85,7 @@ Page({
       myAvatar: mySide ? mySide.avatar : '🔮',
       myChoiceText: mySide ? (mySide.choice === 'YES' ? '看好' : '不看好') : '',
       myAmount: mySide ? mySide.amount : 0,
-      theirName: theirSide ? theirSide.nickname : '等待应战',
+      theirName: theirSide ? theirSide.nickname : '等待应弈',
       theirAvatar: theirSide ? theirSide.avatar : '❓',
       theirChoiceText: theirSide && theirSide.choice ? (theirSide.choice === 'YES' ? '看好' : '不看好') : '',
       theirChoice: theirSide && theirSide.choice ? theirSide.choice : '',
@@ -106,7 +106,7 @@ Page({
     if (pk.status !== 'settled') return '';
     const my = getApp().globalData.user || {};
     if (!pk.winnerId) return '池数据异常，爻已退回';
-    return pk.winnerId === my._id ? '🎉 你赢了这场 PK！' : '本场 PK 惜败，下次再战';
+    return pk.winnerId === my._id ? '🎉 你赢了这场 对弈！' : '本场 对弈 惜败，下次再战';
   },
 
   onSwitchTab(e) {
@@ -121,8 +121,8 @@ Page({
   onDecline(e) {
     const pkId = e.currentTarget.dataset.id;
     wx.showModal({
-      title: '拒绝挑战',
-      content: '拒绝后挑战方爻将退回，确认拒绝？',
+      title: '拒绝邀弈',
+      content: '拒绝后邀弈方爻将退回，确认拒绝？',
       confirmColor: '#e11d48',
       success: res => {
         if (res.confirm) this.respond(pkId, false);
@@ -136,7 +136,7 @@ Page({
     api.respondPk({ pkId, accept })
       .then(res => {
         wx.showToast({
-          title: accept ? '已应战，立场已锁定' : '已拒绝，挑战方爻已退回',
+          title: accept ? '已应弈，立场已锁定' : '已拒绝，邀弈方爻已退回',
           icon: 'success'
         });
         this.refresh();
@@ -150,19 +150,19 @@ Page({
     wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
   },
 
-  // Mock 模式：模拟一位好友发起挑战（演示收到挑战 → 应战/拒绝）
+  // Mock 模式：模拟一位好友邀弈（演示收到邀弈 → 应弈/拒绝）
   onSimulateChallenge() {
     wx.showModal({
-      title: '模拟好友挑战',
-      content: '模拟一位好友对「LPL 首局大龙」发起 PK 挑战（投入 100 爻、立场看好），可在下方接受或拒绝。',
+      title: '模拟好友邀弈',
+      content: '模拟一位好友对「LPL 首局大龙」发起 对弈 邀弈（投入 100 爻、立场看好），可在下方接受或拒绝。',
       success: res => {
         if (!res.confirm) return;
         api.call('simulatePkChallenge', {
           marketId: 'M003',
-          challenger: { nickname: '测试挑战者', avatar: '🐯', choice: 'YES', amount: 100 }
+          challenger: { nickname: '测试邀弈者', avatar: '🐯', choice: 'YES', amount: 100 }
         })
           .then(() => {
-            wx.showToast({ title: '已收到挑战', icon: 'success' });
+            wx.showToast({ title: '已收到邀弈', icon: 'success' });
             this.refresh();
           })
           .catch(err => wx.showToast({ title: err.message || '模拟失败', icon: 'none' }));
@@ -171,10 +171,10 @@ Page({
   },
 
   onShareAppMessage() {
-    return share.appShare('⚔️ 我在「预言大师」发起了 PK 挑战，敢来应战吗？', '/pages/pk/pk');
+    return share.appShare('⚔️ 我在「卦题大师」发起了 对弈 邀弈，敢来应弈吗？', '/pages/pk/pk');
   },
 
   onShareTimeline() {
-    return share.timelineShare('⚔️ 预言大师 PK 挑战中心');
+    return share.timelineShare('⚔️ 卦题大师 对弈弈台');
   }
 });

@@ -3,7 +3,7 @@ const { HONORS } = require('../../utils/constants');
 
 const SECTIONS = [
   { key: 'milestone', title: '成就里程碑', sub: '达成目标自动解锁' },
-  { key: 'rank', title: '榜单荣誉', sub: '进入榜单 Top 10 自动解锁' }
+  { key: 'rank', title: '天榜卦勋', sub: '进入天榜 Top 10 自动解锁' }
 ];
 
 Page({
@@ -61,9 +61,9 @@ Page({
             .map(id => (HONORS.find(h => h.id === id) || {}).name)
             .filter(Boolean)
             .join('、');
-          wx.showToast({ title: `解锁新荣誉：${names}`, icon: 'none', duration: 3000 });
+          wx.showToast({ title: `解锁新卦勋：${names}`, icon: 'none', duration: 3000 });
         } else {
-          wx.showToast({ title: '暂无新荣誉解锁', icon: 'none' });
+          wx.showToast({ title: '暂无新卦勋解锁', icon: 'none' });
         }
         this.refresh();
       })
@@ -80,10 +80,10 @@ Page({
     if (!user) return;
     const honor = HONORS.find(h => h.id === id);
     if (!honor || (user.honors || []).indexOf(id) < 0) {
-      wx.showToast({ title: '该荣誉尚未解锁', icon: 'none' });
+      wx.showToast({ title: '该卦勋尚未解锁', icon: 'none' });
       return;
     }
-    // 已展示的荣誉再点一次 = 取消展示
+    // 已展示的卦勋再点一次 = 取消展示
     const next = user.title === id ? '' : id;
     api.updateProfile({ title: next })
       .then(updated => {

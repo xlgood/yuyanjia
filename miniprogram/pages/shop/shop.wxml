@@ -1,10 +1,10 @@
 <view class="container">
   <view class="hero card">
-    <view class="hero-title">🏅 我的荣誉墙</view>
-    <view class="hero-sub">已解锁 {{unlockedCount}} / {{totalCount}} 项荣誉</view>
-    <view class="hero-sub">点击已解锁的荣誉即可展示在个人页</view>
+    <view class="hero-title">🏅 我的卦勋墙</view>
+    <view class="hero-sub">已解锁 {{unlockedCount}} / {{totalCount}} 项卦勋</view>
+    <view class="hero-sub">点击已解锁的卦勋即可展示在个人页</view>
     <button class="check-btn" bindtap="onCheckHonors" disabled="{{checking}}">
-      {{checking ? '检测中...' : '🔄 刷新荣誉检测'}}
+      {{checking ? '检测中...' : '🔄 刷新卦勋检测'}}
     </button>
     <view class="hero-tip">达成目标自动解锁，无需兑换，永久保留</view>
   </view>
@@ -32,5 +32,5 @@
     </view>
   </block>
 
-  <view class="footnote">荣誉为虚拟成就徽章，仅用于展示与社交炫耀，不消耗爻，无任何兑换现金或实物的价值。</view>
+  <view class="footnote">卦勋为虚拟成就徽章，仅用于展示与社交炫耀，不消耗爻，无任何兑换现金或实物的价值。</view>
 </view>

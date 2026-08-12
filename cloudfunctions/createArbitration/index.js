@@ -13,7 +13,7 @@ const {
   ARBITRATION_COOLDOWN_MS: COOLDOWN_MS
 } = require('./common-config');
 
-// 仲裁理由校验（与前端 validate.js 保持一致）
+// 公断理由校验（与前端 validate.js 保持一致）
 const REASON_MIN_LEN = 10;
 const REASON_MAX_LEN = 200;
 const CONTROL_RE = /[\u0000-\u001f\u007f]/;
@@ -42,9 +42,9 @@ async function securityCheck(content) {
 
 function validateReason(reason) {
   const value = String(reason == null ? '' : reason).trim();
-  if (!value) return { ok: false, err: '请填写仲裁理由' };
-  if (value.length < REASON_MIN_LEN) return { ok: false, err: `仲裁理由至少 ${REASON_MIN_LEN} 个字` };
-  if (value.length > REASON_MAX_LEN) return { ok: false, err: `仲裁理由不能超过 ${REASON_MAX_LEN} 个字` };
+  if (!value) return { ok: false, err: '请填写公断理由' };
+  if (value.length < REASON_MIN_LEN) return { ok: false, err: `公断理由至少 ${REASON_MIN_LEN} 个字` };
+  if (value.length > REASON_MAX_LEN) return { ok: false, err: `公断理由不能超过 ${REASON_MAX_LEN} 个字` };
   if (CONTROL_RE.test(value)) return { ok: false, err: '理由包含非法控制字符' };
   if (INJECTION_RE.test(value)) return { ok: false, err: '理由包含不允许的字符（< > 引号 脚本等）' };
   const lower = value.toLowerCase();
@@ -62,10 +62,10 @@ exports.main = async (event) => {
   // 微信官方内容安全（政治/黄赌毒等），本地词表之外的第二道防线
   const secPass = await securityCheck(reasonCheck.value);
   if (!secPass) return { ok: false, err: '理由包含敏感内容，请修改' };
-  if (!marketId) return { ok: false, err: '缺少预言 ID' };
+  if (!marketId) return { ok: false, err: '缺少卦题 ID' };
 
   try {
-    // 资格/门槛/唯一性检查放事务外（官方文档：事务仅支持单记录操作），
+    // 资格/门槛/唯一性检查放事务外（官方文档：事务仅附议单记录操作），
     // 事务内保留 doc 级校验（market.status / user.points）保证核心一致性
     const participantCount = (await db.collection('bets').where({ marketId }).count()).total;
     const settledBets = (await db.collection('bets').where({ openid: OPENID, status: _.in(['won', 'lost', 'refunded']) }).count()).total;
@@ -89,42 +89,42 @@ exports.main = async (event) => {
       try {
         market = (await marketRef.get()).data;
       } catch (e) {
-        throw new Error('预言不存在');
+        throw new Error('卦题不存在');
       }
       if (market.status !== 'dispute_window') {
-        throw new Error('当前不在判定公示期，无法发起仲裁');
+        throw new Error('当前不在断卦公示期，无法发起公断');
       }
       if (market.needsManualReview) {
-        throw new Error('该预言已停止接收表态');
+        throw new Error('该卦题已停止接收应卦');
       }
 
-      // 参与人数门槛：该事件表态人数 ≥ 10
+      // 参与人数门槛：该事件应卦人数 ≥ 10
       if (participantCount < MIN_PARTICIPANTS) {
-        throw new Error(`该事件表态人数不足 ${MIN_PARTICIPANTS} 人，暂不支持社区仲裁`);
+        throw new Error(`该事件应卦人数不足 ${MIN_PARTICIPANTS} 人，暂反对社区公断`);
       }
 
       const userRef = t.collection('users').doc(OPENID);
       const user = (await userRef.get()).data;
       if (!user) throw new Error('用户不存在');
 
-      // 投票资格：已结算表态 ≥ 5 或 已结算 PK ≥ 3（won/lost/refunded 均算已结算）
+      // 附议资格：已结卦应卦 ≥ 5 或 已结卦 对弈 ≥ 3（won/lost/refunded 均算已结卦）
       if (settledBets < 5 && settledPks < 3) {
-        throw new Error('仲裁参与资格：需已结算表态 ≥ 5 次或已结算 PK ≥ 3 场');
+        throw new Error('公断参与资格：需已结卦应卦 ≥ 5 次或已结卦 对弈 ≥ 3 场');
       }
 
       // 保证金：锁定当前爻 100%
       const bond = user.points;
-      if (bond < VOTE_BOND_MIN) throw new Error(`爻不足，发起仲裁需要至少 ${VOTE_BOND_MIN} 爻`);
+      if (bond < VOTE_BOND_MIN) throw new Error(`爻不足，发起公断需要至少 ${VOTE_BOND_MIN} 爻`);
 
-      // 同一事件已存在进行中的仲裁
-      if (activeArbRes.data.length) throw new Error('该事件已有进行中的仲裁');
+      // 同一事件已存在进行中的公断
+      if (activeArbRes.data.length) throw new Error('该事件已有进行中的公断');
 
       // 同时参与上限 + 发起冷却
-      if (myActiveRes.total >= ACTIVE_LIMIT) throw new Error('您同时只能参与 1 个仲裁');
-      // 发起冷却：距上次发起（无论是否已结算）不足 24 小时则拒绝，
-      // 不再依赖 pending 状态（原判断与“同时只能参与 1 个仲裁”重复，实际永不触发）
+      if (myActiveRes.total >= ACTIVE_LIMIT) throw new Error('您同时只能参与 1 个公断');
+      // 发起冷却：距上次发起（无论是否已结卦）不足 24 小时则拒绝，
+      // 不再依赖 pending 状态（原判断与“同时只能参与 1 个公断”重复，实际永不触发）
       if (lastArbRes.data.length && Date.now() - (lastArbRes.data[0].createdAt || 0) < COOLDOWN_MS) {
-        throw new Error('24 小时内只能发起 1 次仲裁');
+        throw new Error('24 小时内只能发起 1 次公断');
       }
 
       const arbId = 'ARB' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
@@ -136,7 +136,7 @@ exports.main = async (event) => {
         reason: reasonCheck.value,
         challenger: {
           openid: OPENID,
-          nickname: user.nickname || '预言新人',
+          nickname: user.nickname || '卦中新客',
           avatar: user.avatar || '🔮',
           bond
         },
@@ -154,7 +154,7 @@ exports.main = async (event) => {
         updatedAt: db.serverDate()
       };
       await t.collection('arbitrations').doc(arbId).set({ data: arb });
-      // 发起人默认投支持票（保证金计入支持池）
+      // 发起人默认投附议票（保证金计入附议池）
       await t.collection('arbitration_votes').doc(`${arbId}_${OPENID}`).set({
         data: {
           arbitrationId: arbId,
@@ -173,6 +173,6 @@ exports.main = async (event) => {
     });
     return result;
   } catch (e) {
-    return { ok: false, err: e.message || '发起仲裁失败' };
+    return { ok: false, err: e.message || '发起公断失败' };
   }
 };

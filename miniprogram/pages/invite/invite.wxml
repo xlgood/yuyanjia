@@ -1,8 +1,8 @@
 <view class="container">
-  <!-- 邀请奖励主视觉 -->
+  <!-- 邀友奖励主视觉 -->
   <view class="card hero-card">
-    <view class="hero-title">🎁 邀请好友，双方得爻</view>
-    <view class="hero-desc">好友通过你的链接注册并首次表态，你得 {{inviterPoints}} 爻；好友首开即得 {{inviteePoints}} 新手爻。</view>
+    <view class="hero-title">🎁 邀友论卦，双方得爻</view>
+    <view class="hero-desc">好友通过你的链接注册并首次应卦，你得 {{inviterPoints}} 爻；好友首开即得 {{inviteePoints}} 初入道爻。</view>
     <view class="reward-row">
       <view class="reward-box">
         <view class="reward-num">+{{inviteePoints}}</view>
@@ -11,20 +11,20 @@
       <view class="reward-arrow">→</view>
       <view class="reward-box">
         <view class="reward-num">+{{inviterPoints}}</view>
-        <view class="reward-label">你的邀请奖励</view>
+        <view class="reward-label">你的邀友奖励</view>
       </view>
     </view>
     <button class="primary-btn share-main-btn" open-type="share" data-channel="group" hover-class="btn-hover">
       📣 分享给好友 / 群
     </button>
-    <view class="share-tip">好友通过你分享的卡片打开小程序即自动记录邀请；分享到朋友圈请使用右上角「···」→ 分享到朋友圈。</view>
+    <view class="share-tip">好友通过你分享的卡片打开小程序即自动记录邀友；分享到朋友圈请使用右上角「···」→ 分享到朋友圈。</view>
   </view>
 
-  <!-- 邀请战绩 -->
+  <!-- 邀友战绩 -->
   <view class="card stat-card" wx:if="{{!loading}}">
     <view class="stat-item">
       <view class="stat-num">{{stats.totalInvites}}</view>
-      <view class="stat-label">累计邀请</view>
+      <view class="stat-label">累计邀友</view>
     </view>
     <view class="stat-divider"></view>
     <view class="stat-item">
@@ -38,18 +38,18 @@
     </view>
   </view>
 
-  <!-- 邀请记录 -->
+  <!-- 邀友记录 -->
   <view class="card list-card" wx:if="{{!loading}}">
-    <view class="list-head">我的邀请记录</view>
+    <view class="list-head">我的邀友记录</view>
     <view wx:if="{{list.length === 0}}" class="list-empty">
       <view class="empty-icon">🌱</view>
-      <view>还没有好友通过你的邀请加入，快分享出去吧</view>
+      <view>还没有好友通过你的邀友加入，快分享出去吧</view>
     </view>
     <view class="invite-row" wx:for="{{list}}" wx:key="inviteeId">
       <view class="invite-avatar">{{item.invitee.avatar || '🔮'}}</view>
       <view class="invite-info">
         <view class="invite-name">{{item.invitee.nickname}}</view>
-        <view class="invite-time">{{item.inviterRewarded ? '已完成首次表态，奖励已发放' : '等待好友完成首次表态'}}</view>
+        <view class="invite-time">{{item.inviterRewarded ? '已完成首次应卦，奖励已发放' : '等待好友完成首次应卦'}}</view>
       </view>
       <view class="invite-status {{item.inviterRewarded ? 'done' : 'pending'}}">
         {{item.inviterRewarded ? '+' + item.rewardToInviter : '待完成'}}
@@ -60,7 +60,7 @@
   <!-- Mock 模式：模拟好友加入（演示裂变链路） -->
   <view class="card dev-card" wx:if="{{isMock && !compliance}}">
     <view class="dev-title">🛠️ 开发者模拟（本地测试）</view>
-    <view class="dev-tip">模拟一位好友通过你的链接注册并完成首次表态，验证邀请奖励链路。</view>
+    <view class="dev-tip">模拟一位好友通过你的链接注册并完成首次应卦，验证邀友奖励链路。</view>
     <button class="dev-btn" bindtap="onSimulateInvite" disabled="{{simulating}}">
       {{simulating ? '模拟中...' : '模拟好友加入'}}
     </button>
@@ -69,10 +69,10 @@
   <view class="card rule-card" bindtap="onShowRules">
     <view class="menu-item">
       <text class="menu-icon">📖</text>
-      <text class="menu-text">邀请规则与奖励说明</text>
+      <text class="menu-text">邀友规则与奖励说明</text>
       <text class="menu-arrow">›</text>
     </view>
   </view>
 
-  <view class="footnote">爻为平台虚拟积分，仅用于参与预言与兑换虚拟荣誉，不可兑换现金或实物。请勿诱导分享或批量注册。</view>
+  <view class="footnote">爻为平台虚拟积分，仅用于参与卦题与兑换虚拟卦勋，不可兑换现金或实物。请勿诱导分享或批量注册。</view>
 </view>
