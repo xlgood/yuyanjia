@@ -161,7 +161,7 @@ async function settleOne(marketId) {
   // 池异常（如无人胜出）：全部原路退回，保证爻守恒
   const refundAll = totalPool <= 0 || winningPool <= 0;
 
-  // 有进行中的公断：不允许结卦（等公断公示期结束）
+  // 有进行中的公断：不允许结卦（等公断昭示期结束）
   const activeArb = await db.collection('arbitrations')
     .where({ marketId, status: 'pending' })
     .limit(1)
@@ -295,7 +295,7 @@ exports.main = async (event) => {
     } catch (e) {
       return { ok: false, err: '卦题不存在' };
     }
-    if (market.status !== 'dispute_window') return { ok: false, err: '该卦题不在公示期' };
+    if (market.status !== 'dispute_window') return { ok: false, err: '该卦题不在昭示期' };
     // 异议通道 = 社区公断（settleOne 内已检查 arbitration_pending）；
     // hasDispute/disputeCount 为预留字段，当前无写入方，「申诉转人工」待产品化后启用
     const r = await settleOne(marketId);

@@ -39,7 +39,7 @@ exports.main = async (event) => {
         throw new Error('公断不存在');
       }
       if (arb.status !== 'pending') throw new Error('公断已结束');
-      if (Date.now() > (arb.endsAt || 0)) throw new Error('公断公示期已结束');
+      if (Date.now() > (arb.endsAt || 0)) throw new Error('公断昭示期已结束');
 
       const userRef = t.collection('users').doc(OPENID);
       const user = (await userRef.get()).data;

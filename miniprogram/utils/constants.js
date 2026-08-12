@@ -108,7 +108,7 @@ module.exports = {
   MARKET_STATUS: {
     open: '进行中',
     locked: '等待断卦',
-    dispute_window: '公示中',
+    dispute_window: '昭示中',
     resolved: '已结卦'
   },
 

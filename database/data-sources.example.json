@@ -55,7 +55,7 @@
     "type": "api",
     "access": "paid",
     "url": "",
-    "notes": "无公开 API，需商务授权；未接入前用官方票房页截图+人工录入，走公示期",
+    "notes": "无公开 API，需商务授权；未接入前用官方票房页截图+人工录入，走昭示期",
     "status": "pending",
     "_id": "SRC-MOVIE-BOXOFFICE"
   },
@@ -85,7 +85,7 @@
     "type": "manual",
     "access": "free",
     "url": "",
-    "notes": "事实型事件通用通道：运营在截止后录入官方判定 + 官方链接/截图铁证，走 5 小时公示（跨夜顺延）与仲裁兜底",
+    "notes": "事实型事件通用通道：运营在截止后录入官方判定 + 官方链接/截图铁证，走 5 小时昭示（跨夜顺延）与仲裁兜底",
     "status": "verified",
     "_id": "SRC-EVENT-FACT"
   },

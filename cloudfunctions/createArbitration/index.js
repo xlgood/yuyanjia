@@ -92,7 +92,7 @@ exports.main = async (event) => {
         throw new Error('卦题不存在');
       }
       if (market.status !== 'dispute_window') {
-        throw new Error('当前不在断卦公示期，无法发起公断');
+        throw new Error('当前不在断卦昭示期，无法发起公断');
       }
       if (market.needsManualReview) {
         throw new Error('该卦题已停止接收应卦');

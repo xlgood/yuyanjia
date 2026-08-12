@@ -60,7 +60,7 @@ Page({
         ? Math.round((arb.opposeVotes / (arb.supportVotes + arb.opposeVotes)) * 100) + '%'
         : '--',
       minVotesText: `需总票数 ≥ ${arb.minVotes}（参与 ${arb.participantCount} 人 × 10%），且附议票 > 反对票`,
-      statusText: arb.status === 'pending' ? '公示中' : (arb.status === 'settled' ? '已结束' : arb.status)
+      statusText: arb.status === 'pending' ? '昭示中' : (arb.status === 'settled' ? '已结束' : arb.status)
     });
   },
 

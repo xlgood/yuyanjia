@@ -39,7 +39,7 @@ module.exports = {
   // ---- 社区仲裁（createArbitration / voteArbitration）----
   VOTE_BOND_MIN: 10,                   // 发起/投票最低保证金
   ACTIVE_ARBITRATION_LIMIT: 1,         // 同时最多参与仲裁数
-  ARBITRATION_WINDOW_MS: 24 * 3600 * 1000,   // 仲裁公示期
+  ARBITRATION_WINDOW_MS: 24 * 3600 * 1000,   // 仲裁昭示期
   ARBITRATION_MIN_PARTICIPANTS: 10,    // 事件表态人数门槛
   ARBITRATION_COOLDOWN_MS: 24 * 3600 * 1000, // 发起冷却
 

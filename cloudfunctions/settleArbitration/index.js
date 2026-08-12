@@ -175,7 +175,7 @@ async function settleArbitrationId(arbId) {
     if (market) {
       await marketRef.update({
         data: {
-          // 公断结束即终局：直接回到可结卦状态，不再重复公示
+          // 公断结束即终局：直接回到可结卦状态，不再重复昭示
           status: 'dispute_window',
           disputeEndsAt: Date.now(),
           arbitrationResult: 'no_bet',
@@ -225,7 +225,7 @@ async function settleArbitrationId(arbId) {
   if (market) {
     await marketRef.update({
       data: {
-        // 公断结束即终局：直接回到可结卦状态，不再重复公示
+        // 公断结束即终局：直接回到可结卦状态，不再重复昭示
         status: 'dispute_window',
         disputeEndsAt: Date.now(),
         result: newResult,
@@ -249,7 +249,7 @@ exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
   const arbId = String((event && event.arbitrationId) || '');
 
-  // 指定公断单结卦：仅管理员可操作，且必须已过公示期
+  // 指定公断单结卦：仅管理员可操作，且必须已过昭示期
   // （防止任意用户提前触发结卦 / 绕过附议周期）
   if (arbId) {
     const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -261,7 +261,7 @@ exports.main = async (event) => {
       return { ok: false, err: '公断不存在' };
     }
     if (target && target.status === 'pending' && target.endsAt && target.endsAt > Date.now()) {
-      return { ok: false, err: '公断公示期未结束，暂不能结卦' };
+      return { ok: false, err: '公断昭示期未结束，暂不能结卦' };
     }
     try {
       return { ok: true, ...(await settleArbitrationId(arbId)) };
@@ -271,7 +271,7 @@ exports.main = async (event) => {
     }
   }
 
-  // 批量：结卦所有已过公示期的公断（定时触发器）
+  // 批量：结卦所有已过昭示期的公断（定时触发器）
   const res = await db.collection('arbitrations')
     .where({ status: 'pending', endsAt: _.lte(Date.now()) })
     .limit(20)

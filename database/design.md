@@ -92,14 +92,14 @@
 | deadline | number | 截止时间戳 |
 | yesPool / noPool | number | 双方能量池 |
 | totalPool | number | 冗余字段 = yesPool + noPool（表态/PK 收退注时原子维护；热门榜按此索引排序，存量数据用 `migratePoints` 回填） |
-| status | string | `open` 进行中 / `locked` 已锁定待判定 / `dispute_window` 判定公示 / `arbitration_window` 仲裁公示（临时）/ `resolved` 已结算 |
+| status | string | `open` 进行中 / `locked` 已锁定待判定 / `dispute_window` 判定昭示 / `arbitration_window` 仲裁昭示（临时）/ `resolved` 已结算 |
 | lockedAt | number | 锁定时间（截止时间到达时由 lockMarkets 写入） |
 | result | string/null | 官方判定：`YES` / `NO` |
 | evidenceUrl | string | 官方公告截图或链接（铁证） |
 | hasDispute | boolean | 历史字段：是否存在旧版申诉（仲裁替代后基本恒为 false） |
 | disputeCount | number | 历史字段：旧版申诉数量（仲裁替代后不再使用） |
 | resolvedAt | number | 判定录入时间 |
-| disputeEndsAt | number | 公示期结束时间（结算最早时间） |
+| disputeEndsAt | number | 昭示期结束时间（结算最早时间） |
 | settledAt | number | 实际结算时间 |
 | resolutionSpec | object | 机读判定规范（数据源/字段/运算符/阈值/边界规则，见 `resolution-spec.example.json`） |
 | resolutionMethod | string | 判定方式：`auto_api`（接口自动）/ `auto_web`（抓取自动，二期）/ `manual`（人工） |
@@ -185,7 +185,7 @@
 
 ## 9. arbitrations（社区仲裁）
 
-判定录入后进入 `dispute_window`（判定公示期），事件表态人数 ≥ 10 的用户可发起社区仲裁；仲裁进入 `arbitration_window` 后全社区投票，公示 24 小时。
+判定录入后进入 `dispute_window`（判定昭示期），事件表态人数 ≥ 10 的用户可发起社区仲裁；仲裁进入 `arbitration_window` 后全社区投票，昭示 24 小时。
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
@@ -198,9 +198,9 @@
 | supportVotes / opposeVotes | number | 支持 / 否决票数（发起人默认 1 支持票） |
 | participantCount | number | 事件表态人数（门槛基数） |
 | minVotes | number | 成立所需最低总票数 `max(ceil(参与人数×10%), 2)` |
-| status | string | `pending` 公示中 / `settled` 已结算 |
+| status | string | `pending` 昭示中 / `settled` 已结算 |
 | winner | string | `support` 成立 / `oppose` 未成立 |
-| createdAt / endsAt | number | 发起时间 / 公示截止（24 小时） |
+| createdAt / endsAt | number | 发起时间 / 昭示截止（24 小时） |
 | settledAt | number | 结算时间 |
 
 成立条件（三件套）：
@@ -210,7 +210,7 @@
 
 保证金分配：投对票者按投入比例瓜分投错票者的保证金池（能量守恒，平台不收取费用）。成立则判定结果翻转，按新结果结算；不成立维持原判定。
 
-> 仲裁终局：`settleArbitration` 结算后市场直接进入可结算状态（`disputeEndsAt = 当前时间`），不再重新公示，防止「判定 → 公示 → 仲裁 → 公示」循环。
+> 仲裁终局：`settleArbitration` 结算后市场直接进入可结算状态（`disputeEndsAt = 当前时间`），不再重新昭示，防止「判定 → 昭示 → 仲裁 → 昭示」循环。
 
 建议索引：`marketId + status`、`status + endsAt`（定时结算）、`challenger.openid`（发起冷却 / 同时参与上限）。
 

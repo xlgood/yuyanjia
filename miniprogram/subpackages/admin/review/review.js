@@ -29,7 +29,7 @@ Page({
     const typeMap = {
       manual_deadline: { text: '人工判定（到期待验证）', cls: 'deadline' },
       manual_fail: { text: '自动判定失败（待人工录入）', cls: 'fail' },
-      dispute: { text: '公示期（待结算/可复核）', cls: 'dispute' }
+      dispute: { text: '昭示期（待结算/可复核）', cls: 'dispute' }
     };
     const t = typeMap[m.reviewType] || { text: '待处理', cls: '' };
     const urgencyMap = {
@@ -39,12 +39,12 @@ Page({
     };
     const u = urgencyMap[m.urgency] || { text: '', cls: '' };
     const remainingMs = m.remainingMs || 0;
-    // 公示期项：到期由 settleMarket 定时器自动结卦（≤10min 窗口），不显示「已超时」制造恐慌
+    // 昭示期项：到期由 settleMarket 定时器自动结卦（≤10min 窗口），不显示「已超时」制造恐慌
     let timeText;
     if (m.reviewType === 'dispute') {
       timeText = remainingMs < 0
-        ? '公示期已结束'
-        : `公示剩余 ${this.durText(remainingMs)}`;
+        ? '昭示期已结束'
+        : `昭示剩余 ${this.durText(remainingMs)}`;
     } else {
       timeText = remainingMs < 0
         ? `已超时 ${this.durText(-remainingMs)}`
@@ -84,12 +84,12 @@ Page({
     }
     wx.showModal({
       title: '录入官方断卦',
-      content: `确认断卦为「${result === 'YES' ? '正' : '反'}」？录入后将进入 2 小时公示期（跨夜顺延）。`,
+      content: `确认断卦为「${result === 'YES' ? '正' : '反'}」？录入后将进入 2 小时昭示期（跨夜顺延）。`,
       success: res => {
         if (!res.confirm) return;
         api.resolveMarket({ marketId: id, result, evidenceUrl })
           .then(() => {
-            wx.showToast({ title: '已录入，进入公示期', icon: 'success' });
+            wx.showToast({ title: '已录入，进入昭示期', icon: 'success' });
             this.load();
           })
           .catch(err => wx.showToast({ title: err.message || '录入失败', icon: 'none' }));
@@ -101,7 +101,7 @@ Page({
     const id = e.currentTarget.dataset.id;
     wx.showModal({
       title: '强制结算',
-      content: '将按当前判定直接结算（跳过公示等待）。确认继续？',
+      content: '将按当前判定直接结算（跳过昭示等待）。确认继续？',
       success: res => {
         if (!res.confirm) return;
         api.settleMarket({ marketId: id, force: true })

@@ -45,8 +45,8 @@
 
     <view class="dispute-banner" wx:if="{{market.status === 'dispute_window' || market.status === 'arbitration_window'}}">
       ⏳ 官方已录入断卦结果（{{market.result === 'YES' ? '正' : '反'}}），
-      {{market.status === 'arbitration_window' ? '正在公断公示期，社区附议决定是否推翻断卦' : '正在断卦公示期，可发起社区公断'}}。
-      <text wx:if="{{market.status === 'dispute_window' && market.countdownText}}" class="dispute-countdown">公示剩余 {{market.countdownText}}</text>
+      {{market.status === 'arbitration_window' ? '正在公断昭示期，社区附议决定是否推翻断卦' : '正在断卦昭示期，可发起社区公断'}}。
+      <text wx:if="{{market.status === 'dispute_window' && market.countdownText}}" class="dispute-countdown">昭示剩余 {{market.countdownText}}</text>
     </view>
     <view class="dispute-banner" wx:if="{{market.status === 'locked'}}">
       ⏸ 已停止应卦，正在等待官方断卦，请留意结果公布。
@@ -125,7 +125,7 @@
   <!-- 已锁定：等待断卦 -->
   <view class="card action-card" wx:elif="{{market.status === 'locked' && !myBet}}">
     <view class="action-title">⏸ 已停止应卦</view>
-    <view class="poll-tip">该卦题已到截止时间，正在等待官方断卦；结果确认并公示后将自动结卦。</view>
+    <view class="poll-tip">该卦题已到截止时间，正在等待官方断卦；结果确认并昭示后将自动结卦。</view>
   </view>
 
   <!-- 已应卦状态 -->
@@ -148,7 +148,7 @@
     <view class="arb-tip">
       <block wx:if="{{participantCount < 10}}">该卦题应卦人数 {{participantCount}} 人，不足 10 人，暂无法发起社区公断。</block>
       <block wx:elif="{{activeArbitration}}">该卦题已有进行中的公断，点击进入公断阁查看附议进展。</block>
-      <block wx:else>发起公断需锁定当前全部爻作为保证金，公示 24 小时由社区附议决定是否推翻断卦。</block>
+      <block wx:else>发起公断需锁定当前全部爻作为保证金，昭示 24 小时由社区附议决定是否推翻断卦。</block>
     </view>
     <button
       class="primary-btn"
@@ -161,7 +161,7 @@
   <view class="mask" wx:if="{{arbConfirmVisible}}" bindtap="onArbCancel">
     <view class="modal arb-confirm" catchtap="noop">
       <view class="modal-title">⚖️ 确认发起公断</view>
-      <view class="arb-confirm-tip">发起公断需将当前全部爻作为保证金锁定，公示期结束后按附议结果分配。</view>
+      <view class="arb-confirm-tip">发起公断需将当前全部爻作为保证金锁定，昭示期结束后按附议结果分配。</view>
       <view class="arb-confirm-bond">
         <view class="arb-bond-label">本次锁定保证金</view>
         <view class="arb-bond-num">🪙 {{arbBond}} 爻（当前全部）</view>
@@ -169,7 +169,7 @@
       <view class="arb-confirm-rule">
         公断成立 → 断卦翻转，投对票者分卦对方保证金；<br/>
         公断不成立 → 维持原断卦，你的保证金归反对方。<br/>
-        公示期 24 小时，一旦发起不可撤回。
+        昭示期 24 小时，一旦发起不可撤回。
       </view>
       <view class="arb-reason-box">
         <view class="arb-reason-label">公断理由（必填，10-200 字）</view>
@@ -228,13 +228,13 @@
     <view class="dev-title">🛠️ 开发者模拟结卦（本地测试）</view>
     <view wx:if="{{market.status === 'open'}}">
       <view class="dev-row">
-        <button class="dev-btn yes" data-result="YES" bindtap="onDevResolve">模拟断卦 YES（进公示期）</button>
-        <button class="dev-btn no" data-result="NO" bindtap="onDevResolve">模拟断卦 NO（进公示期）</button>
+        <button class="dev-btn yes" data-result="YES" bindtap="onDevResolve">模拟断卦 YES（进昭示期）</button>
+        <button class="dev-btn no" data-result="NO" bindtap="onDevResolve">模拟断卦 NO（进昭示期）</button>
       </view>
     </view>
     <view wx:elif="{{market.status === 'dispute_window'}}">
       <button class="dev-btn" bindtap="onDevSettle">模拟结卦（分卦）</button>
-      <button class="dev-btn" bindtap="onDevForceSettle">强制结卦（跳过公示/公断）</button>
+      <button class="dev-btn" bindtap="onDevForceSettle">强制结卦（跳过昭示/公断）</button>
     </view>
     <view class="dev-tip">此面板仅在使用本地模拟数据时显示；接入云开发后，断卦与结卦由管理员后台操作。</view>
   </view>

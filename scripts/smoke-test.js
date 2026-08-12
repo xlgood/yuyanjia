@@ -360,7 +360,7 @@ async function main() {
   assert.strictEqual(settleArb.flipped, true, '成立应翻转判定');
   const arbMarket = await mock.call('getMarketDetail', { marketId: 'M001' });
   assert.strictEqual(arbMarket.market.result, 'NO', '判定应翻转为 NO');
-  assert.strictEqual(arbMarket.market.status, 'dispute_window', '翻转后回到判定公示期等待结算');
+  assert.strictEqual(arbMarket.market.status, 'dispute_window', '翻转后回到判定昭示期等待结算');
   console.log('✓ 仲裁流程：发起 → 门槛 → 投票 → 成立翻转');
 
   // 27. 仲裁无对赌兜底：只有发起人支持、无人否决 → 保证金全额退回

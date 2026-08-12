@@ -1,6 +1,6 @@
 const cloud = require('wx-server-sdk');
 
-// 公示期时长（小时，默认 2；可通过 DISPUTE_WINDOW_HOURS 调整）
+// 昭示期时长（小时，默认 2；可通过 DISPUTE_WINDOW_HOURS 调整）
 const DISPUTE_WINDOW_MS = (Number(process.env.DISPUTE_WINDOW_HOURS) || 2) * 3600 * 1000;
 // 管理员 openid（部署时在云函数环境变量配置 ADMIN_OPENIDS，逗号分隔；空 = 仅 Mock 可进后台）
 const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -8,7 +8,7 @@ const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.tr
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
-// 公示结束时间：窗口时长 + 跨夜顺延（若结束落在北京时间 00:00~10:00，顺延到当天 10:00）
+// 昭示结束时间：窗口时长 + 跨夜顺延（若结束落在北京时间 00:00~10:00，顺延到当天 10:00）
 function computeDisputeEndsAt(nowTs) {
   let end = nowTs + DISPUTE_WINDOW_MS;
   const bj = new Date(end + 8 * 3600 * 1000);
@@ -32,7 +32,7 @@ exports.main = async (event) => {
   } catch (e) {
     return { ok: false, err: '卦题不存在' };
   }
-  // 允许在 open/locked（等待断卦）时录入首次断卦，也允许在公示期内由管理员复核覆盖断卦
+  // 允许在 open/locked（等待断卦）时录入首次断卦，也允许在昭示期内由管理员复核覆盖断卦
   if (market.status !== 'open' && market.status !== 'locked' && market.status !== 'dispute_window') {
     return { ok: false, err: '该卦题已结卦' };
   }

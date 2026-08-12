@@ -29,7 +29,7 @@
       <view class="menu-icon">🔍</view>
       <view class="menu-info">
         <view class="menu-title">待判定 / 复核队列</view>
-        <view class="menu-desc">人工判定到期、自动判定失败与公示期合约</view>
+        <view class="menu-desc">人工判定到期、自动判定失败与昭示期合约</view>
       </view>
       <view class="menu-badge warn" wx:if="{{pendingCount > 0}}">{{pendingCount}}</view>
       <view class="menu-badge urgent" wx:if="{{urgentCount > 0}}">{{urgentCount}} 紧急</view>
@@ -56,5 +56,5 @@
     </view> -->
   </block>
 
-  <view class="footnote">本页面仅管理员可见；数据源与判定操作均有云函数权限校验，修改后请核对公示期与结算状态。</view>
+  <view class="footnote">本页面仅管理员可见；数据源与判定操作均有云函数权限校验，修改后请核对昭示期与结算状态。</view>
 </view>

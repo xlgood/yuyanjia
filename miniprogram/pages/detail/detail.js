@@ -52,7 +52,7 @@ Page({
     this.stopCountdown();
   },
 
-  // 实时倒计时：open=距截止；dispute_window=公示剩余；到期自动刷新进入下一状态
+  // 实时倒计时：open=距截止；dispute_window=昭示剩余；到期自动刷新进入下一状态
   startCountdown() {
     this.stopCountdown();
     this.tickCountdown();
@@ -77,7 +77,7 @@ Page({
       prefix = '距截止';
     } else if (m.status === 'dispute_window' && m.disputeEndsAt) {
       target = m.disputeEndsAt;
-      prefix = '公示剩余';
+      prefix = '昭示剩余';
     } else {
       // 非倒计时状态：清掉显示（避免残留旧文案）
       if (m.countdownText) this.setData({ 'market.countdownText': '' });
@@ -85,7 +85,7 @@ Page({
     }
     const remain = target - now;
     if (remain <= 0) {
-      // 到点：刷新详情，让状态推进（locked → 断卦 / 公示 → 结卦由云函数定时器处理）
+      // 到点：刷新详情，让状态推进（locked → 断卦 / 昭示 → 结卦由云函数定时器处理）
       if (m.countdownText) this.setData({ 'market.countdownText': '' });
       this.loadDetail();
       return;
@@ -181,7 +181,7 @@ Page({
     const doCreate = () => api.createArbitration({ marketId: this.data.id, reason })
       .then(res => {
         wx.hideLoading();
-        wx.showToast({ title: '公断已发起，进入公示期', icon: 'success' });
+        wx.showToast({ title: '公断已发起，进入昭示期', icon: 'success' });
         this.loadDetail();
         this.loadArbitration();
         subscribe.requestArbitration();
@@ -348,7 +348,7 @@ Page({
     api.resolveMarket({ marketId, result })
       .then(() => {
         wx.hideLoading();
-        wx.showToast({ title: '断卦已录入，进入公示期', icon: 'success' });
+        wx.showToast({ title: '断卦已录入，进入昭示期', icon: 'success' });
         this.loadDetail();
         this.loadArbitration();
       })

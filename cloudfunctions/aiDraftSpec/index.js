@@ -2,7 +2,7 @@
 // AI 起草断卦条件（DeepSeek）
 // 输入：卦题标题 + 分类 + 截止时间 + 数据源注册表
 // 输出：resolutionSpec 草稿（AI 只起草规则，最终由运营确认后发布，
-//       断卦执行仍由 resolver 规则引擎 + 公示期兜底，AI 不参与裁决）
+//       断卦执行仍由 resolver 规则引擎 + 昭示期兜底，AI 不参与裁决）
 // =========================================================
 const cloud = require('wx-server-sdk');
 const https = require('https');

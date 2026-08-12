@@ -35,7 +35,7 @@ exports.main = async () => {
     .get();
   const failList = failRes.data;
 
-  // 3) 公示期（已断卦待结卦/可复核）
+  // 3) 昭示期（已断卦待结卦/可复核）
   const disputeRes = await db.collection('markets')
     .where(_.or([
       { status: 'dispute_window' }

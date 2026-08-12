@@ -496,7 +496,7 @@ function settleMarketState(state, marketId) {
     return { ok: false, err: '当前状态不可结卦' };
   }
   if (state.arbitrations.some(a => a.marketId === marketId && a.status === 'pending')) {
-    return { ok: false, err: '该卦题有进行中的公断，请等待公断公示期结束' };
+    return { ok: false, err: '该卦题有进行中的公断，请等待公断昭示期结束' };
   }
   const totalPool = (market.yesPool || 0) + (market.noPool || 0);
   const winningPool = market.result === 'YES' ? market.yesPool || 0 : market.noPool || 0;
@@ -983,7 +983,7 @@ function call(name, data = {}) {
       const reason = reasonCheck.value;
       const market = findMarket(state, marketId);
       if (!market) return { ok: false, err: '卦题不存在' };
-      if (market.status !== 'dispute_window') return { ok: false, err: '当前不在断卦公示期，无法发起公断' };
+      if (market.status !== 'dispute_window') return { ok: false, err: '当前不在断卦昭示期，无法发起公断' };
       const participantCount = Object.keys(state.bets).filter(k => state.bets[k].marketId === marketId).length;
       if (participantCount < 10) return { ok: false, err: `该卦题应卦人数不足 10 人，暂反对社区公断（当前 ${participantCount} 人）` };
 
@@ -1062,7 +1062,7 @@ function call(name, data = {}) {
       const arb = state.arbitrations.find(a => a._id === arbId);
       if (!arb) return { ok: false, err: '公断不存在' };
       if (arb.status !== 'pending') return { ok: false, err: '公断已结束' };
-      if (now() > arb.endsAt) return { ok: false, err: '公断公示期已结束' };
+      if (now() > arb.endsAt) return { ok: false, err: '公断昭示期已结束' };
       if (side !== 'support' && side !== 'oppose') return { ok: false, err: '参数不合法' };
       if (bond < VOTE_BOND_MIN) return { ok: false, err: '附议保证金至少 ' + VOTE_BOND_MIN + ' 爻' };
 
@@ -1598,7 +1598,7 @@ function call(name, data = {}) {
     case 'submitDispute': {
       const market = findMarket(state, data.marketId);
       if (!market) return { ok: false, err: '卦题不存在' };
-      if (market.status !== 'dispute_window') return { ok: false, err: '当前不在异议公示期' };
+      if (market.status !== 'dispute_window') return { ok: false, err: '当前不在异议昭示期' };
       const betId = `${state.user._id}_${market._id}`;
       if (!state.bets[betId]) return { ok: false, err: '您未参与该卦题' };
       const reason = String(data.reason || '').trim();
@@ -1627,7 +1627,7 @@ function call(name, data = {}) {
       market.result = data.result;
       market.evidenceUrl = String(data.evidenceUrl || '');
       market.resolvedAt = now();
-      // 本地演示：公示期缩短为 1 分钟，便于快速验证
+      // 本地演示：昭示期缩短为 1 分钟，便于快速验证
       market.disputeEndsAt = now() + 60 * 1000;
       save(state);
       return { ok: true, market: clone(market) };
@@ -1636,7 +1636,7 @@ function call(name, data = {}) {
     case 'settleMarket': {
       const market = findMarket(state, data.marketId);
       if (!market) return { ok: false, err: '卦题不存在' };
-      if (market.status !== 'dispute_window') return { ok: false, err: '该卦题不在公示期' };
+      if (market.status !== 'dispute_window') return { ok: false, err: '该卦题不在昭示期' };
       if (market.hasDispute && !data.force) {
         return { ok: false, err: '存在申诉，需人工复核后再结卦（可传 force=true 强制结卦）' };
       }

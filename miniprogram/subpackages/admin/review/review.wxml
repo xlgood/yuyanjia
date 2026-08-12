@@ -3,7 +3,7 @@
 
   <view wx:elif="{{list.length === 0}}" class="empty">
     <view class="empty-icon">✅</view>
-    <view>队列已清空：没有待人工判定或公示中的合约</view>
+    <view>队列已清空：没有待人工判定或昭示中的合约</view>
   </view>
 
   <view wx:else>
@@ -35,7 +35,7 @@
       </block>
 
       <block wx:else>
-        <view class="op-tip">公示期结束将自动结卦；以下按钮用于提前结卦或纠正断卦</view>
+        <view class="op-tip">昭示期结束将自动结卦；以下按钮用于提前结卦或纠正断卦</view>
         <view class="op-row">
           <button class="op-btn" data-id="{{item._id}}" bindtap="onForceSettle">按当前断卦结卦</button>
         </view>

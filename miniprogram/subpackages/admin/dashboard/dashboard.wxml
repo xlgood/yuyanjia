@@ -9,7 +9,7 @@
       </view>
       <view class="stat card">
         <view class="num">{{stats.dispute_window}}</view>
-        <view class="label">判定公示中</view>
+        <view class="label">判定昭示中</view>
       </view>
       <view class="stat card">
         <view class="num">{{stats.resolved}}</view>
@@ -73,7 +73,7 @@
         </view>
         <view class="p-item">
           <text class="p-num">{{stats.pending.dispute}}</text>
-          <text class="p-label">公示中</text>
+          <text class="p-label">昭示中</text>
         </view>
         <view class="p-item">
           <text class="p-num">{{stats.pending.disputes}}</text>
