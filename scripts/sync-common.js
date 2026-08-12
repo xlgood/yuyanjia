@@ -24,7 +24,8 @@ const CONSUMERS = [
   'claimRelief',
   'createArbitration',
   'voteArbitration',
-  'createMarket'
+  'createMarket',
+  'updateProfile'
 ];
 
 const verify = process.argv.includes('--verify');

@@ -168,10 +168,14 @@ Page({
 
   decorate(m) {
     const total = (m.yesPool || 0) + (m.noPool || 0);
-    // 兼容存量数据：断卦依据里若有旧词，展示时统一为国潮口径
+    // 兼容存量数据：断卦依据里若有旧词（预言成功/未成功/不成功），展示时统一为国潮口径。
+    // 旧词用 Unicode 转义拼装，避免被全局文案迁移脚本二次改写
+    const P = '\u9884\u8a00';   // 预言
+    const S = '\u6210\u529f';   // 成功
     const sourceOfTruth = String(m.sourceOfTruth || '')
-      .split('未应验').join('未应验')
-      .split('应验').join('应验');
+      .split(P + '\u4e0d' + S).join('未应验')   // 预言不成功
+      .split(P + '\u672a' + S).join('未应验')   // 预言未成功
+      .split(P + S).join('应验');               // 预言成功
     return Object.assign({}, m, {
       sourceOfTruth,
       deadlineText: fmt.formatDeadline(m.deadline),

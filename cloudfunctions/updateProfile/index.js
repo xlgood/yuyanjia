@@ -1,6 +1,7 @@
 const cloud = require('wx-server-sdk');
 
-const AVATARS = ['🔮', '🦉', '🦊', '🐯', '🐼', '🦁', '🐸', '🦄', '🤖', '👑', '⭐', '🌈'];
+// 业务常量单一来源（cloudfunctions/_shared/config.js，npm run sync:common 同步）
+const { AVATARS } = require('./common-config');
 const NICKNAME_MAX_LEN = 12;
 const SENSITIVE_WORDS = [
   '傻逼', '煞笔', '妈逼', '操你', '草你', '你妈', '贱人', '狗逼', '脑残',

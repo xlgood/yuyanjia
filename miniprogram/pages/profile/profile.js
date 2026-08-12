@@ -107,9 +107,11 @@ Page({
   },
 
   onEditAvatar() {
+    // 兼容旧预设头像：不在当前列表时默认落到 ☯，避免提交旧值被云端拒绝
+    const cur = (this.data.user && this.data.user.avatar) || '';
     this.setData({
       avatarVisible: true,
-      selectedAvatar: (this.data.user && this.data.user.avatar) || '🔮'
+      selectedAvatar: AVATARS.includes(cur) ? cur : '☯'
     });
   },
 
@@ -118,8 +120,8 @@ Page({
   },
 
   onSaveAvatar() {
-    const avatar = this.data.selectedAvatar;
-    if (!avatar) return;
+    // 保存前兜底：非法值一律回落到 ☯，杜绝旧预设残留被云端拒绝
+    const avatar = AVATARS.includes(this.data.selectedAvatar) ? this.data.selectedAvatar : '☯';
     api.updateProfile({ avatar })
       .then(user => {
         getApp().setUser(user);
