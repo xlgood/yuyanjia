@@ -42,15 +42,21 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "问卦"
+        "text": "问卦",
+        "iconPath": "images/tabbar/guawen.png",
+        "selectedIconPath": "images/tabbar/guawen-active.png"
       },
       {
         "pagePath": "pages/leaderboard/leaderboard",
-        "text": "天榜"
+        "text": "天榜",
+        "iconPath": "images/tabbar/tianbang.png",
+        "selectedIconPath": "images/tabbar/tianbang-active.png"
       },
       {
         "pagePath": "pages/profile/profile",
-        "text": "我的"
+        "text": "我的",
+        "iconPath": "images/tabbar/mine.png",
+        "selectedIconPath": "images/tabbar/mine-active.png"
       }
     ]
   },
