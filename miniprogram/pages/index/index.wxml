@@ -19,8 +19,8 @@
   <view class="invite-banner card" wx:if="{{!compliance}}" bindtap="goInvite">
     <view class="invite-banner-left">🎁</view>
     <view class="invite-banner-mid">
-      <view class="invite-banner-title">邀友论卦，你得 {{inviterPoints}} 好友得 {{inviteePoints}} 爻</view>
-      <view class="invite-banner-sub">好友首次应卦后，奖励自动到账</view>
+      <view class="invite-banner-title">邀友论卦，你得 {{inviterPoints}} 道友得 {{inviteePoints}} 爻</view>
+      <view class="invite-banner-sub">道友首次应卦后，奖励自动到账</view>
     </view>
     <view class="invite-banner-arrow">›</view>
   </view>

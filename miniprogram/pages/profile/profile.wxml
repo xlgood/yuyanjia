@@ -61,7 +61,7 @@
   <view class="card menu-card">
     <view class="menu-item pk-toggle-row">
       <text class="menu-icon">⚔️</text>
-      <text class="menu-text">允许好友向我发起 对弈</text>
+      <text class="menu-text">允许道友向我发起 对弈</text>
       <switch checked="{{pkOpen}}" bindchange="onTogglePkOpen" color="#c03a2b" />
     </view>
     <view class="menu-item" bindtap="goPk">

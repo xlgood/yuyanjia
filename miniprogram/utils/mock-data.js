@@ -620,12 +620,12 @@ function call(name, data = {}) {
     }
 
     case 'simulateInvite': {
-      // 开发/演示用：模拟一位好友通过分享链接注册并完成首次应卦
+      // 开发/演示用：模拟一位道友通过分享链接注册并完成首次应卦
       state.inviteeSeq = (state.inviteeSeq || 0) + 1;
       const inviteeId = 'MOCK_INVITEE_' + state.inviteeSeq;
       const invitee = {
         _id: inviteeId,
-        nickname: '测试好友' + state.inviteeSeq,
+        nickname: '测试道友' + state.inviteeSeq,
         avatarUrl: '',
         avatar: ['🐼', '🦊', '🐯', '🦁'][(state.inviteeSeq - 1) % 4],
         points: 0,
@@ -885,7 +885,7 @@ function call(name, data = {}) {
     }
 
     case 'simulatePkChallenge': {
-      // 开发/演示用：模拟一位好友发起 对弈 邀弈
+      // 开发/演示用：模拟一位道友发起 对弈 邀弈
       const marketId = String(data.marketId || 'M003');
       const market = findMarket(state, marketId);
       if (!market || market.status !== 'open') return { ok: false, err: '该卦题不可邀弈' };

@@ -17,7 +17,7 @@ function withInvite(path) {
   return `${path}${sep}invite=${encodeURIComponent(id)}`;
 }
 
-// 转发给好友/群
+// 转发给道友/群
 function appShare(title, path, imageUrl) {
   const obj = {
     title,

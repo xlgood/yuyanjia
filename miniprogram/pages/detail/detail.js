@@ -170,8 +170,8 @@ Page({
     const total = (m.yesPool || 0) + (m.noPool || 0);
     // 兼容存量数据：断卦依据里若有旧词，展示时统一为国潮口径
     const sourceOfTruth = String(m.sourceOfTruth || '')
-      .split('预言未成功').join('未应验')
-      .split('预言成功').join('应验');
+      .split('未应验').join('未应验')
+      .split('应验').join('应验');
     return Object.assign({}, m, {
       sourceOfTruth,
       deadlineText: fmt.formatDeadline(m.deadline),
@@ -352,7 +352,7 @@ Page({
             getApp().setUser(result.user);
             wx.showModal({
               title: '邀弈已发出',
-              content: '把 对弈 中心分享给好友，对方接受后双方立场锁定，等待卦题断卦自动结卦。',
+              content: '把 对弈 中心分享给道友，对方接受后双方立场锁定，等待卦题断卦自动结卦。',
               showCancel: false,
               confirmText: '去分享',
               success: () => {
