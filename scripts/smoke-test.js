@@ -17,8 +17,8 @@ async function main() {
   // 1. 登录
   const login = await mock.call('login');
   assert.strictEqual(login.ok, true);
-  assert.strictEqual(login.user.points, 1000, '初始能量应为 1000');
-  console.log('✓ 登录，初始能量 1000');
+  assert.strictEqual(login.user.points, 100, '初始爻应为 100');
+  console.log('✓ 登录，初始爻 100');
 
   // 2. 合约列表
   const markets = await mock.call('getMarkets');
@@ -28,10 +28,10 @@ async function main() {
   assert.ok(catFilter.list.every(m => m.category === '影视娱乐'));
   console.log('✓ 合约列表与分类筛选');
 
-  // 热门标签：总池 ≥ 门槛，按总能量降序
-  const hot = await mock.call('getMarkets', { hot: true, minTotal: 2000 });
+  // 热门标签：总池 ≥ 门槛，按总爻降序
+  const hot = await mock.call('getMarkets', { hot: true, minTotal: 200 });
   assert.ok(hot.list.length >= 1, '热门标签应至少返回 1 条');
-  assert.ok(hot.list.every(m => m.yesPool + m.noPool >= 2000), '热门合约总池应 ≥ 门槛');
+  assert.ok(hot.list.every(m => m.yesPool + m.noPool >= 200), '热门合约总池应 ≥ 门槛');
   for (let i = 1; i < hot.list.length; i++) {
     assert.ok(
       hot.list[i - 1].yesPool + hot.list[i - 1].noPool >= hot.list[i].yesPool + hot.list[i].noPool,
@@ -41,22 +41,22 @@ async function main() {
   console.log('✓ 热门标签：门槛过滤 + 总池降序');
 
   // 3. 表态（下注）
-  const bet = await mock.call('placeBet', { marketId: 'M004', choice: 'NO', amount: 200 });
+  const bet = await mock.call('placeBet', { marketId: 'M004', choice: 'NO', amount: 20 });
   assert.strictEqual(bet.ok, true);
-  assert.strictEqual(bet.user.points, 800, '扣减后应为 800');
-  assert.strictEqual(bet.market.noPool, 1100, 'NO 池应增加 200');
-  assert.strictEqual(bet.market.yesPool + bet.market.noPool, 2100);
-  console.log('✓ 表态：能量扣减、NO 池增加、总池正确');
+  assert.strictEqual(bet.user.points, 80, '扣减后应为 80');
+  assert.strictEqual(bet.market.noPool, 110, 'NO 池应增加 20');
+  assert.strictEqual(bet.market.yesPool + bet.market.noPool, 210);
+  console.log('✓ 表态：爻扣减、NO 池增加、总池正确');
 
   // 4. 重复表态应被拒绝
-  const dup = await mock.call('placeBet', { marketId: 'M004', choice: 'YES', amount: 50 });
+  const dup = await mock.call('placeBet', { marketId: 'M004', choice: 'YES', amount: 10 });
   assert.strictEqual(dup.ok, false);
   console.log('✓ 重复表态被拒绝');
 
   // 5. 详情返回我的表态
   const detail = await mock.call('getMarketDetail', { marketId: 'M004' });
   assert.strictEqual(detail.myBet.choice, 'NO');
-  assert.strictEqual(detail.myBet.amount, 200);
+  assert.strictEqual(detail.myBet.amount, 20);
   console.log('✓ 详情返回我的表态');
 
   // 6. 判定 + 结算（NO 胜出）
@@ -64,15 +64,15 @@ async function main() {
   assert.strictEqual(resolve.ok, true);
   const settle = await mock.call('settleMarket', { marketId: 'M004' });
   assert.strictEqual(settle.ok, true);
-  // 瓜分：200 / 1100 × 2100 = 381.81 → floor 381
-  const expectedPayout = Math.floor((200 / 1100) * 2100);
-  assert.strictEqual(expectedPayout, 381);
+  // 瓜分：20 / 110 × 210 = 38.18 → floor 38（整数向下取整，不产生小数发放）
+  const expectedPayout = Math.floor((20 / 110) * 210);
+  assert.strictEqual(expectedPayout, 38);
   const after = await mock.call('login');
-  assert.strictEqual(after.user.points, 800 + expectedPayout, '结算后能量应为 1181');
+  assert.strictEqual(after.user.points, 80 + expectedPayout, '结算后爻应为 118');
   assert.strictEqual(after.user.streak, 1, '胜出方连胜 +1');
-  // 榜单只累计净收益（不含本金），投入 200，净收益 = 381 - 200 = 181
-  assert.strictEqual(after.user.weekPoints, expectedPayout - 200);
-  console.log('✓ 瓜分池结算：返还', expectedPayout, '（榜单记净收益', expectedPayout - 200, '），连胜 +1');
+  // 榜单只累计净收益（不含本金），投入 20，净收益 = 38 - 20 = 18
+  assert.strictEqual(after.user.weekPoints, expectedPayout - 20);
+  console.log('✓ 瓜分池结算：返还', expectedPayout, '（榜单记净收益', expectedPayout - 20, '），连胜 +1');
 
   // 7. 历史记录
   const records = await mock.call('getMyRecords');
@@ -86,7 +86,7 @@ async function main() {
   console.log('✓ 历史记录状态为「预言成功」');
 
   // 8. 申诉流程：先表态再判定，提交申诉后不能直接结算
-  await mock.call('placeBet', { marketId: 'M005', choice: 'YES', amount: 100 });
+  await mock.call('placeBet', { marketId: 'M005', choice: 'YES', amount: 10 });
   await mock.call('resolveMarket', { marketId: 'M005', result: 'NO' });
   const dispute = await mock.call('submitDispute', { marketId: 'M005', reason: '气象站显示温度为 34.9℃，证据链接见申诉正文' });
   assert.strictEqual(dispute.ok, true);
@@ -96,19 +96,19 @@ async function main() {
   assert.strictEqual(forced.ok, true, '管理员强制结算应成功');
   console.log('✓ 申诉流程：提交申诉 → 自动结算被阻止 → 强制结算通过');
 
-  // 9. 破产补助：把能量打光再领取
-  const left = (await mock.call('login')).user.points; // 1181 - 100(已投) + 0 = 1081
+  // 9. 破产补助：把爻打光再领取
+  const left = (await mock.call('login')).user.points; // 118 - 10(已投) + 0 = 108
   await mock.call('placeBet', { marketId: 'M006', choice: 'NO', amount: left });
   await mock.call('resolveMarket', { marketId: 'M006', result: 'YES' });
   await mock.call('settleMarket', { marketId: 'M006' });
   const broke = await mock.call('login');
-  assert.strictEqual(broke.user.points, 0, '能量应归零');
+  assert.strictEqual(broke.user.points, 0, '爻应归零');
   const relief = await mock.call('claimRelief');
   assert.strictEqual(relief.ok, true);
-  assert.strictEqual(relief.user.points, 500, '补助应发放 500');
+  assert.strictEqual(relief.user.points, 50, '补助应发放 50');
   const reliefAgain = await mock.call('claimRelief');
   assert.strictEqual(reliefAgain.ok, false, '冷却期内不可重复领取');
-  console.log('✓ 破产补助：归零可领 500，24 小时冷却生效');
+  console.log('✓ 破产补助：归零可领 50，24 小时冷却生效');
 
   // 10. 榜单与昵称
   const lb = await mock.call('getLeaderboard', { type: 'total' });
@@ -243,10 +243,10 @@ async function main() {
   // 19. 每日签到
   const ci1 = await mock.call('checkIn');
   assert.strictEqual(ci1.ok, true, '首次签到应成功');
-  assert.ok(ci1.checkIn.granted >= 50, '签到应发放能量');
+  assert.ok(ci1.checkIn.granted >= 5, '签到应发放爻');
   const ci2 = await mock.call('checkIn');
   assert.strictEqual(ci2.ok, false, '同日重复签到应被拒绝');
-  console.log('✓ 每日签到：发放能量 + 防重复');
+  console.log('✓ 每日签到：发放爻 + 防重复');
 
   // 20. 广告任务（每日限次）
   let adPoints = 0;
@@ -255,7 +255,7 @@ async function main() {
     assert.strictEqual(r.ok, true);
     adPoints += r.adTask.granted;
   }
-  assert.strictEqual(adPoints, 300, '3 次应共发放 300');
+  assert.strictEqual(adPoints, 30, '3 次应共发放 30');
   const ad4 = await mock.call('claimAdTask');
   assert.strictEqual(ad4.ok, false, '第 4 次应被拒绝');
   console.log('✓ 广告任务：每日限次发放');
@@ -273,7 +273,7 @@ async function main() {
   const before = await mock.call('inviteStats');
   const sim = await mock.call('simulateInvite');
   assert.strictEqual(sim.ok, true);
-  assert.strictEqual(sim.granted, 50, '邀请人应获得 50 能量');
+  assert.strictEqual(sim.granted, 5, '邀请人应获得 5 爻');
   assert.strictEqual(sim.stats.totalInvites, before.stats.totalInvites + 1, '累计邀请应 +1');
   assert.strictEqual(sim.stats.rewardedCount, before.stats.rewardedCount + 1, '已得奖励应 +1');
   assert.strictEqual(sim.list[0].inviterRewarded, true);
@@ -287,16 +287,16 @@ async function main() {
   const invitedLogin = await mock.call('login', { invite: 'u2' });
   assert.strictEqual(invitedLogin.ok, true);
   assert.strictEqual(invitedLogin.user.invitedBy, 'u2', '应记录邀请归属');
-  assert.strictEqual(invitedLogin.user.points, 1100, '被邀请人应获得 1000 初始 + 100 首开加成');
-  const invitedBet = await mock.call('placeBet', { marketId: 'M007', choice: 'YES', amount: 100 });
+  assert.strictEqual(invitedLogin.user.points, 110, '被邀请人应获得 100 初始 + 10 首开加成');
+  const invitedBet = await mock.call('placeBet', { marketId: 'M007', choice: 'YES', amount: 10 });
   assert.strictEqual(invitedBet.ok, true);
-  assert.strictEqual(invitedBet.inviteRewardGranted, 50, '邀请人应获得 50 能量');
+  assert.strictEqual(invitedBet.inviteRewardGranted, 5, '邀请人应获得 5 爻');
   console.log('✓ 邀请归属：首开加成 + 首次表态触发奖励');
 
   // 24. PK：模拟好友发起挑战 → 接受应战 → 判定结算 → 榜单
   const simPk = await mock.call('simulatePkChallenge', {
     marketId: 'M008',
-    challenger: { nickname: 'PK 挑战者', avatar: '🦁', choice: 'YES', amount: 100 }
+    challenger: { nickname: 'PK 挑战者', avatar: '🦁', choice: 'YES', amount: 10 }
   });
   assert.strictEqual(simPk.ok, true);
   const inbox = await mock.call('myPks');
@@ -316,16 +316,16 @@ async function main() {
   assert.ok(pkLb.list.length >= 1, 'PK 榜单应至少 1 人');
   console.log('✓ PK 流程：发起 → 应战 → 判定结算 → 榜单');
 
-  // 25. PK：拒绝挑战 → 挑战者能量退回
+  // 25. PK：拒绝挑战 → 挑战者爻退回
   const pointsBefore = (await mock.call('login')).user.points;
-  const newPk = await mock.call('createPk', { marketId: 'M001', choice: 'YES', amount: 100 });
+  const newPk = await mock.call('createPk', { marketId: 'M001', choice: 'YES', amount: 10 });
   assert.strictEqual(newPk.ok, true);
   const decline = await mock.call('respondPk', { pkId: newPk.pk._id, accept: false });
   assert.strictEqual(decline.ok, true);
   assert.strictEqual(decline.status, 'declined');
   const afterDecline = await mock.call('login');
-  assert.strictEqual(afterDecline.user.points, pointsBefore, '拒绝后挑战者能量应退回');
-  console.log('✓ PK 拒绝：能量退回');
+  assert.strictEqual(afterDecline.user.points, pointsBefore, '拒绝后挑战者爻应退回');
+  console.log('✓ PK 拒绝：爻退回');
 
   // 26. 仲裁：发起（参与人数门槛）→ 投票 → 结算 → 翻案/维持
   await mock.call('resolveMarket', { marketId: 'M001', result: 'YES' });
@@ -347,8 +347,8 @@ async function main() {
   await mock.call('resolveMarket', { marketId: 'M002', result: 'NO' });
   const tooFew = await mock.call('createArbitration', { marketId: 'M002', reason: '参与人数不足但理由仍然有效并且足够长' });
   assert.strictEqual(tooFew.ok, false, '参与人数不足应拒绝仲裁');
-  // 投票门槛：保证金不足 100 拒绝
-  const voteBad = await mock.call('voteArbitration', { arbitrationId: arbId, side: 'oppose', bond: 50 });
+  // 投票门槛：保证金不足 10 拒绝
+  const voteBad = await mock.call('voteArbitration', { arbitrationId: arbId, side: 'oppose', bond: 5 });
   assert.strictEqual(voteBad.ok, false, '保证金不足应拒绝');
   // 注入社区投票：2 支持 + 1 否决（发起人 1 支持 → 总 3 支持 1 否决）
   const seedVotes = await mock.call('mockSeedVotes', { arbitrationId: arbId, support: 2, oppose: 1 });

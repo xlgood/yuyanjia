@@ -4,6 +4,9 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+// 业务常量单一来源（cloudfunctions/_shared/config.js，npm run sync:common 同步）
+const { MIN_BET_AMOUNT } = require('./common-config');
+
 const PK_EXPIRE_MS = 24 * 3600 * 1000; // 24 小时未应战自动失效
 
 exports.main = async (event) => {
@@ -15,8 +18,8 @@ exports.main = async (event) => {
   if (!marketId || (choice !== 'YES' && choice !== 'NO')) {
     return { ok: false, err: '参数不合法' };
   }
-  if (!Number.isInteger(amount) || amount <= 0 || amount > 1000000) {
-    return { ok: false, err: '能量值不合法' };
+  if (!Number.isInteger(amount) || amount < MIN_BET_AMOUNT || amount > 100000) {
+    return { ok: false, err: `发起 PK 至少投入 ${MIN_BET_AMOUNT} 爻` };
   }
 
   try {
@@ -36,7 +39,7 @@ exports.main = async (event) => {
       const userRef = t.collection('users').doc(OPENID);
       const user = (await userRef.get()).data;
       if (!user) throw new Error('用户不存在，请稍后重试');
-      if (user.points < amount) throw new Error('能量不足');
+      if (user.points < amount) throw new Error('爻不足');
 
       // 同一事件同一用户只能有一条表态/PK
       const betId = `${OPENID}_${marketId}`;

@@ -112,9 +112,9 @@ exports.main = async (event) => {
         throw new Error('仲裁参与资格：需已结算表态 ≥ 5 次或已结算 PK ≥ 3 场');
       }
 
-      // 保证金：锁定当前能量 100%
+      // 保证金：锁定当前爻 100%
       const bond = user.points;
-      if (bond < VOTE_BOND_MIN) throw new Error(`能量不足，发起仲裁需要至少 ${VOTE_BOND_MIN} 能量`);
+      if (bond < VOTE_BOND_MIN) throw new Error(`爻不足，发起仲裁需要至少 ${VOTE_BOND_MIN} 爻`);
 
       // 同一事件已存在进行中的仲裁
       if (activeArbRes.data.length) throw new Error('该事件已有进行中的仲裁');

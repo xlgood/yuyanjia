@@ -33,7 +33,7 @@ exports.main = async (event) => {
       if (!user) throw new Error('用户不存在');
 
       if (!accept) {
-        // 拒绝：退回挑战者能量
+        // 拒绝：退回挑战者爻
         await pkRef.update({ data: { status: 'declined', updatedAt: db.serverDate() } });
         await t.collection('users').doc(pk.challengerId).update({
           data: { points: _.inc(pk.challenger.amount), updatedAt: db.serverDate() }
@@ -54,7 +54,7 @@ exports.main = async (event) => {
       // 接受：锁定反向立场
       const oppChoice = pk.challenger.choice === 'YES' ? 'NO' : 'YES';
       const amount = pk.challenger.amount;
-      if (user.points < amount) throw new Error('能量不足，无法应战');
+      if (user.points < amount) throw new Error('爻不足，无法应战');
 
       const betId = `${OPENID}_${pk.marketId}`;
       let existing = null;

@@ -79,7 +79,7 @@ exports.main = async (event) => {
 
   try {
     const pks = db.collection('pks');
-    // 惰性清理：过期的待应战挑战自动失效并退回挑战者能量
+    // 惰性清理：过期的待应战挑战自动失效并退回挑战者爻
     await sweepExpiredPks(CLEANUP_BATCH);
 
     const inboxRes = await pks

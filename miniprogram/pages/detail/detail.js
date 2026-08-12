@@ -1,5 +1,5 @@
 const api = require('../../utils/api');
-const { AMOUNT_PRESETS, MARKET_STATUS } = require('../../utils/constants');
+const { AMOUNT_PRESETS, MARKET_STATUS, MIN_BET_AMOUNT } = require('../../utils/constants');
 const fmt = require('../../utils/format');
 const config = require('../../utils/config');
 const share = require('../../utils/share');
@@ -20,8 +20,9 @@ Page({
     compliance: config.APP_MODE === 'compliance',
     isMock: config.USE_MOCK,
     presets: AMOUNT_PRESETS,
+    minBet: MIN_BET_AMOUNT,
     selectedChoice: '',
-    selectedAmount: 100,
+    selectedAmount: MIN_BET_AMOUNT,
     customAmount: '',
     userPoints: 0,
     submitting: false,
@@ -97,7 +98,7 @@ Page({
   },
 
   onCreateArbitration() {
-    // 先弹确认面板：明确告知保证金 = 当前 100% 能量
+    // 先弹确认面板：明确告知保证金 = 当前 100% 爻
     this.setData({
       arbConfirmVisible: true,
       arbBond: this.data.userPoints || 0
@@ -183,7 +184,7 @@ Page({
   resetSelection() {
     this.setData({
       selectedChoice: '',
-      selectedAmount: 100,
+      selectedAmount: MIN_BET_AMOUNT,
       customAmount: ''
     });
   },
@@ -224,8 +225,8 @@ Page({
       return;
     }
     const amount = Number(selectedAmount);
-    if (!amount || amount <= 0) {
-      wx.showToast({ title: '请输入有效的能量值', icon: 'none' });
+    if (!amount || amount < MIN_BET_AMOUNT) {
+      wx.showToast({ title: `每次表态至少投入 ${MIN_BET_AMOUNT} 爻`, icon: 'none' });
       return;
     }
     const app = getApp();
@@ -330,13 +331,13 @@ Page({
       return;
     }
     const amount = customAmount ? Number(customAmount) : selectedAmount;
-    if (!amount || amount <= 0) {
-      wx.showToast({ title: '请先选择投入的能量值', icon: 'none' });
+    if (!amount || amount < MIN_BET_AMOUNT) {
+      wx.showToast({ title: `发起 PK 至少投入 ${MIN_BET_AMOUNT} 爻`, icon: 'none' });
       return;
     }
     wx.showModal({
       title: '发起 PK 挑战',
-      content: `以「${selectedChoice === 'YES' ? '看好' : '不看好'}」立场发起挑战，投入 ${amount} 能量？对方应战后将锁定反向立场，能量先入预言池，判定后按瓜分规则结算。`,
+      content: `以「${selectedChoice === 'YES' ? '看好' : '不看好'}」立场发起挑战，投入 ${amount} 爻？对方应战后将锁定反向立场，爻先入预言池，判定后按瓜分规则结算。`,
       confirmText: '发起',
       success: res => {
         if (!res.confirm) return;

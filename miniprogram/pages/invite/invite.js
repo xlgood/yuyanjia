@@ -46,7 +46,7 @@ Page({
       .then(res => {
         this.setData({ stats: res.stats, list: res.list });
         if (res.granted) {
-          wx.showToast({ title: `模拟成功，邀请人 +${res.granted} 能量`, icon: 'success' });
+          wx.showToast({ title: `模拟成功，邀请人 +${res.granted} 爻`, icon: 'success' });
         } else {
           wx.showToast({ title: '已达每日上限，未发放奖励', icon: 'none' });
         }
@@ -59,7 +59,7 @@ Page({
   onShowRules() {
     wx.showModal({
       title: '邀请规则',
-      content: `① 分享邀请链接给好友，好友首次打开并完成一次表态，您可获得 ${this.data.inviterPoints} 能量；\n② 好友通过您的链接首次注册，额外获得 ${this.data.inviteePoints} 新手能量；\n③ 您每日最多 ${this.data.dailyCap} 次有效邀请；\n④ 能量为平台虚拟积分，仅用于参与预言与兑换虚拟荣誉。`,
+      content: `① 分享邀请链接给好友，好友首次打开并完成一次表态，您可获得 ${this.data.inviterPoints} 爻；\n② 好友通过您的链接首次注册，额外获得 ${this.data.inviteePoints} 新手爻；\n③ 您每日最多 ${this.data.dailyCap} 次有效邀请；\n④ 爻为平台虚拟积分，仅用于参与预言与兑换虚拟荣誉。`,
       showCancel: false,
       confirmText: '知道了'
     });
@@ -67,7 +67,7 @@ Page({
 
   onShareAppMessage() {
     return share.appShare(
-      `🔮 我在这玩「预言大师」，一起来预测热点，双方各得能量！`,
+      `🔮 我在这玩「预言大师」，一起来预测热点，双方各得爻！`,
       '/pages/index/index'
     );
   },

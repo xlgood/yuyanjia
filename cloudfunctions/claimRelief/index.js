@@ -13,7 +13,7 @@ exports.main = async () => {
   const ref = users.doc(OPENID);
 
   const nowTs = Date.now();
-  // 原子抢占：能量 ≤ 0 且距上次领取超过冷却才发放，并发只能命中一次
+  // 原子抢占：爻 ≤ 0 且距上次领取超过冷却才发放，并发只能命中一次
   const claim = await users
     .where({
       _id: OPENID,
@@ -28,14 +28,14 @@ exports.main = async () => {
     return { ok: true, user };
   }
 
-  // 未命中：区分「能量充足」还是「冷却中」，给出准确提示
+  // 未命中：区分「爻充足」还是「冷却中」，给出准确提示
   let user;
   try {
     user = (await ref.get()).data;
   } catch (e) {
     return { ok: false, err: '用户不存在' };
   }
-  if (user.points > 0) return { ok: false, err: '能量充足，无需补助' };
+  if (user.points > 0) return { ok: false, err: '爻充足，无需补助' };
   const left = COOLDOWN_MS - (nowTs - (user.lastReliefAt || 0));
   const h = Math.floor(left / 3600000);
   const m = Math.floor((left % 3600000) / 60000);

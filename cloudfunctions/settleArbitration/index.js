@@ -154,7 +154,7 @@ async function settleArbitrationId(arbId) {
     market = (await marketRef.get()).data;
   } catch (e) { /* 市场可能已被删除 */ }
   // 无对赌兜底：若某一方 0 票（如无人投否决），没有形成有效对赌，
-  // 所有投票人保证金原路全额退回，平台不产生也不吞没能量
+  // 所有投票人保证金原路全额退回，平台不产生也不吞没爻
   const noBet = winners.length === 0 || losers.length === 0;
   if (noBet) {
     for (const v of votes) {

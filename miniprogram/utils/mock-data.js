@@ -10,6 +10,8 @@ const {
   HONORS,
   CHECKIN_BASE_POINTS, CHECKIN_STREAK_BONUS, CHECKIN_STREAK_CAP,
   AD_TASK_POINTS, AD_TASK_LIMIT,
+  MIN_BET_AMOUNT,
+  VOTE_BOND_MIN,
   INVITE_INVITER_POINTS, INVITE_INVITEE_POINTS, INVITE_DAILY_CAP
 } = require('./constants');
 
@@ -48,8 +50,8 @@ function seedState() {
       title: '截至本周日 24:00，电影《星际远征》在“猫眼专业版”上的累计综合票房是否突破 5.00 亿元？',
       deadline: now() + 3 * DAY,
       sourceOfTruth: '以猫眼专业版 App 官方数据为准，精确到个位数。最终票房 ≥ 5.00 亿则“预言成功”，否则“预言未成功”。',
-      yesPool: 1200,
-      noPool: 800,
+      yesPool: 120,
+      noPool: 80,
       status: 'open',
       result: null,
       hasDispute: false,
@@ -61,8 +63,8 @@ function seedState() {
       title: '在下周二下午的品牌新品发布会上，官方正式亮相的下一代旗舰手机起步售价是否低于 5999 元？',
       deadline: now() + 4 * DAY + 6 * HOUR,
       sourceOfTruth: '以品牌官方直播、官网售价页为准。起步价 < 5999 元则“预言成功”，否则“预言未成功”。',
-      yesPool: 500,
-      noPool: 1500,
+      yesPool: 50,
+      noPool: 150,
       status: 'open',
       result: null,
       hasDispute: false,
@@ -74,8 +76,8 @@ function seedState() {
       title: '在今晚 19:00 的 LPL 职业联赛第一局中，A 队能否在开局 15 分钟内击杀第一条大龙？',
       deadline: now() + 5 * HOUR,
       sourceOfTruth: '以 LPL 官方赛事数据面板为准。15 分钟内击杀则“预言成功”，否则“预言未成功”。',
-      yesPool: 300,
-      noPool: 1200,
+      yesPool: 30,
+      noPool: 120,
       status: 'open',
       result: null,
       hasDispute: false,
@@ -87,8 +89,8 @@ function seedState() {
       title: '在明早进行的 NBA 焦点战中，球星詹姆斯单场最终个人得分是否大于 25.5 分？',
       deadline: now() + 18 * HOUR,
       sourceOfTruth: '以 NBA 官方赛后数据统计为准。得分 ≥ 26 分则“预言成功”，否则“预言未成功”。',
-      yesPool: 1000,
-      noPool: 900,
+      yesPool: 100,
+      noPool: 90,
       status: 'open',
       result: null,
       hasDispute: false,
@@ -100,8 +102,8 @@ function seedState() {
       title: '根据中央气象局官方实况，明天 14:00 北京市南郊观象台整点实时气温是否达到或超过 35.0 摄氏度？',
       deadline: now() + 24 * HOUR,
       sourceOfTruth: '以中国气象网官方实况数据为准。温度 ≥ 35.0℃ 则“预言成功”，否则“预言未成功”。',
-      yesPool: 1400,
-      noPool: 600,
+      yesPool: 140,
+      noPool: 60,
       status: 'open',
       result: null,
       hasDispute: false,
@@ -113,8 +115,8 @@ function seedState() {
       title: '本周五开播的年度大剧《长安十二时辰外传》在豆瓣的官方开分是否 ≥ 8.0 分？',
       deadline: now() + 2 * DAY,
       sourceOfTruth: '以豆瓣官方评分页为准（开分后 24 小时内的首个稳定分值）。≥ 8.0 分则“预言成功”，否则“预言未成功”。',
-      yesPool: 2200,
-      noPool: 800,
+      yesPool: 220,
+      noPool: 80,
       status: 'open',
       result: null,
       hasDispute: false,
@@ -126,8 +128,8 @@ function seedState() {
       title: '下周旗舰发布会官方是否宣布搭载自研端侧 AI 大模型（以发布会 PPT 画面为准）？',
       deadline: now() + 5 * DAY,
       sourceOfTruth: '以品牌官方直播发布会 PPT 画面 / 官网参数页为准。出现“自研端侧 AI 大模型”字样则“预言成功”，否则“预言未成功”。',
-      yesPool: 3600,
-      noPool: 400,
+      yesPool: 360,
+      noPool: 40,
       status: 'open',
       result: null,
       hasDispute: false,
@@ -139,8 +141,8 @@ function seedState() {
       title: '本周末中超焦点战，上海海港主场对阵北京国安，主队是否获胜？',
       deadline: now() + 2 * DAY + 12 * HOUR,
       sourceOfTruth: '以中超联赛官方赛后数据面板为准。常规时间主队获胜则“预言成功”，否则“预言未成功”。',
-      yesPool: 1800,
-      noPool: 1200,
+      yesPool: 180,
+      noPool: 120,
       status: 'open',
       result: null,
       hasDispute: false,
@@ -172,8 +174,8 @@ function seedState() {
       deadline: now() - DAY,
       createdAt: now() - 2 * DAY,
       sourceOfTruth: '以中国气象网官方实况数据为准，≥ 35.0℃ 则“预言成功”，否则“预言未成功”。',
-      yesPool: 900,
-      noPool: 1100,
+      yesPool: 90,
+      noPool: 110,
       status: 'resolved',
       result: 'NO',
       hasDispute: false,
@@ -196,8 +198,8 @@ function seedState() {
       deadline: now() - DAY,
       createdAt: now() - 3 * DAY,
       sourceOfTruth: '以中国人民银行官网当日中间价为准，< 7.10 则“预言成功”，否则“预言未成功”。',
-      yesPool: 1200,
-      noPool: 800,
+      yesPool: 120,
+      noPool: 80,
       status: 'resolved',
       result: 'YES',
       hasDispute: false,
@@ -384,7 +386,7 @@ function ensureMockUser(state, id, nickname) {
     _id: id,
     nickname: nickname || '虚拟用户',
     avatar: '🔮',
-    points: 1000,
+    points: 100,
     streak: 0,
     bestStreak: 0,
     weekPoints: 0,
@@ -414,7 +416,7 @@ function buildInviteStats(state) {
   };
 }
 
-// 惰性清理：过期的待应战 PK 退回挑战者能量
+// 惰性清理：过期的待应战 PK 退回挑战者爻
 function expirePks(state) {
   const nowTs = now();
   let changed = false;
@@ -679,8 +681,8 @@ function call(name, data = {}) {
       if (!market || market.status !== 'open') return { ok: false, err: '该预言已截止或正在结算' };
       if (market.needsManualReview) return { ok: false, err: '该预言已停止接收表态' };
       if (choice !== 'YES' && choice !== 'NO') return { ok: false, err: '参数不合法' };
-      if (!Number.isInteger(amount) || amount <= 0) return { ok: false, err: '能量值不合法' };
-      if (state.user.points < amount) return { ok: false, err: '能量不足' };
+      if (!Number.isInteger(amount) || amount < MIN_BET_AMOUNT) return { ok: false, err: `至少投入 ${MIN_BET_AMOUNT} 爻` };
+      if (state.user.points < amount) return { ok: false, err: '爻不足' };
       const betKey = `${state.user._id}_${marketId}`;
       if (state.bets[betKey]) return { ok: false, err: '您已参与过该预言，不能重复发起 PK' };
       if (state.pks.some(p => p.marketId === marketId && p.challengerId === state.user._id && p.status === 'pending')) {
@@ -758,7 +760,7 @@ function call(name, data = {}) {
 
       const oppChoice = pk.challenger.choice === 'YES' ? 'NO' : 'YES';
       const amount = pk.challenger.amount;
-      if (state.user.points < amount) return { ok: false, err: '能量不足，无法应战' };
+      if (state.user.points < amount) return { ok: false, err: '爻不足，无法应战' };
       const betKey = `${state.user._id}_${pk.marketId}`;
       if (state.bets[betKey]) return { ok: false, err: '您已参与过该预言，不能应战' };
 
@@ -993,7 +995,7 @@ function call(name, data = {}) {
       }
 
       const bond = state.user.points;
-      if (bond < 100) return { ok: false, err: `能量不足，发起仲裁需要至少 100 能量` };
+      if (bond < VOTE_BOND_MIN) return { ok: false, err: `爻不足，发起仲裁需要至少 ${VOTE_BOND_MIN} 爻` };
       if (state.arbitrations.some(a => a.marketId === marketId && a.status === 'pending')) {
         return { ok: false, err: '该事件已有进行中的仲裁' };
       }
@@ -1062,7 +1064,7 @@ function call(name, data = {}) {
       if (arb.status !== 'pending') return { ok: false, err: '仲裁已结束' };
       if (now() > arb.endsAt) return { ok: false, err: '仲裁公示期已结束' };
       if (side !== 'support' && side !== 'oppose') return { ok: false, err: '参数不合法' };
-      if (bond < 100) return { ok: false, err: '投票保证金至少 100 能量' };
+      if (bond < VOTE_BOND_MIN) return { ok: false, err: '投票保证金至少 ' + VOTE_BOND_MIN + ' 爻' };
 
       const settledBets = Object.keys(state.bets).filter(k => state.bets[k].openid === state.user._id && state.bets[k].status === 'won').length;
       const settledPks = state.pks.filter(p => p.status === 'settled' && p.participantIds && p.participantIds.includes(state.user._id)).length;
@@ -1077,7 +1079,7 @@ function call(name, data = {}) {
           return { ok: false, err: '您同时只能参与 1 个仲裁' };
         }
       }
-      if (state.user.points < bond) return { ok: false, err: '能量不足' };
+      if (state.user.points < bond) return { ok: false, err: '爻不足' };
 
       state.arbitrationVotes[voteKey] = {
         arbitrationId: arbId, marketId: arb.marketId, openid: state.user._id, side, bond, isChallenger: false, createdAt: now()
@@ -1174,7 +1176,7 @@ function call(name, data = {}) {
           marketId,
           openid: uid,
           choice: i % 2 === 0 ? 'YES' : 'NO',
-          amount: 50,
+          amount: 10,
           marketTitle: market.title,
           marketCategory: market.category,
           marketDeadline: market.deadline,
@@ -1192,7 +1194,7 @@ function call(name, data = {}) {
           marketId: 'SEED' + i,
           openid: state.user._id,
           choice: 'YES',
-          amount: 50,
+          amount: 10,
           marketTitle: '历史结算示例 ' + i,
           marketCategory: '科技数码',
           marketDeadline: 0,
@@ -1219,9 +1221,9 @@ function call(name, data = {}) {
         if (state.arbitrationVotes[key]) continue;
         ensureMockUser(state, uid, '虚拟支持者 ' + i);
         state.arbitrationVotes[key] = {
-          arbitrationId: arbId, marketId: arb.marketId, openid: uid, side: 'support', bond: 500, isChallenger: false, createdAt: now()
+          arbitrationId: arbId, marketId: arb.marketId, openid: uid, side: 'support', bond: 50, isChallenger: false, createdAt: now()
         };
-        arb.supportPool += 500;
+        arb.supportPool += 50;
         arb.supportVotes += 1;
       }
       for (let i = 1; i <= opposeN; i++) {
@@ -1230,9 +1232,9 @@ function call(name, data = {}) {
         if (state.arbitrationVotes[key]) continue;
         ensureMockUser(state, uid, '虚拟否决者 ' + i);
         state.arbitrationVotes[key] = {
-          arbitrationId: arbId, marketId: arb.marketId, openid: uid, side: 'oppose', bond: 500, isChallenger: false, createdAt: now()
+          arbitrationId: arbId, marketId: arb.marketId, openid: uid, side: 'oppose', bond: 50, isChallenger: false, createdAt: now()
         };
-        arb.opposePool += 500;
+        arb.opposePool += 50;
         arb.opposeVotes += 1;
       }
       save(state);
@@ -1246,8 +1248,8 @@ function call(name, data = {}) {
       if (market.needsManualReview) return { ok: false, err: '该预言已停止接收表态' };
       if (!data.choice || (data.choice !== 'YES' && data.choice !== 'NO')) return { ok: false, err: '参数不合法' };
       const amount = Number(data.amount);
-      if (!Number.isInteger(amount) || amount <= 0) return { ok: false, err: '能量值不合法' };
-      if (state.user.points < amount) return { ok: false, err: '能量不足' };
+      if (!Number.isInteger(amount) || amount < MIN_BET_AMOUNT) return { ok: false, err: `至少投入 ${MIN_BET_AMOUNT} 爻` };
+      if (state.user.points < amount) return { ok: false, err: '爻不足' };
 
       const betId = `${state.user._id}_${market._id}`;
       if (state.bets[betId]) return { ok: false, err: '您已参与过该预言' };
@@ -1579,7 +1581,7 @@ function call(name, data = {}) {
     }
 
     case 'claimRelief': {
-      if (state.user.points > 0) return { ok: false, err: '能量充足，无需补助' };
+      if (state.user.points > 0) return { ok: false, err: '爻充足，无需补助' };
       const nowTs = now();
       if (state.user.lastReliefAt && nowTs - state.user.lastReliefAt < config.RELIEF_COOLDOWN_MS) {
         const left = config.RELIEF_COOLDOWN_MS - (nowTs - state.user.lastReliefAt);
@@ -1659,7 +1661,7 @@ function call(name, data = {}) {
             operator: '>=',
             value: 35,
             unit: '℃',
-            humanReadable: `根据「${src.name}」官方实况，判定时点整点气温 ≥ 35.0℃ 则“预言成功”，否则“预言未成功”；数据缺失时能量原路退回。（Mock 示例草稿，正式环境由 DeepSeek 生成）`
+            humanReadable: `根据「${src.name}」官方实况，判定时点整点气温 ≥ 35.0℃ 则“预言成功”，否则“预言未成功”；数据缺失时爻原路退回。（Mock 示例草稿，正式环境由 DeepSeek 生成）`
           }
         };
       }
@@ -1668,7 +1670,7 @@ function call(name, data = {}) {
         spec: {
           mode: 'manual',
           provider: '官方公告',
-          humanReadable: '以品牌官方公告/官微为准，出现明确官方声明则“预言成功”，否则“预言未成功”；数据缺失时能量原路退回。（Mock 示例草稿，正式环境由 DeepSeek 生成）'
+          humanReadable: '以品牌官方公告/官微为准，出现明确官方声明则“预言成功”，否则“预言未成功”；数据缺失时爻原路退回。（Mock 示例草稿，正式环境由 DeepSeek 生成）'
         }
       };
     }

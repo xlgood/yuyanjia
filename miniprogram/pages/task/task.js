@@ -56,7 +56,7 @@ Page({
     api.checkIn()
       .then(res => {
         getApp().setUser(res.user);
-        wx.showToast({ title: `签到成功 +${res.checkIn.granted} 能量`, icon: 'success' });
+        wx.showToast({ title: `签到成功 +${res.checkIn.granted} 爻`, icon: 'success' });
         this.refresh();
       })
       .catch(err => wx.showToast({ title: err.message || '签到失败', icon: 'none' }))
@@ -87,14 +87,14 @@ Page({
       .then(res => {
         if (!res) return;
         wx.hideLoading();
-        // 已接入服务端奖励回调：能量由回调原子发放，这里只提示到账中
+        // 已接入服务端奖励回调：爻由回调原子发放，这里只提示到账中
         if (res.pending) {
-          wx.showToast({ title: '广告已确认，能量稍后到账', icon: 'none' });
+          wx.showToast({ title: '广告已确认，爻稍后到账', icon: 'none' });
           this.refresh();
           return;
         }
         getApp().setUser(res.user);
-        wx.showToast({ title: `+${res.adTask.granted} 能量`, icon: 'success' });
+        wx.showToast({ title: `+${res.adTask.granted} 爻`, icon: 'success' });
         this.refresh();
       })
       .catch(err => {

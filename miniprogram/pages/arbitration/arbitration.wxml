@@ -21,7 +21,7 @@
         <view class="challenger-avatar">{{arbitration.challenger.avatar || '🔮'}}</view>
         <view class="challenger-info">
           <view class="challenger-name">{{arbitration.challenger.nickname}}</view>
-          <view class="challenger-bond">保证金 {{arbitration.challenger.bond}} 能量</view>
+          <view class="challenger-bond">保证金 {{arbitration.challenger.bond}} 爻</view>
         </view>
       </view>
       <view class="reason-box" wx:if="{{arbitration.reason}}">
@@ -48,7 +48,7 @@
       <view class="bond-row">
         <text class="bond-label">保证金</text>
         <input class="bond-input" type="number" value="{{bond}}" bindinput="onBondInput" />
-        <text class="bond-unit">能量（≥ 100）</text>
+        <text class="bond-unit">爻（≥ 100）</text>
       </view>
       <view class="vote-btns">
         <button class="vote-btn oppose" data-side="oppose" bindtap="onVote" disabled="{{!eligible || submitting}}">👎 否决仲裁</button>
@@ -60,12 +60,12 @@
 
     <view class="card voted-card" wx:if="{{myVote}}">
       <view class="sec-label">我的投票</view>
-      <view class="voted-line">已投：{{myVote.side === 'support' ? '👍 支持仲裁' : '👎 否决仲裁'}}（保证金 {{myVote.bond}} 能量）</view>
+      <view class="voted-line">已投：{{myVote.side === 'support' ? '👍 支持仲裁' : '👎 否决仲裁'}}（保证金 {{myVote.bond}} 爻）</view>
       <view class="voted-line" wx:if="{{arbitration.status === 'settled'}}">
         {{arbitration.winner === myVote.side ? '🎉 你投对了，保证金和瓜分奖励已发放' : '本次投错，保证金已归对方'}}
       </view>
     </view>
 
-    <view class="footnote">仲裁保证金在公示期内锁定，结束后按胜负分配，平台不收取任何费用。能量为虚拟积分，不可兑换现金或实物。</view>
+    <view class="footnote">仲裁保证金在公示期内锁定，结束后按胜负分配，平台不收取任何费用。爻为虚拟积分，不可兑换现金或实物。</view>
   </block>
 </view>

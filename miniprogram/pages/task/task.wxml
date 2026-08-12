@@ -13,7 +13,7 @@
       </view>
     </view>
     <view class="task-reward" wx:if="{{!checkIn.checked}}">
-      今日签到可得 <text class="reward-num">{{checkIn.todayReward}}</text> 能量（连续签到奖励递增，第 7 天封顶）
+      今日签到可得 <text class="reward-num">{{checkIn.todayReward}}</text> 爻（连续签到奖励递增，第 7 天封顶）
     </view>
     <view class="task-reward done" wx:else>今日已签到，明天再来！</view>
     <button class="task-btn {{checkIn.checked ? 'done' : ''}}" bindtap="onCheckIn" disabled="{{checkIn.checked || claiming}}">
@@ -22,16 +22,16 @@
   </view>
 
   <view class="card task-card">
-    <view class="task-head">📺 看视频领能量</view>
-    <view class="task-info">今日已领 {{adTask.count}} / {{adTask.limit}} 次，每次 {{adTask.points}} 能量</view>
+    <view class="task-head">📺 看视频领爻</view>
+    <view class="task-info">今日已领 {{adTask.count}} / {{adTask.limit}} 次，每次 {{adTask.points}} 爻</view>
     <view class="task-status {{adConfigured ? 'on' : ''}}">
-      {{adConfigured ? '广告位已配置：观看完整广告后发放' : '开发模式：未配置广告位，直接发放能量'}}
+      {{adConfigured ? '广告位已配置：观看完整广告后发放' : '开发模式：未配置广告位，直接发放爻'}}
     </view>
     <button class="task-btn ad" bindtap="onAdTask" disabled="{{adTask.done || claiming}}">
-      {{adTask.done ? '今日次数已用完' : '看视频领 ' + adTask.points + ' 能量'}}
+      {{adTask.done ? '今日次数已用完' : '看视频领 ' + adTask.points + ' 爻'}}
     </button>
     <view class="task-tip">接入真实广告：开通流量主 → 创建激励视频广告位 → 把 adUnitId 填入 config.js 的 REWARDED_VIDEO_AD_UNIT_ID。</view>
   </view>
 
-  <view class="footnote">能量值为平台虚拟积分，仅用于参与预言与兑换虚拟荣誉，不可兑换现金或实物。</view>
+  <view class="footnote">爻为平台虚拟积分，仅用于参与预言与兑换虚拟荣誉，不可兑换现金或实物。</view>
 </view>

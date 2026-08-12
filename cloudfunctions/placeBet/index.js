@@ -6,7 +6,7 @@ const _ = db.command;
 
 // 业务常量单一来源（cloudfunctions/_shared/config.js，npm run sync:common 同步）；
 // 邀请奖励支持环境变量覆盖（login/placeBet/inviteStats 共用）
-const { INVITE_INVITER_POINTS, INVITE_DAILY_CAP } = require('./common-config');
+const { INVITE_INVITER_POINTS, INVITE_DAILY_CAP, MIN_BET_AMOUNT } = require('./common-config');
 const INVITER_POINTS = Number(process.env.INVITE_INVITER_POINTS) || INVITE_INVITER_POINTS;
 const DAILY_CAP = Number(process.env.INVITE_DAILY_CAP) || INVITE_DAILY_CAP;
 
@@ -19,8 +19,8 @@ exports.main = async (event) => {
   if (!marketId || (choice !== 'YES' && choice !== 'NO')) {
     return { ok: false, err: '参数不合法' };
   }
-  if (!Number.isInteger(amount) || amount <= 0 || amount > 1000000) {
-    return { ok: false, err: '能量值不合法' };
+  if (!Number.isInteger(amount) || amount < MIN_BET_AMOUNT || amount > 100000) {
+    return { ok: false, err: `每次表态至少投入 ${MIN_BET_AMOUNT} 爻` };
   }
 
   try {
@@ -64,7 +64,7 @@ exports.main = async (event) => {
       const userRef = t.collection('users').doc(OPENID);
       const user = (await userRef.get()).data;
       if (!user) throw new Error('用户不存在，请稍后重试');
-      if (user.points < amount) throw new Error('能量不足');
+      if (user.points < amount) throw new Error('爻不足');
 
       const poolField = choice === 'YES' ? 'yesPool' : 'noPool';
       await marketRef.update({

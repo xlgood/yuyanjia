@@ -1,8 +1,8 @@
 <view class="container">
   <!-- 邀请奖励主视觉 -->
   <view class="card hero-card">
-    <view class="hero-title">🎁 邀请好友，双方得能量</view>
-    <view class="hero-desc">好友通过你的链接注册并首次表态，你得 {{inviterPoints}} 能量；好友首开即得 {{inviteePoints}} 新手能量。</view>
+    <view class="hero-title">🎁 邀请好友，双方得爻</view>
+    <view class="hero-desc">好友通过你的链接注册并首次表态，你得 {{inviterPoints}} 爻；好友首开即得 {{inviteePoints}} 新手爻。</view>
     <view class="reward-row">
       <view class="reward-box">
         <view class="reward-num">+{{inviteePoints}}</view>
@@ -74,5 +74,5 @@
     </view>
   </view>
 
-  <view class="footnote">能量值为平台虚拟积分，仅用于参与预言与兑换虚拟荣誉，不可兑换现金或实物。请勿诱导分享或批量注册。</view>
+  <view class="footnote">爻为平台虚拟积分，仅用于参与预言与兑换虚拟荣誉，不可兑换现金或实物。请勿诱导分享或批量注册。</view>
 </view>

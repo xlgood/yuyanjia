@@ -101,7 +101,7 @@ async function claimSettlingLock(marketId) {
   return !!(res.stats && res.stats.updated);
 }
 
-// 单注结算：标记注单与发放能量放在同一事务内，任一失败整体回滚；
+// 单注结算：标记注单与发放爻放在同一事务内，任一失败整体回滚；
 // 并发结算时后到的事务读不到 active 状态而跳过，保证每注恰好结算一次。
 // 注：事务冲突时 wx-server-sdk 会自动重试（默认 3 次）。
 async function settleOneBet(market, bet, refundAll, totalPool, winningPool) {
@@ -158,7 +158,7 @@ async function settleOne(marketId) {
 
   const totalPool = (market.yesPool || 0) + (market.noPool || 0);
   const winningPool = market.result === 'YES' ? market.yesPool || 0 : market.noPool || 0;
-  // 池异常（如无人胜出）：全部原路退回，保证能量守恒
+  // 池异常（如无人胜出）：全部原路退回，保证爻守恒
   const refundAll = totalPool <= 0 || winningPool <= 0;
 
   // 有进行中的仲裁：不允许结算（等仲裁公示期结束）
@@ -233,7 +233,7 @@ async function settleOne(marketId) {
       n.openid,
       n.title,
       n.won ? '预言成功' : (n.refundAll ? '数据异常，已退回' : '预言未成功'),
-      n.status === 'won' ? `获得 ${n.payout} 能量` : ''
+      n.status === 'won' ? `获得 ${n.payout} 爻` : ''
     );
   }
 

@@ -148,7 +148,7 @@ Page({
       const humanReadable =
         `根据「${src.name}」官方数据，判定时点 ${this.data.deadlineDate} ${this.data.deadlineTime}，` +
         `指标 ${this.data.field} 满足 ${operator} ${value}${this.data.unit} 则“预言成功”，否则“预言未成功”；` +
-        `数据缺失时能量原路退回。`;
+        `数据缺失时爻原路退回。`;
       return {
         version: 1,
         dataSource: { type: 'api', provider: src.name, url: src.url, field: this.data.field.trim(), transform },

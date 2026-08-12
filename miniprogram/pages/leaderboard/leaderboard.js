@@ -2,9 +2,9 @@ const api = require('../../utils/api');
 
 const TABS = [
   { key: 'streak', label: '🔥 连胜神算', unit: '连胜' },
-  { key: 'week', label: '📅 本周之星', unit: '能量' },
-  { key: 'month', label: '🌙 月度智者', unit: '能量' },
-  { key: 'total', label: '🪙 能量巨亨', unit: '能量' },
+  { key: 'week', label: '📅 本周之星', unit: '爻' },
+  { key: 'month', label: '🌙 月度智者', unit: '爻' },
+  { key: 'total', label: '🪙 爻巨亨', unit: '爻' },
   { key: 'pk', label: '⚔️ PK胜率', unit: '胜率' }
 ];
 

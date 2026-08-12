@@ -17,6 +17,7 @@ const DEST_NAME = 'common-config.js';
 const CONSUMERS = [
   'login',
   'placeBet',
+  'createPk',
   'checkIn',
   'claimAdTask',
   'adRewardCallback',

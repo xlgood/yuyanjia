@@ -143,7 +143,7 @@ Page({
       return;
     }
     if (user.points > 0) {
-      wx.showToast({ title: '能量充足，无需补助', icon: 'none' });
+      wx.showToast({ title: '爻充足，无需补助', icon: 'none' });
       return;
     }
     if (reliefLeft) {
@@ -164,7 +164,7 @@ Page({
       .then(res => {
         getApp().setUser(res.user);
         this.setData({ user: res.user, reliefLeft: '' });
-        wx.showToast({ title: `已领取 ${config.RELIEF_POINTS} 能量`, icon: 'success' });
+        wx.showToast({ title: `已领取 ${config.RELIEF_POINTS} 爻`, icon: 'success' });
       })
       .catch(err => {
         wx.showToast({ title: err.message || '领取失败', icon: 'none' });
@@ -225,7 +225,7 @@ Page({
   onShowRules() {
     wx.showModal({
       title: '玩法与判定规则',
-      content: '① 每个预言上线前绑定唯一判定标准与官方数据源；\n② 判定录入后进入 5 小时异议公示期（跨夜顺延），无异议后按瓜分池公式结算；\n③ 正确方按投入占比瓜分总池，系统向下取整；\n④ 能量值为平台虚拟积分，仅用于参与活动与兑换虚拟荣誉，不可兑换现金或可变现实物。',
+      content: '① 每个预言上线前绑定唯一判定标准与官方数据源；\n② 判定录入后进入 5 小时异议公示期（跨夜顺延），无异议后按瓜分池公式结算；\n③ 正确方按投入占比瓜分总池，系统向下取整；\n④ 爻为平台虚拟积分，仅用于参与活动与兑换虚拟荣誉，不可兑换现金或可变现实物。',
       showCancel: false,
       confirmText: '知道了'
     });

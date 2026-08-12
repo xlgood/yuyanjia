@@ -21,7 +21,7 @@
     <view class="card stat-card">
       <view class="stat-item">
         <view class="stat-num">{{user ? user.points : '--'}}</view>
-        <view class="stat-label">当前能量</view>
+        <view class="stat-label">当前爻</view>
       </view>
       <view class="stat-divider"></view>
       <view class="stat-item">
@@ -82,7 +82,7 @@
     </view>
     <view class="menu-item" bindtap="goTask">
       <text class="menu-icon">🎁</text>
-      <text class="menu-text">任务中心（每日签到 / 看视频领能量）</text>
+      <text class="menu-text">任务中心（每日签到 / 看视频领爻）</text>
       <text class="menu-arrow">›</text>
     </view>
     <view class="menu-item" bindtap="goShop">
@@ -108,7 +108,7 @@
     </view>
     <view class="menu-item" bindtap="goInvite">
       <text class="menu-icon">📣</text>
-      <text class="menu-text">邀请好友，双方各得 {{invitePoints}} 能量</text>
+      <text class="menu-text">邀请好友，双方各得 {{invitePoints}} 爻</text>
       <text class="menu-sub" wx:if="{{inviteTotal > 0}}">已邀请 {{inviteTotal}} 人</text>
       <text class="menu-arrow">›</text>
     </view>
@@ -123,7 +123,7 @@
   </view>
 
   <view class="footnote">
-    能量值为平台虚拟积分，仅用于参与预言活动与兑换虚拟荣誉，不可兑换现金或实物。
+    爻为平台虚拟积分，仅用于参与预言活动与兑换虚拟荣誉，不可兑换现金或实物。
   </view>
 
   <view class="mask" wx:if="{{editVisible}}" bindtap="onCloseEdit">

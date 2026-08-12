@@ -14,7 +14,7 @@ exports.main = async (event) => {
   const bond = Math.floor(Number(event.bond) || 0);
 
   if (!arbitrationId || (side !== 'support' && side !== 'oppose')) return { ok: false, err: '参数不合法' };
-  if (bond < VOTE_BOND_MIN) return { ok: false, err: `投票保证金至少 ${VOTE_BOND_MIN} 能量` };
+  if (bond < VOTE_BOND_MIN) return { ok: false, err: `投票保证金至少 ${VOTE_BOND_MIN} 爻` };
 
   try {
     // 资格/同时参与检查放事务外（官方文档：事务仅支持单记录操作）
@@ -61,7 +61,7 @@ exports.main = async (event) => {
       // 同时参与上限（已在事务外统计）
       if (activeCount >= ACTIVE_LIMIT) throw new Error('您同时只能参与 1 个仲裁');
 
-      if (user.points < bond) throw new Error('能量不足');
+      if (user.points < bond) throw new Error('爻不足');
 
       await t.collection('arbitration_votes').doc(voteId).set({
         data: {

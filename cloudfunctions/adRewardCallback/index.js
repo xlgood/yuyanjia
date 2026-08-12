@@ -72,7 +72,7 @@ function decryptEncrypt(encrypt) {
   }
 }
 
-// 原子发放广告任务奖励：transaction_id 去重 + 每日限次 + 发放能量在同一事务内完成，
+// 原子发放广告任务奖励：transaction_id 去重 + 每日限次 + 发放爻在同一事务内完成，
 // 并发或重试时只有一次生效；事务冲突时 wx-server-sdk 自动重试（默认 3 次）
 async function grantAdReward(userId, transactionId, amount) {
   try {

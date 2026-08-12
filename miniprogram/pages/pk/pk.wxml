@@ -38,7 +38,7 @@
       <view class="pk-market" data-id="{{item.marketId}}" bindtap="goMarket">{{item.marketTitle}}</view>
       <view class="pk-stance">
         <view class="stance-chip {{item.challenger.choice === 'YES' ? 'yes' : 'no'}}">{{item.challenger.choice === 'YES' ? '👍 看好' : '👎 不看好'}}</view>
-        <text class="stance-amount">{{item.challenger.amount}} 能量</text>
+        <text class="stance-amount">{{item.challenger.amount}} 爻</text>
         <text class="stance-reverse">你将锁定反向立场</text>
       </view>
       <view class="pk-actions">
@@ -71,8 +71,8 @@
       </view>
       <view class="pk-market" data-id="{{item.marketId}}" bindtap="goMarket">{{item.marketTitle}}</view>
       <view class="pk-stance">
-        <text class="stance-amount">我：{{item.myChoiceText || '--'}} / {{item.myAmount}} 能量</text>
-        <text class="stance-amount" wx:if="{{item.theirChoiceText}}">对方：{{item.theirChoiceText}} / {{item.theirAmount || ''}} 能量</text>
+        <text class="stance-amount">我：{{item.myChoiceText || '--'}} / {{item.myAmount}} 爻</text>
+        <text class="stance-amount" wx:if="{{item.theirChoiceText}}">对方：{{item.theirChoiceText}} / {{item.theirAmount || ''}} 爻</text>
       </view>
       <view class="pk-result" wx:if="{{item.resultText}}">{{item.resultText}}</view>
     </view>
@@ -86,5 +86,5 @@
     <button class="dev-btn" bindtap="onSimulateChallenge">模拟好友发起挑战</button>
   </view>
 
-  <view class="footnote">PK 双方必须持相反立场，判定与结算沿用预言事件规则。能量为虚拟积分，不可兑换现金或实物。</view>
+  <view class="footnote">PK 双方必须持相反立场，判定与结算沿用预言事件规则。爻为虚拟积分，不可兑换现金或实物。</view>
 </view>

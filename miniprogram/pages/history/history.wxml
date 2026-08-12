@@ -21,10 +21,10 @@
       <view class="r-title">{{item.marketTitle}}</view>
       <view class="r-bottom">
         <text class="r-choice {{item.choiceClass}}">{{item.choiceText}}</text>
-        <text class="r-meta">{{item.amount}} 能量 · {{item.createdAtText}}</text>
+        <text class="r-meta">{{item.amount}} 爻 · {{item.createdAtText}}</text>
       </view>
-      <view class="r-payout" wx:if="{{item.status === 'won'}}">+{{item.payout}} 能量</view>
-      <view class="r-payout bad" wx:if="{{item.status === 'lost'}}">-{{item.amount}} 能量</view>
+      <view class="r-payout" wx:if="{{item.status === 'won'}}">+{{item.payout}} 爻</view>
+      <view class="r-payout bad" wx:if="{{item.status === 'lost'}}">-{{item.amount}} 爻</view>
     </view>
     <view class="load-more" wx:if="{{hasMore}}" bindtap="loadMore">{{loadingMore ? '加载中...' : '加载更多（已显示 ' + list.length + ' / ' + total + ' 条）'}}</view>
     <view class="list-end" wx:if="{{!hasMore && total > 0}}">— 已加载全部 {{total}} 条记录 —</view>

@@ -84,12 +84,12 @@ Page({
       return;
     }
     if (bond < VOTE_BOND_MIN) {
-      wx.showToast({ title: `保证金至少 ${VOTE_BOND_MIN} 能量`, icon: 'none' });
+      wx.showToast({ title: `保证金至少 ${VOTE_BOND_MIN} 爻`, icon: 'none' });
       return;
     }
     wx.showModal({
       title: side === 'support' ? '支持仲裁' : '否决仲裁',
-      content: `缴纳 ${bond} 能量保证金。${side === 'support' ? '若仲裁成立，您将瓜分否决方保证金；若不成立，保证金归否决方。' : '若仲裁未成立，您将瓜分支持方保证金；若成立，保证金归支持方。'}`,
+      content: `缴纳 ${bond} 爻保证金。${side === 'support' ? '若仲裁成立，您将瓜分否决方保证金；若不成立，保证金归否决方。' : '若仲裁未成立，您将瓜分支持方保证金；若成立，保证金归支持方。'}`,
       confirmText: '确认投票',
       success: res => {
         if (!res.confirm) return;

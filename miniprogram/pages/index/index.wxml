@@ -7,7 +7,7 @@
     <view class="hero-stats" wx:if="{{!compliance}}">
       <view class="hero-stat">
         <text class="hero-num">{{user ? user.points : '--'}}</text>
-        <text class="hero-label">能量</text>
+        <text class="hero-label">爻</text>
       </view>
       <view class="hero-stat">
         <text class="hero-num">{{user ? user.streak : '--'}}</text>
@@ -19,7 +19,7 @@
   <view class="invite-banner card" wx:if="{{!compliance}}" bindtap="goInvite">
     <view class="invite-banner-left">🎁</view>
     <view class="invite-banner-mid">
-      <view class="invite-banner-title">邀请好友，你得 {{inviterPoints}} 好友得 {{inviteePoints}} 能量</view>
+      <view class="invite-banner-title">邀请好友，你得 {{inviterPoints}} 好友得 {{inviteePoints}} 爻</view>
       <view class="invite-banner-sub">好友首次表态后，奖励自动到账</view>
     </view>
     <view class="invite-banner-arrow">›</view>
@@ -45,7 +45,7 @@
 
   <view wx:elif="{{markets.length === 0}}" class="empty">
     <view class="empty-icon">🌱</view>
-    <view>{{activeCategory === '热门' ? '总池 ≥ ' + hotThreshold + ' 能量的热门预言正在集结中' : '该分类下暂无进行中的预言'}}</view>
+    <view>{{activeCategory === '热门' ? '总池 ≥ ' + hotThreshold + ' 爻的热门预言正在集结中' : '该分类下暂无进行中的预言'}}</view>
   </view>
 
   <view wx:else class="market-list">

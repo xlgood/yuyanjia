@@ -11,30 +11,33 @@
 // 部署时可继续用环境变量覆盖个别值（见各函数内的 env 优先逻辑）。
 // =========================================================
 module.exports = {
-  // ---- 能量经济 ----
-  INIT_POINTS: 1000,                  // 新用户初始能量（login）
-  RELIEF_POINTS: 500,                 // 破产补助单次发放（claimRelief）
+  // ---- 爻经济（单位：爻；整体量级 = 旧"能量"的 1/10，2026-08-12 调整）----
+  INIT_POINTS: 100,                    // 新用户初始爻（login）
+  RELIEF_POINTS: 50,                   // 破产补助单次发放（claimRelief）
   RELIEF_COOLDOWN_MS: 24 * 3600 * 1000, // 破产补助冷却（claimRelief）
 
+  // ---- 表态 / PK 最低投入（placeBet / createPk / 前端详情页）----
+  MIN_BET_AMOUNT: 10,                  // 每次表态最少投入的爻数
+
   // ---- 每日签到（checkIn）----
-  CHECKIN_BASE_POINTS: 50,
-  CHECKIN_STREAK_BONUS: 10,
+  CHECKIN_BASE_POINTS: 5,
+  CHECKIN_STREAK_BONUS: 1,
   CHECKIN_STREAK_CAP: 7,
 
   // ---- 激励广告任务（claimAdTask / adRewardCallback）----
-  AD_TASK_POINTS: 100,                // 单次发放能量（服务端常量，不信任客户端透传）
-  AD_TASK_LIMIT: 3,                   // 每日限次
+  AD_TASK_POINTS: 10,                  // 单次发放爻（服务端常量，不信任客户端透传）
+  AD_TASK_LIMIT: 3,                    // 每日限次
 
   // ---- 邀请裂变（login / placeBet）----
-  INVITE_INVITER_POINTS: 50,          // 邀请人：被邀请人首次表态后发放
-  INVITE_INVITEE_POINTS: 100,         // 被邀请人：注册加成
-  INVITE_DAILY_CAP: 10,               // 邀请人每日有效计次上限
+  INVITE_INVITER_POINTS: 5,            // 邀请人：被邀请人首次表态后发放
+  INVITE_INVITEE_POINTS: 10,           // 被邀请人：注册加成
+  INVITE_DAILY_CAP: 10,                // 邀请人每日有效计次上限
 
   // ---- 社区仲裁（createArbitration / voteArbitration）----
-  VOTE_BOND_MIN: 100,                 // 发起/投票最低保证金
-  ACTIVE_ARBITRATION_LIMIT: 1,        // 同时最多参与仲裁数
+  VOTE_BOND_MIN: 10,                   // 发起/投票最低保证金
+  ACTIVE_ARBITRATION_LIMIT: 1,         // 同时最多参与仲裁数
   ARBITRATION_WINDOW_MS: 24 * 3600 * 1000,   // 仲裁公示期
-  ARBITRATION_MIN_PARTICIPANTS: 10,   // 事件表态人数门槛
+  ARBITRATION_MIN_PARTICIPANTS: 10,    // 事件表态人数门槛
   ARBITRATION_COOLDOWN_MS: 24 * 3600 * 1000, // 发起冷却
 
   // ---- 发题基础校验（createMarket）----

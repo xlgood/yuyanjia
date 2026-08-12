@@ -105,7 +105,7 @@ Page({
   resultText(pk) {
     if (pk.status !== 'settled') return '';
     const my = getApp().globalData.user || {};
-    if (!pk.winnerId) return '池数据异常，能量已退回';
+    if (!pk.winnerId) return '池数据异常，爻已退回';
     return pk.winnerId === my._id ? '🎉 你赢了这场 PK！' : '本场 PK 惜败，下次再战';
   },
 
@@ -122,7 +122,7 @@ Page({
     const pkId = e.currentTarget.dataset.id;
     wx.showModal({
       title: '拒绝挑战',
-      content: '拒绝后挑战方能量将退回，确认拒绝？',
+      content: '拒绝后挑战方爻将退回，确认拒绝？',
       confirmColor: '#e11d48',
       success: res => {
         if (res.confirm) this.respond(pkId, false);
@@ -136,7 +136,7 @@ Page({
     api.respondPk({ pkId, accept })
       .then(res => {
         wx.showToast({
-          title: accept ? '已应战，立场已锁定' : '已拒绝，挑战方能量已退回',
+          title: accept ? '已应战，立场已锁定' : '已拒绝，挑战方爻已退回',
           icon: 'success'
         });
         this.refresh();
@@ -154,7 +154,7 @@ Page({
   onSimulateChallenge() {
     wx.showModal({
       title: '模拟好友挑战',
-      content: '模拟一位好友对「LPL 首局大龙」发起 PK 挑战（投入 100 能量、立场看好），可在下方接受或拒绝。',
+      content: '模拟一位好友对「LPL 首局大龙」发起 PK 挑战（投入 100 爻、立场看好），可在下方接受或拒绝。',
       success: res => {
         if (!res.confirm) return;
         api.call('simulatePkChallenge', {

@@ -1,6 +1,6 @@
 // =========================================================
 // 全局配置：切换「本地模拟」与「云开发」两种运行模式
-// 能量经济数值（INIT_POINTS / RELIEF_* / INVITE_*）以 constants.js 为单一来源，
+// 爻经济数值（INIT_POINTS / RELIEF_* / INVITE_*）以 constants.js 为单一来源，
 // 此处引用导出，避免两处定义漂移；云端对应 cloudfunctions/_shared/config.js
 // =========================================================
 const {
@@ -21,15 +21,15 @@ module.exports = {
   CLOUD_ENV: 'cloud1-d0gyxil2hba0873d3',
 
   // 审核模式：
-  //   'full'       = 完整预言市场（能量、瓜分池、榜单）
+  //   'full'       = 完整预言市场（爻、瓜分池、榜单）
   //   'compliance' = 纯民意问卷（隐藏积分交互，用于微信提审）
   APP_MODE: 'full',
 
-  // 新用户初始能量值（来源于 constants.js）
+  // 新用户初始爻（来源于 constants.js）
   INIT_POINTS,
 
-  // 「热门」标签门槛：总池（YES+NO 能量和）≥ 该值的事件进入热门榜，按总能量降序
-  HOT_POOL_THRESHOLD: 2000,
+  // 「热门」标签门槛：总池（YES+NO 爻和）≥ 该值的事件进入热门榜，按总爻降序
+  HOT_POOL_THRESHOLD: 200,
 
   // 破产补助：每次发放额度与冷却时间（毫秒）（来源于 constants.js）
   RELIEF_POINTS,

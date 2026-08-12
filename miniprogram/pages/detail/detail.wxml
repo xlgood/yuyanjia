@@ -18,8 +18,8 @@
 
     <view class="pool-box" wx:if="{{!compliance}}">
       <view class="pool-total">
-        <text class="pool-total-label">当前总池（双方支持能量总和）</text>
-        <view class="pool-total-val">🪙 {{market.totalText}} <text class="pool-total-unit">能量</text></view>
+        <text class="pool-total-label">当前总池（双方支持爻总和）</text>
+        <view class="pool-total-val">🪙 {{market.totalText}} <text class="pool-total-unit">爻</text></view>
       </view>
       <view class="rate-bar">
         <view class="rate-bar-yes" style="width: {{market.yesRateNum}}%"></view>
@@ -38,7 +38,7 @@
       </view>
       <view class="result-sub">判定于 {{market.resolvedAtText}}，证据以判定标准中指定数据源为准。</view>
       <view class="result-payout" wx:if="{{myBet}}">
-        {{myBet.status === 'won' ? '🎉 预言成功！瓜分获得 ' + myBet.payout + ' 能量' : myBet.status === 'lost' ? '本次预言未成功，能量已进入奖池' : myBet.status === 'refunded' ? '池数据异常，能量已原路退回' : ''}}
+        {{myBet.status === 'won' ? '🎉 预言成功！瓜分获得 ' + myBet.payout + ' 爻' : myBet.status === 'lost' ? '本次预言未成功，爻已进入奖池' : myBet.status === 'refunded' ? '池数据异常，爻已原路退回' : ''}}
       </view>
     </view>
 
@@ -54,7 +54,7 @@
   <!-- 审核模式：纯民意问卷 -->
   <view class="card action-card" wx:if="{{compliance}}">
     <view class="action-title">今日热点民意调查</view>
-    <view class="poll-tip">您的选择仅作为民意统计，不消耗任何能量，不影响任何奖励。</view>
+    <view class="poll-tip">您的选择仅作为民意统计，不消耗任何爻，不影响任何奖励。</view>
     <view class="choice-row">
       <view
         class="choice-btn poll {{pollChoice === 'YES' ? 'selected-yes' : ''}}"
@@ -72,7 +72,7 @@
     </view>
   </view>
 
-  <!-- 完整模式：能量表态 -->
+  <!-- 完整模式：爻表态 -->
   <view class="card action-card" wx:elif="{{market.status === 'open' && !myBet}}">
     <view class="action-title">您的判断是？</view>
     <view class="choice-row">
@@ -89,7 +89,7 @@
     </view>
 
     <block wx:if="{{selectedChoice}}">
-      <view class="amount-tip">选择支持的能量值（多档可选）</view>
+      <view class="amount-tip">选择支持的爻（多档可选）</view>
       <view class="amount-grid">
         <view
           wx:for="{{presets}}"
@@ -104,14 +104,14 @@
         <input
           class="custom-input"
           type="number"
-          placeholder="输入任意能量值"
+          placeholder="输入任意爻"
           value="{{customAmount}}"
           bindinput="onCustomAmount"
         />
       </view>
-      <view class="my-balance">我的能量：{{userPoints}}</view>
+      <view class="my-balance">我的爻：{{userPoints}}</view>
       <button class="primary-btn confirm-btn" bindtap="onConfirmBet" disabled="{{submitting}}">
-        {{submitting ? '提交中...' : '确认支持 ' + (selectedAmount || 0) + ' 能量'}}
+        {{submitting ? '提交中...' : '确认支持 ' + (selectedAmount || 0) + ' 爻'}}
       </button>
       <button class="pk-btn" bindtap="onCreatePk" disabled="{{submitting}}">
         <view class="pk-btn-title">⚔️ 发起 PK 挑战</view>
@@ -132,12 +132,12 @@
     <view class="voted-line">
       您支持了 <text class="{{myBet.choice === 'YES' ? 'green' : 'red'}}">{{myBet.choice === 'YES' ? '看好 (YES)' : '不看好 (NO)'}}</text>
     </view>
-    <view class="voted-line">投入 {{myBet.amount}} 能量</view>
+    <view class="voted-line">投入 {{myBet.amount}} 爻</view>
     <view class="voted-wait" wx:if="{{market.status === 'open'}}">⏳ 池内数据在截止前仍会变动，请等待官方判定。</view>
     <view class="voted-wait" wx:elif="{{market.status === 'locked'}}">⏸ 已停止表态，等待官方判定中。</view>
-    <view class="voted-payout" wx:if="{{myBet.status === 'won'}}">🎉 预言成功，瓜分获得 {{myBet.payout}} 能量！</view>
-    <view class="voted-payout lost" wx:if="{{myBet.status === 'lost'}}">本次预言未成功，投入能量已进入奖池。</view>
-    <view class="voted-payout" wx:if="{{myBet.status === 'refunded'}}">池数据异常，能量已原路退回。</view>
+    <view class="voted-payout" wx:if="{{myBet.status === 'won'}}">🎉 预言成功，瓜分获得 {{myBet.payout}} 爻！</view>
+    <view class="voted-payout lost" wx:if="{{myBet.status === 'lost'}}">本次预言未成功，投入爻已进入奖池。</view>
+    <view class="voted-payout" wx:if="{{myBet.status === 'refunded'}}">池数据异常，爻已原路退回。</view>
   </view>
 
   <!-- 仲裁入口 -->
@@ -146,7 +146,7 @@
     <view class="arb-tip">
       <block wx:if="{{participantCount < 10}}">该事件表态人数 {{participantCount}} 人，不足 10 人，暂不支持社区仲裁。</block>
       <block wx:elif="{{activeArbitration}}">该事件已有进行中的仲裁，点击进入仲裁社区查看投票进展。</block>
-      <block wx:else>发起仲裁需锁定当前全部能量作为保证金，公示 24 小时由社区投票决定是否推翻判定。</block>
+      <block wx:else>发起仲裁需锁定当前全部爻作为保证金，公示 24 小时由社区投票决定是否推翻判定。</block>
     </view>
     <button
       class="primary-btn"
@@ -159,10 +159,10 @@
   <view class="mask" wx:if="{{arbConfirmVisible}}" bindtap="onArbCancel">
     <view class="modal arb-confirm" catchtap="noop">
       <view class="modal-title">⚖️ 确认发起仲裁</view>
-      <view class="arb-confirm-tip">发起仲裁需将当前全部能量作为保证金锁定，公示期结束后按投票结果分配。</view>
+      <view class="arb-confirm-tip">发起仲裁需将当前全部爻作为保证金锁定，公示期结束后按投票结果分配。</view>
       <view class="arb-confirm-bond">
         <view class="arb-bond-label">本次锁定保证金</view>
-        <view class="arb-bond-num">🪙 {{arbBond}} 能量（当前全部）</view>
+        <view class="arb-bond-num">🪙 {{arbBond}} 爻（当前全部）</view>
       </view>
       <view class="arb-confirm-rule">
         仲裁成立 → 判定翻转，投对票者瓜分对方保证金；<br/>
@@ -187,18 +187,18 @@
     </view>
   </view>
 
-  <!-- 能量不足引导面板 -->
+  <!-- 爻不足引导面板 -->
   <view class="mask" wx:if="{{insufficientVisible}}" bindtap="onCloseInsufficient">
     <view class="modal insuff-confirm" catchtap="noop">
-      <view class="modal-title">🪙 能量不足</view>
+      <view class="modal-title">🪙 爻不足</view>
       <view class="insuff-tip">
-        本次表态需要 <text class="insuff-need">{{needAmount}}</text> 能量，
-        当前拥有 <text class="insuff-have">{{userPoints}}</text> 能量，还差 <text class="insuff-gap">{{needAmount - userPoints > 0 ? needAmount - userPoints : 0}}</text> 能量。
+        本次表态需要 <text class="insuff-need">{{needAmount}}</text> 爻，
+        当前拥有 <text class="insuff-have">{{userPoints}}</text> 爻，还差 <text class="insuff-gap">{{needAmount - userPoints > 0 ? needAmount - userPoints : 0}}</text> 爻。
       </view>
       <view class="insuff-ways">
         <view class="way-row">📅 每日签到，连续签到奖励递增</view>
-        <view class="way-row">📺 看视频领能量，每天最多 3 次</view>
-        <view class="way-row">🛟 能量归零时还可领取破产补助</view>
+        <view class="way-row">📺 看视频领爻，每天最多 3 次</view>
+        <view class="way-row">🛟 爻归零时还可领取破产补助</view>
       </view>
       <view class="modal-btns">
         <button class="modal-cancel" bindtap="onCloseInsufficient">暂不表态</button>
