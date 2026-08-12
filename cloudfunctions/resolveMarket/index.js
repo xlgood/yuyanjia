@@ -38,12 +38,18 @@ exports.main = async (event) => {
   }
 
   const nowTs = Date.now();
+  // 证据为选填；若提供则必须是合法 http/https 链接（仅收官方证据 URL，不传图）
+  let evidenceUrl = event.evidenceUrl !== undefined ? String(event.evidenceUrl || '') : (market.evidenceUrl || '');
+  if (evidenceUrl && !/^https?:\/\/\S+$/i.test(evidenceUrl)) {
+    return { ok: false, err: '证据请填官方链接（http/https）' };
+  }
+  evidenceUrl = evidenceUrl.slice(0, 500);
   await db.collection('markets').doc(marketId).update({
     data: {
       status: 'dispute_window',
       result,
       // 未传 evidenceUrl 时保留原有证据链接（覆盖断卦时避免清空存证）
-      evidenceUrl: event.evidenceUrl !== undefined ? String(event.evidenceUrl || '') : (market.evidenceUrl || ''),
+      evidenceUrl,
       hasDispute: false,
       // 人工录入后清除「待人工复核」标记，否则会重复出现在复核队列
       needsManualReview: false,

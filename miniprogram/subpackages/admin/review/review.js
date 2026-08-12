@@ -68,8 +68,9 @@ Page({
   onResolve(e) {
     const { id, result } = e.currentTarget.dataset;
     const evidenceUrl = (this.data.evidenceMap[id] || '').trim();
-    if (!evidenceUrl) {
-      wx.showToast({ title: '请先填写证据链接/截图说明', icon: 'none' });
+    // 选填；若填写则必须是合法 http/https 链接（不传图，仅收官方证据 URL）
+    if (evidenceUrl && !/^https?:\/\/\S+$/i.test(evidenceUrl)) {
+      wx.showToast({ title: '证据请填官方链接（http/https）', icon: 'none' });
       return;
     }
     wx.showModal({

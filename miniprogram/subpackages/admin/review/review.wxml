@@ -23,7 +23,7 @@
         <view class="evidence-row">
           <input
             class="evidence-input"
-            placeholder="官方证据链接 / 截图说明（必填）"
+            placeholder="官方证据链接（选填，建议填写便于回溯）"
             data-id="{{item._id}}"
             bindinput="onEvidenceInput"
           />
