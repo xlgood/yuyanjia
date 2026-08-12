@@ -39,16 +39,25 @@ Page({
     };
     const u = urgencyMap[m.urgency] || { text: '', cls: '' };
     const remainingMs = m.remainingMs || 0;
-    const timeText = remainingMs < 0
-      ? `已超时 ${this.durText(-remainingMs)}`
-      : `剩余 ${this.durText(remainingMs)}`;
+    // 公示期项：到期由 settleMarket 定时器自动结卦（≤10min 窗口），不显示「已超时」制造恐慌
+    let timeText;
+    if (m.reviewType === 'dispute') {
+      timeText = remainingMs < 0
+        ? '公示已结束，自动结卦中'
+        : `公示剩余 ${this.durText(remainingMs)}`;
+    } else {
+      timeText = remainingMs < 0
+        ? `已超时 ${this.durText(-remainingMs)}`
+        : `剩余 ${this.durText(remainingMs)}`;
+    }
+    const urgencyText = (m.reviewType === 'dispute' && remainingMs < 0) ? '' : u.text;
     return Object.assign({}, m, {
       deadlineText: fmt.formatDeadline(m.deadline),
       statusText: MARKET_STATUS[m.status] || m.status,
       reviewTypeText: t.text,
       reviewTypeCls: t.cls,
-      urgencyText: u.text,
-      urgencyCls: u.cls,
+      urgencyText,
+      urgencyCls: (m.reviewType === 'dispute' && remainingMs < 0) ? 'normal' : u.cls,
       timeText
     });
   },
@@ -74,8 +83,8 @@ Page({
       return;
     }
     wx.showModal({
-      title: '录入官方判定',
-      content: `确认判定为「${result === 'YES' ? '看好' : '不看好'}」？录入后将进入 5 小时公示期（跨夜顺延）。`,
+      title: '录入官方断卦',
+      content: `确认断卦为「${result === 'YES' ? '正' : '反'}」？录入后将进入 2 小时公示期（跨夜顺延）。`,
       success: res => {
         if (!res.confirm) return;
         api.resolveMarket({ marketId: id, result, evidenceUrl })
@@ -108,8 +117,8 @@ Page({
   onOverride(e) {
     const { id, result } = e.currentTarget.dataset;
     wx.showModal({
-      title: '覆盖判定并结算',
-      content: `将判定覆盖为「${result === 'YES' ? '看好' : '不看好'}」并立即结算。确认继续？`,
+      title: '覆盖断卦并结卦',
+      content: `将断卦覆盖为「${result === 'YES' ? '正' : '反'}」并立即结卦。确认继续？`,
       success: res => {
         if (!res.confirm) return;
         api.resolveMarket({ marketId: id, result })

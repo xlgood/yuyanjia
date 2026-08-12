@@ -16,7 +16,7 @@
       <view class="r-meta">截止 {{item.deadlineText}} · {{item.timeText}}</view>
       <view class="r-urgency {{item.urgencyCls}}" wx:if="{{item.urgencyText}}">{{item.urgencyText}}</view>
       <view class="r-result" wx:if="{{item.reviewType === 'dispute'}}">
-        当前判定：{{item.result === 'YES' ? '👍 看好' : '👎 不看好'}}
+        当前断卦：{{item.result === 'YES' ? '☰ 正' : '☷ 反'}}
       </view>
 
       <block wx:if="{{item.reviewType === 'manual_deadline' || item.reviewType === 'manual_fail'}}">
@@ -29,18 +29,19 @@
           />
         </view>
         <view class="op-row">
-          <button class="op-btn yes" data-id="{{item._id}}" data-result="YES" bindtap="onResolve">判定：看好</button>
-          <button class="op-btn no" data-id="{{item._id}}" data-result="NO" bindtap="onResolve">判定：不看好</button>
+          <button class="op-btn yes" data-id="{{item._id}}" data-result="YES" bindtap="onResolve">断卦：☰ 正</button>
+          <button class="op-btn no" data-id="{{item._id}}" data-result="NO" bindtap="onResolve">断卦：☷ 反</button>
         </view>
       </block>
 
       <block wx:else>
+        <view class="op-tip">公示期结束将自动结卦；以下按钮用于提前结卦或纠正断卦</view>
         <view class="op-row">
-          <button class="op-btn" data-id="{{item._id}}" bindtap="onForceSettle">按当前判定结算</button>
+          <button class="op-btn" data-id="{{item._id}}" bindtap="onForceSettle">按当前断卦结卦</button>
         </view>
         <view class="op-row">
-          <button class="op-btn yes" data-id="{{item._id}}" data-result="YES" bindtap="onOverride">覆盖为看好并结算</button>
-          <button class="op-btn no" data-id="{{item._id}}" data-result="NO" bindtap="onOverride">覆盖为不看好并结算</button>
+          <button class="op-btn yes" data-id="{{item._id}}" data-result="YES" bindtap="onOverride">覆盖为正方并结卦</button>
+          <button class="op-btn no" data-id="{{item._id}}" data-result="NO" bindtap="onOverride">覆盖为反方并结卦</button>
         </view>
       </block>
     </view>

@@ -94,3 +94,9 @@
 
 .op-btn.yes { background: #2e7d5b; color: #ffffff; }
 .op-btn.no { background: #c03a2b; color: #ffffff; }
+
+.op-tip {
+  font-size: 22rpx;
+  color: #a39a8b;
+  margin-bottom: 12rpx;
+}

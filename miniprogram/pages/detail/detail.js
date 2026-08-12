@@ -41,6 +41,67 @@ Page({
     this._skipNextShow = true;
     this.refreshUser();
     this.loadDetail();
+    this.startCountdown();
+  },
+
+  onUnload() {
+    this.stopCountdown();
+  },
+
+  onHide() {
+    this.stopCountdown();
+  },
+
+  // 实时倒计时：open=距截止；dispute_window=公示剩余；到期自动刷新进入下一状态
+  startCountdown() {
+    this.stopCountdown();
+    this.tickCountdown();
+    this._cdTimer = setInterval(() => this.tickCountdown(), 1000);
+  },
+
+  stopCountdown() {
+    if (this._cdTimer) {
+      clearInterval(this._cdTimer);
+      this._cdTimer = null;
+    }
+  },
+
+  tickCountdown() {
+    const m = this.data.market;
+    if (!m) return;
+    const now = Date.now();
+    let target = 0;
+    let prefix = '';
+    if (m.status === 'open' && m.deadline) {
+      target = m.deadline;
+      prefix = '距截止';
+    } else if (m.status === 'dispute_window' && m.disputeEndsAt) {
+      target = m.disputeEndsAt;
+      prefix = '公示剩余';
+    } else {
+      // 非倒计时状态：清掉显示（避免残留旧文案）
+      if (m.countdownText) this.setData({ 'market.countdownText': '' });
+      return;
+    }
+    const remain = target - now;
+    if (remain <= 0) {
+      // 到点：刷新详情，让状态推进（locked → 断卦 / 公示 → 结卦由云函数定时器处理）
+      if (m.countdownText) this.setData({ 'market.countdownText': '' });
+      this.loadDetail();
+      return;
+    }
+    const text = prefix + ' ' + this.hms(remain);
+    if (m.countdownText !== text) this.setData({ 'market.countdownText': text });
+  },
+
+  hms(ms) {
+    const s = Math.floor(ms / 1000);
+    const h = Math.floor(s / 3600);
+    const mi = Math.floor((s % 3600) / 60);
+    const ss = s % 60;
+    const pad = n => (n < 10 ? '0' + n : '' + n);
+    if (h > 0) return h + ':' + pad(mi) + ':' + pad(ss);
+    return pad(mi) + ':' + pad(ss);
   },
 
   onShow() {

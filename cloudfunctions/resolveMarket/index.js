@@ -1,7 +1,7 @@
 const cloud = require('wx-server-sdk');
 
-// 公示期时长（小时，默认 5；可通过 DISPUTE_WINDOW_HOURS 调整）
-const DISPUTE_WINDOW_MS = (Number(process.env.DISPUTE_WINDOW_HOURS) || 5) * 3600 * 1000;
+// 公示期时长（小时，默认 2；可通过 DISPUTE_WINDOW_HOURS 调整）
+const DISPUTE_WINDOW_MS = (Number(process.env.DISPUTE_WINDOW_HOURS) || 2) * 3600 * 1000;
 // 管理员 openid（部署时在云函数环境变量配置 ADMIN_OPENIDS，逗号分隔；空 = 仅 Mock 可进后台）
 const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
 

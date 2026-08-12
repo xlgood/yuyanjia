@@ -516,3 +516,14 @@
   margin-top: 4rpx;
   line-height: 1.4;
 }
+
+.d-countdown {
+  font-size: 24rpx;
+  color: #c03a2b;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+.dispute-countdown {
+  color: #c03a2b;
+  font-weight: 600;
+}
