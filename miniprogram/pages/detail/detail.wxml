@@ -10,7 +10,7 @@
       <button class="d-share-btn" size="mini" open-type="share" data-channel="group">分享</button>
     </view>
     <view class="d-title">{{market.title}}</view>
-    <view class="d-countdown" wx:if="{{market.status === 'open' && market.countdownText}}">⏳ {{market.countdownText}}</view>
+    <view class="d-countdown" wx:if="{{market.status === 'open' && market.countdownText}}">⏳ 距截止 {{market.countdownText}}</view>
 
     <view class="rule-box">
       <view class="rule-title">📌 断卦依据</view>

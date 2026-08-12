@@ -71,13 +71,11 @@ Page({
     if (!m) return;
     const now = Date.now();
     let target = 0;
-    let prefix = '';
+    // 倒计时只输出纯时间，标签（距截止/昭示剩余）由模板统一提供，避免重复拼接
     if (m.status === 'open' && m.deadline) {
       target = m.deadline;
-      prefix = '距截止';
     } else if (m.status === 'dispute_window' && m.disputeEndsAt) {
       target = m.disputeEndsAt;
-      prefix = '昭示剩余';
     } else {
       // 非倒计时状态：清掉显示（避免残留旧文案）
       if (m.countdownText) this.setData({ 'market.countdownText': '' });
@@ -90,7 +88,7 @@ Page({
       this.loadDetail();
       return;
     }
-    const text = prefix + ' ' + this.hms(remain);
+    const text = this.hms(remain);
     if (m.countdownText !== text) this.setData({ 'market.countdownText': text });
   },
 
