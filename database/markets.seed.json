@@ -5,8 +5,8 @@
     "sourceOfTruth": "以猫眼专业版 App 官方数据为准，精确到个位数。最终票房 ≥ 5.00 亿则“预言成功”，否则“预言未成功”。",
     "deadline": 1786896000000,
     "createdAt": 1786420800000,
-    "yesPool": 1200,
-    "noPool": 800,
+    "yesPool": 120,
+    "noPool": 80,
     "status": "open",
     "result": null,
     "evidenceUrl": "",
@@ -30,7 +30,8 @@
     "resolutionMethod": "",
     "resolutionAttempts": 0,
     "needsManualReview": false,
-    "totalPool": 2000
+    "totalPool": 200,
+    "_id": "M001"
   },
   {
     "category": "科技数码",
@@ -38,8 +39,8 @@
     "sourceOfTruth": "以品牌官方直播、官网售价页为准。起步价 < 5999 元则“预言成功”，否则“预言未成功”。",
     "deadline": 1786604400000,
     "createdAt": 1786420800000,
-    "yesPool": 500,
-    "noPool": 1500,
+    "yesPool": 50,
+    "noPool": 150,
     "status": "open",
     "result": null,
     "evidenceUrl": "",
@@ -63,7 +64,8 @@
     "resolutionMethod": "",
     "resolutionAttempts": 0,
     "needsManualReview": false,
-    "totalPool": 2000
+    "totalPool": 200,
+    "_id": "M002"
   },
   {
     "category": "游戏电竞",
@@ -71,8 +73,8 @@
     "sourceOfTruth": "以 LPL 官方赛事数据面板为准。15 分钟内击杀则“预言成功”，否则“预言未成功”。",
     "deadline": 1786532400000,
     "createdAt": 1786420800000,
-    "yesPool": 300,
-    "noPool": 1200,
+    "yesPool": 30,
+    "noPool": 120,
     "status": "open",
     "result": null,
     "evidenceUrl": "",
@@ -96,7 +98,8 @@
     "resolutionMethod": "",
     "resolutionAttempts": 0,
     "needsManualReview": false,
-    "totalPool": 1500
+    "totalPool": 150,
+    "_id": "M003"
   },
   {
     "category": "体育竞技",
@@ -104,8 +107,8 @@
     "sourceOfTruth": "以 NBA 官方赛后数据统计为准。得分 ≥ 26 分则“预言成功”，否则“预言未成功”。",
     "deadline": 1786586400000,
     "createdAt": 1786420800000,
-    "yesPool": 1000,
-    "noPool": 900,
+    "yesPool": 100,
+    "noPool": 90,
     "status": "open",
     "result": null,
     "evidenceUrl": "",
@@ -129,7 +132,8 @@
     "resolutionMethod": "",
     "resolutionAttempts": 0,
     "needsManualReview": false,
-    "totalPool": 1900
+    "totalPool": 190,
+    "_id": "M004"
   },
   {
     "category": "趣味民生",
@@ -137,8 +141,8 @@
     "sourceOfTruth": "以中国气象网官方实况数据为准。温度 ≥ 35.0℃ 则“预言成功”，否则“预言未成功”。",
     "deadline": 1786687200000,
     "createdAt": 1786420800000,
-    "yesPool": 1400,
-    "noPool": 600,
+    "yesPool": 140,
+    "noPool": 60,
     "status": "open",
     "result": null,
     "evidenceUrl": "",
@@ -174,7 +178,8 @@
     "resolutionMethod": "",
     "resolutionAttempts": 0,
     "needsManualReview": false,
-    "totalPool": 2000
+    "totalPool": 200,
+    "_id": "M005"
   },
   {
     "category": "影视娱乐",
@@ -182,8 +187,8 @@
     "sourceOfTruth": "以豆瓣官方评分页为准（开分后 24 小时内的首个稳定分值）。≥ 8.0 分则“预言成功”，否则“预言未成功”。",
     "deadline": 1786766400000,
     "createdAt": 1786420800000,
-    "yesPool": 2200,
-    "noPool": 800,
+    "yesPool": 220,
+    "noPool": 80,
     "status": "open",
     "result": null,
     "evidenceUrl": "",
@@ -207,7 +212,8 @@
     "resolutionMethod": "",
     "resolutionAttempts": 0,
     "needsManualReview": false,
-    "totalPool": 3000
+    "totalPool": 300,
+    "_id": "M006"
   },
   {
     "category": "科技数码",
@@ -215,8 +221,8 @@
     "sourceOfTruth": "以品牌官方直播发布会 PPT 画面 / 官网参数页为准。出现“自研端侧 AI 大模型”字样则“预言成功”，否则“预言未成功”。",
     "deadline": 1786606200000,
     "createdAt": 1786420800000,
-    "yesPool": 3600,
-    "noPool": 400,
+    "yesPool": 360,
+    "noPool": 40,
     "status": "open",
     "result": null,
     "evidenceUrl": "",
@@ -240,7 +246,8 @@
     "resolutionMethod": "",
     "resolutionAttempts": 0,
     "needsManualReview": false,
-    "totalPool": 4000
+    "totalPool": 400,
+    "_id": "M007"
   },
   {
     "category": "体育竞技",
@@ -248,8 +255,8 @@
     "sourceOfTruth": "以中超联赛官方赛后数据面板为准。常规时间主队获胜则“预言成功”，否则“预言未成功”。",
     "deadline": 1786881600000,
     "createdAt": 1786420800000,
-    "yesPool": 1800,
-    "noPool": 1200,
+    "yesPool": 180,
+    "noPool": 120,
     "status": "open",
     "result": null,
     "evidenceUrl": "",
@@ -273,6 +280,7 @@
     "resolutionMethod": "",
     "resolutionAttempts": 0,
     "needsManualReview": false,
-    "totalPool": 3000
+    "totalPool": 300,
+    "_id": "M008"
   }
 ]
