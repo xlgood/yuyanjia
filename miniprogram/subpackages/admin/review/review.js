@@ -43,7 +43,7 @@ Page({
     let timeText;
     if (m.reviewType === 'dispute') {
       timeText = remainingMs < 0
-        ? '公示已结束，自动结卦中'
+        ? '公示期已结束'
         : `公示剩余 ${this.durText(remainingMs)}`;
     } else {
       timeText = remainingMs < 0

@@ -19,7 +19,7 @@ exports.main = async (event) => {
     let skip = 0;
     while (all.length < MAX_FETCH) {
       const res = await db.collection('markets')
-        .where({ status: _.in(['open', 'locked']), totalPool: _.gte(min) })
+        .where({ status: _.in(['open', 'locked', 'dispute_window']), totalPool: _.gte(min) })
         .orderBy('totalPool', 'desc')
         .skip(skip)
         .limit(PAGE)
@@ -36,7 +36,7 @@ exports.main = async (event) => {
   }
 
   const category = String(event.category || '');
-  const cond = { status: _.in(['open', 'locked']) };
+  const cond = { status: _.in(['open', 'locked', 'dispute_window']) };
   if (category) cond.category = category;
 
   const countRes = await db.collection('markets').where(cond).count();

@@ -58,7 +58,7 @@
     >
       <view class="m-header">
         <text class="m-cat">{{item.category}}</text>
-        <text class="m-time">{{item.status === 'locked' ? '⏸ 等待断卦中' : '⏳ ' + item.deadlineText}}</text>
+        <text class="m-time">{{item.status === 'dispute_window' ? '📢 公示中，点击查看倒计时' : (item.status === 'locked' ? '⏸ 等待断卦中' : '⏳ ' + item.deadlineText)}}</text>
       </view>
       <view class="m-title">{{item.title}}</view>
 
