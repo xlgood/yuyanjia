@@ -122,6 +122,17 @@ async function loadCached(type, computeFn) {
 }
 
 exports.main = async (event) => {
+  event = event || {};
+  try {
+    return await handle(event);
+  } catch (e) {
+    // 兜底：任何异常转为可见错误返回，避免云函数崩溃（-504002 / 145 code exit unexpected）
+    console.error('[getLeaderboard] 异常', e && e.message || e);
+    return { ok: false, err: String((e && e.message) || e).slice(0, 200) };
+  }
+};
+
+async function handle(event) {
   const { OPENID } = cloud.getWXContext();
   const type = TYPES.includes(event.type) ? event.type : 'streak';
   const field = FIELD_MAP[type];
