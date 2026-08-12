@@ -12,7 +12,7 @@
       <view class="head-status {{arbitration.status}}">{{arbitration.statusText}}</view>
       <view class="head-time" wx:if="{{arbitration.status === 'pending'}}">⏳ 剩余 {{arbitration.timeLeft}}（共 24 小时公示期）</view>
       <view class="head-market" bindtap="goMarket">{{arbitration.marketTitle}}</view>
-      <view class="head-rule">原断卦：{{arbitration.result === 'YES' ? '☰ 阳方应验' : '☷ 阴方应验'}} · 发起人主张断卦应为反方向</view>
+      <view class="head-rule">原断卦：{{arbitration.result === 'YES' ? '☰ 正方应验' : '☷ 反方应验'}} · 发起人主张断卦应为反方向</view>
     </view>
 
     <view class="card challenger-card">

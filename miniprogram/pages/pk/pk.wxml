@@ -37,7 +37,7 @@
       </view>
       <view class="pk-market" data-id="{{item.marketId}}" bindtap="goMarket">{{item.marketTitle}}</view>
       <view class="pk-stance">
-        <view class="stance-chip {{item.challenger.choice === 'YES' ? 'yes' : 'no'}}">{{item.challenger.choice === 'YES' ? '☰ 阳' : '☷ 阴'}}</view>
+        <view class="stance-chip {{item.challenger.choice === 'YES' ? 'yes' : 'no'}}">{{item.challenger.choice === 'YES' ? '☰ 正' : '☷ 反'}}</view>
         <text class="stance-amount">{{item.challenger.amount}} 爻</text>
         <text class="stance-reverse">你将锁定反向立场</text>
       </view>

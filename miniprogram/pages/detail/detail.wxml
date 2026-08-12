@@ -34,7 +34,7 @@
 
     <view class="result-box" wx:if="{{market.status === 'resolved'}}">
       <view class="result-title">
-        {{market.result === 'YES' ? '☰ 官方断卦：阳方应验' : '☷ 官方断卦：阴方应验'}}
+        {{market.result === 'YES' ? '☰ 官方断卦：正方应验' : '☷ 官方断卦：反方应验'}}
       </view>
       <view class="result-sub">断卦于 {{market.resolvedAtText}}，证据以断卦依据中指定数据源为准。</view>
       <view class="result-payout" wx:if="{{myBet}}">
@@ -43,7 +43,7 @@
     </view>
 
     <view class="dispute-banner" wx:if="{{market.status === 'dispute_window' || market.status === 'arbitration_window'}}">
-      ⏳ 官方已录入断卦结果（{{market.result === 'YES' ? '阳' : '阴'}}），
+      ⏳ 官方已录入断卦结果（{{market.result === 'YES' ? '正' : '反'}}），
       {{market.status === 'arbitration_window' ? '正在公断公示期，社区附议决定是否推翻断卦' : '正在断卦公示期，可发起社区公断'}}。
     </view>
     <view class="dispute-banner" wx:if="{{market.status === 'locked'}}">
@@ -80,12 +80,12 @@
         class="choice-btn {{selectedChoice === 'YES' ? 'selected-yes' : ''}}"
         data-choice="YES"
         bindtap="onSelectChoice"
-      >☰ 阳（看好）</view>
+      >☰ 正（看好）</view>
       <view
         class="choice-btn {{selectedChoice === 'NO' ? 'selected-no' : ''}}"
         data-choice="NO"
         bindtap="onSelectChoice"
-      >☷ 阴（不看好）</view>
+      >☷ 反（不看好）</view>
     </view>
 
     <block wx:if="{{selectedChoice}}">
@@ -130,7 +130,7 @@
   <view class="card action-card voted-card" wx:elif="{{myBet}}">
     <view class="voted-title">✅ 您已加入卦题</view>
     <view class="voted-line">
-      您附议了 <text class="{{myBet.choice === 'YES' ? 'green' : 'red'}}">{{myBet.choice === 'YES' ? '阳' : '阴'}}</text>
+      您附议了 <text class="{{myBet.choice === 'YES' ? 'green' : 'red'}}">{{myBet.choice === 'YES' ? '正' : '反'}}</text>
     </view>
     <view class="voted-line">投入 {{myBet.amount}} 爻</view>
     <view class="voted-wait" wx:if="{{market.status === 'open'}}">⏳ 池内数据在截止前仍会变动，请等待官方断卦。</view>
@@ -216,7 +216,7 @@
   <view class="card arbitration-card" wx:if="{{market.status === 'dispute_window' && arbitration && arbitration.status === 'settled'}}">
     <view class="action-title">⚖️ 公断已结束</view>
     <view class="arb-tip">
-      {{arbitration.winner === 'support' ? '公断成立，断卦已翻转为' + (market.result === 'YES' ? '阴' : '阳') : '公断未成立，维持原断卦'}}
+      {{arbitration.winner === 'support' ? '公断成立，断卦已翻转为' + (market.result === 'YES' ? '反' : '正') : '公断未成立，维持原断卦'}}
     </view>
     <button class="primary-btn" bindtap="goArbitration">查看公断详情</button>
   </view>

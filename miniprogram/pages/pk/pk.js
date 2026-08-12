@@ -83,11 +83,11 @@ Page({
     return Object.assign({}, pk, {
       statusText: STATUS_TEXT[pk.status] || pk.status,
       myAvatar: mySide ? mySide.avatar : '🔮',
-      myChoiceText: mySide ? (mySide.choice === 'YES' ? '阳' : '阴') : '',
+      myChoiceText: mySide ? (mySide.choice === 'YES' ? '正' : '反') : '',
       myAmount: mySide ? mySide.amount : 0,
       theirName: theirSide ? theirSide.nickname : '等待应弈',
       theirAvatar: theirSide ? theirSide.avatar : '❓',
-      theirChoiceText: theirSide && theirSide.choice ? (theirSide.choice === 'YES' ? '阳' : '阴') : '',
+      theirChoiceText: theirSide && theirSide.choice ? (theirSide.choice === 'YES' ? '正' : '反') : '',
       theirChoice: theirSide && theirSide.choice ? theirSide.choice : '',
       theirAmount: theirSide && theirSide.amount ? theirSide.amount : 0,
       expiresInText: pk.status === 'pending' && pk.expiresIn ? this.timeLeft(pk.expiresIn) : '',
@@ -154,7 +154,7 @@ Page({
   onSimulateChallenge() {
     wx.showModal({
       title: '模拟好友邀弈',
-      content: '模拟一位好友对「LPL 首局大龙」发起 对弈 邀弈（投入 100 爻、立场为阳），可在下方接受或拒绝。',
+      content: '模拟一位好友对「LPL 首局大龙」发起 对弈 邀弈（投入 100 爻、立场为正），可在下方接受或拒绝。',
       success: res => {
         if (!res.confirm) return;
         api.call('simulatePkChallenge', {

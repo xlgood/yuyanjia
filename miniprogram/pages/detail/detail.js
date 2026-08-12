@@ -342,7 +342,7 @@ Page({
     }
     wx.showModal({
       title: '发起 对弈 邀弈',
-      content: `以「${selectedChoice === 'YES' ? '阳' : '阴'}」立场邀弈，投入 ${amount} 爻？对方应弈后将锁定反向立场，爻先入卦题池，断卦后按分卦规则结卦。`,
+      content: `以「${selectedChoice === 'YES' ? '正' : '反'}」立场邀弈，投入 ${amount} 爻？对方应弈后将锁定反向立场，爻先入卦题池，断卦后按分卦规则结卦。`,
       confirmText: '发起',
       success: res => {
         if (!res.confirm) return;
