@@ -93,8 +93,8 @@ module.exports = {
   ],
 
   CHOICE_TEXT: {
-    YES: '看好',
-    NO: '不看好'
+    YES: '阳',
+    NO: '阴'
   },
 
   BET_STATUS: {
