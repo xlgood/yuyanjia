@@ -147,7 +147,7 @@
 
   <view class="mask" wx:if="{{avatarVisible}}" bindtap="onCloseAvatar">
     <view class="modal" catchtap="noop">
-      <view class="modal-title">选择头像（系统预设，反对上传）</view>
+      <view class="modal-title">选择头像</view>
       <view class="avatar-grid">
         <view
           wx:for="{{avatarOptions}}"
