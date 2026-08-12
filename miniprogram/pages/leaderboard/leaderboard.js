@@ -8,10 +8,20 @@ const TABS = [
   { key: 'pk', label: '⚔️ 弈绩', unit: '胜率' }
 ];
 
+// 各榜统计口径说明（页面顶部展示）
+const TAB_DESC = {
+  streak: '按当前连胜数排名',
+  week: '按本周新增爻排名（每周一清零）',
+  month: '按本月新增爻排名（每月 1 日清零）',
+  total: '按当前爻余额排名',
+  pk: '按胜率排名（满 5 场入榜）'
+};
+
 Page({
   data: {
     tabs: TABS,
     activeTab: 'streak',
+    tabDesc: TAB_DESC.streak,
     list: [],
     loading: true,
     isPk: false,
@@ -58,7 +68,7 @@ Page({
   onSwitchTab(e) {
     const key = e.currentTarget.dataset.key;
     if (key === this.data.activeTab) return;
-    this.setData({ activeTab: key });
+    this.setData({ activeTab: key, tabDesc: TAB_DESC[key] || '' });
     this.load();
   },
 

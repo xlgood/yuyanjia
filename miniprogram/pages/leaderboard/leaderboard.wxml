@@ -9,6 +9,8 @@
     >{{item.label}}</view>
   </view>
 
+  <view class="tab-desc">{{tabDesc}}</view>
+
   <view wx:if="{{loading}}" class="loading">加载中...</view>
 
   <view wx:elif="{{list.length === 0}}" class="empty">

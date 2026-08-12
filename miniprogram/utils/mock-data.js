@@ -294,9 +294,9 @@ function seedState() {
   };
   const snapshots = {
     streak: snapshotFor('streak', u => u.streak || 0, 7),
-    week: snapshotFor('week', u => u.points || 0, 13),
-    month: snapshotFor('month', u => u.points || 0, 4),
-    total: snapshotFor('total', u => u.points || 0, 4)
+    week: snapshotFor('week', u => u.weekPoints || 0, 13),
+    month: snapshotFor('month', u => u.monthPoints || 0, 4),
+    total: snapshotFor('total', u => u.monthPoints || 0, 4)
   };
 
   return {
@@ -326,9 +326,9 @@ function buildMockSnapshots(me, users) {
   };
   return {
     streak: mk('streak', u => u.streak || 0, 7),
-    week: mk('week', u => u.points || 0, 13),
-    month: mk('month', u => u.points || 0, 4),
-    total: mk('total', u => u.points || 0, 4)
+    week: mk('week', u => u.weekPoints || 0, 13),
+    month: mk('month', u => u.monthPoints || 0, 4),
+    total: mk('total', u => u.monthPoints || 0, 4)
   };
 }
 

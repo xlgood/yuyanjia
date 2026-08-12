@@ -107,3 +107,10 @@
   color: #a39a8b;
   margin-left: 4rpx;
 }
+
+.tab-desc {
+  font-size: 22rpx;
+  color: #a39a8b;
+  text-align: center;
+  margin: 12rpx 0 4rpx;
+}

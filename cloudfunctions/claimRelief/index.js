@@ -21,7 +21,7 @@ exports.main = async () => {
       lastReliefAt: _.lte(nowTs - COOLDOWN_MS)
     })
     .update({
-      data: { points: _.inc(RELIEF_POINTS), lastReliefAt: nowTs, updatedAt: db.serverDate() }
+      data: { points: _.inc(RELIEF_POINTS), weekPoints: _.inc(RELIEF_POINTS), monthPoints: _.inc(RELIEF_POINTS), lastReliefAt: nowTs, updatedAt: db.serverDate() }
     });
   if (claim.stats && claim.stats.updated) {
     const user = (await ref.get()).data;

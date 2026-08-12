@@ -42,8 +42,8 @@ exports.main = async (event) => {
       points: INIT_POINTS,
       streak: 0,
       bestStreak: 0,
-      weekPoints: 0,
-      monthPoints: 0,
+      weekPoints: INIT_POINTS,
+      monthPoints: INIT_POINTS,
       totalPoints: 0,
       lastReliefAt: 0,
       lastCheckInDate: '',
@@ -98,7 +98,9 @@ exports.main = async (event) => {
         await t.collection('users').doc(OPENID).set({
           data: Object.assign({}, user, {
             invitedBy: inviteFrom,
-            points: INIT_POINTS + (inviteFrom ? INVITEE_POINTS : 0)
+            weekPoints: INIT_POINTS + (inviteFrom ? INVITEE_POINTS : 0),
+            monthPoints: INIT_POINTS + (inviteFrom ? INVITEE_POINTS : 0),
+            
           })
         });
 

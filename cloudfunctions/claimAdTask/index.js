@@ -41,6 +41,8 @@ exports.main = async () => {
   const claim = await users.where(cond).update({
     data: {
       points: _.inc(AD_TASK_POINTS),
+      weekPoints: _.inc(AD_TASK_POINTS),
+      monthPoints: _.inc(AD_TASK_POINTS),
       adTaskDate: today,
       adTaskCount: _.inc(1),
       updatedAt: db.serverDate()

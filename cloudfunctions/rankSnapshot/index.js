@@ -6,8 +6,8 @@ const _ = db.command;
 
 const FIELD_MAP = {
   streak: 'streak',
-  week: 'points',
-  month: 'points',
+  week: 'weekPoints',
+  month: 'monthPoints',
   total: 'points'
 };
 const TYPES = ['streak', 'week', 'month', 'total', 'pk'];
@@ -45,7 +45,7 @@ exports.main = async (event) => {
   if (!targets.length) return { ok: false, err: '参数不合法' };
 
   try {
-    const users = await fetchAll(db.collection('users'), { nickname: true, avatarUrl: true, avatar: true, streak: true, points: true });
+    const users = await fetchAll(db.collection('users'), { nickname: true, avatarUrl: true, avatar: true, streak: true, points: true, weekPoints: true, monthPoints: true });
     const snapshots = db.collection('rank_snapshots');
     const done = [];
 

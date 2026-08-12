@@ -36,6 +36,8 @@ exports.main = async () => {
     .update({
       data: {
         points: _.inc(granted),
+        weekPoints: _.inc(granted),
+        monthPoints: _.inc(granted),
         lastCheckInDate: today,
         checkInStreak: streak,
         checkInTotal: _.inc(1),

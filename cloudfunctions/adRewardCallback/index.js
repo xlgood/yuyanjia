@@ -101,6 +101,8 @@ async function grantAdReward(userId, transactionId, amount) {
       await userRef.update({
         data: {
           points: _.inc(amount),
+          weekPoints: _.inc(amount),
+          monthPoints: _.inc(amount),
           adTaskDate: today,
           adTaskCount: count + 1,
           updatedAt: db.serverDate()

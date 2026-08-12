@@ -15,8 +15,8 @@ const _ = db.command;
 
 const FIELD_MAP = {
   streak: 'streak',
-  week: 'points',
-  month: 'points',
+  week: 'weekPoints',
+  month: 'monthPoints',
   total: 'points'
 };
 const TYPES = Object.keys(FIELD_MAP);

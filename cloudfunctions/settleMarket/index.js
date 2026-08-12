@@ -138,9 +138,9 @@ async function settleOneBet(market, bet, refundAll, totalPool, winningPool) {
           points: _.inc(payout),
           streak: newStreak,
           bestStreak,
-          weekPoints: _.inc(profit),
-          monthPoints: _.inc(profit),
-          totalPoints: _.inc(profit),
+          weekPoints: _.inc(payout),
+          monthPoints: _.inc(payout),
+          totalPoints: _.inc(payout),
           updatedAt: db.serverDate()
         }
       });
