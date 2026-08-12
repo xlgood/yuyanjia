@@ -51,8 +51,7 @@ Page({
           titleText: (HONORS.find(i => i.id === user.title) || {}).name || '',
           inviteTotal: user.inviteCount || 0,
           displayBadges: (user.honors || [])
-            .map(id => (HONORS.find(i => i.id === id) || {}).emoji || '')
-            .filter(Boolean)
+            .filter(id => HONORS.some(i => i.id === id))
             .slice(0, 12),
           pkOpen: user.pkOpen !== false
         });

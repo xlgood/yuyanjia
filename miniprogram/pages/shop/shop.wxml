@@ -22,7 +22,8 @@
       data-id="{{item.id}}"
       bindtap="onSelectHonor"
     >
-      <view class="item-emoji {{item.owned ? '' : 'gray'}}">{{item.owned ? item.emoji : '🔒'}}</view>
+      <image wx:if="{{item.owned}}" class="item-emoji-img" src="/images/honor/{{item.id}}.png" mode="aspectFit"/>
+      <view wx:else class="item-emoji gray">🔒</view>
       <view class="item-body">
         <view class="item-name">{{item.name}}</view>
         <view class="item-desc">{{item.desc}}</view>

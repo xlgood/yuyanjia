@@ -147,3 +147,5 @@
   color: #a39a8b;
   background: #f5f0e4;
 }
+
+.item-emoji-img { width: 84rpx; height: 84rpx; border-radius: 18rpx; }

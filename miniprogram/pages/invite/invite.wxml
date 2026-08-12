@@ -1,4 +1,5 @@
 <view class="container">
+  <wxs src="../../utils/avatar.wxs" module="av"/>
   <!-- 邀友奖励主视觉 -->
   <view class="card hero-card">
     <view class="hero-title">🎁 邀友论卦，双方得爻</view>
@@ -46,7 +47,8 @@
       <view>还没有道友通过你的邀友加入，快分享出去吧</view>
     </view>
     <view class="invite-row" wx:for="{{list}}" wx:key="inviteeId">
-      <view class="invite-avatar">{{item.invitee.avatar || '🔮'}}</view>
+      <image wx:if="{{av.img(item.invitee.avatar)}}" class="invite-avatar" src="{{av.img(item.invitee.avatar)}}" mode="aspectFill"/>
+      <view wx:else class="invite-avatar">{{item.invitee.avatar || '🔮'}}</view>
       <view class="invite-info">
         <view class="invite-name">{{item.invitee.nickname}}</view>
         <view class="invite-time">{{item.inviterRewarded ? '已完成首次应卦，奖励已发放' : '等待道友完成首次应卦'}}</view>

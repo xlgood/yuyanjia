@@ -1,7 +1,9 @@
 <view class="container">
+  <wxs src="../../utils/avatar.wxs" module="av"/>
   <view class="card profile-card">
     <view class="avatar-wrap" bindtap="onEditAvatar">
-      <view class="avatar {{frameClass}}">{{user ? user.avatar : '🔮'}}</view>
+      <image wx:if="{{user && av.img(user.avatar)}}" class="avatar {{frameClass}}" src="{{av.img(user.avatar)}}" mode="aspectFill"/>
+      <view wx:else class="avatar {{frameClass}}">{{user ? user.avatar : '🔮'}}</view>
       <view class="avatar-edit">更换</view>
     </view>
     <view class="p-info">
@@ -53,7 +55,7 @@
     <view class="card badges-card" wx:if="{{displayBadges.length}}">
       <view class="badges-label">我的卦勋</view>
       <view class="badges-row">
-        <text class="badge" wx:for="{{displayBadges}}" wx:key="*this" wx:for-item="b">{{b}}</text>
+        <image class="badge-img" wx:for="{{displayBadges}}" wx:key="*this" wx:for-item="b" src="/images/honor/{{b}}.png" mode="aspectFit"/>
       </view>
     </view>
   </block>
@@ -153,7 +155,10 @@
           class="avatar-option {{selectedAvatar === item ? 'active' : ''}}"
           data-avatar="{{item}}"
           bindtap="onPickAvatar"
-        >{{item}}</view>
+        >
+          <image wx:if="{{av.img(item)}}" class="avatar-option-img" src="{{av.img(item)}}" mode="aspectFit"/>
+          <text wx:else>{{item}}</text>
+        </view>
       </view>
       <view class="modal-btns">
         <button class="modal-cancel" bindtap="onCloseAvatar">取消</button>

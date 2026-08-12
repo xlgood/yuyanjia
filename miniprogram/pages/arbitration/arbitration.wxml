@@ -1,4 +1,5 @@
 <view class="container">
+  <wxs src="../../utils/avatar.wxs" module="av"/>
   <view wx:if="{{loading}}" class="loading">加载中...</view>
 
   <view wx:elif="{{!arbitration}}" class="empty">
@@ -18,7 +19,8 @@
     <view class="card challenger-card">
       <view class="sec-label">发起人</view>
       <view class="challenger-row">
-        <view class="challenger-avatar">{{arbitration.challenger.avatar || '🔮'}}</view>
+        <image wx:if="{{av.img(arbitration.challenger.avatar)}}" class="challenger-avatar" src="{{av.img(arbitration.challenger.avatar)}}" mode="aspectFill"/>
+        <view wx:else class="challenger-avatar">{{arbitration.challenger.avatar || '🔮'}}</view>
         <view class="challenger-info">
           <view class="challenger-name">{{arbitration.challenger.nickname}}</view>
           <view class="challenger-bond">保证金 {{arbitration.challenger.bond}} 爻</view>

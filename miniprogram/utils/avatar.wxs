@@ -1,0 +1,10 @@
+// 卦爻头像映射：字符 → 图片路径（与 utils/constants.js AVATARS 顺序一致）
+// 用于各页面头像展示；不匹配时返回空串，由 wx:else 回退为文本字符
+var list = ['☰', '☱', '☲', '☳', '☴', '☵', '☶', '☷', '☯', '🔮', '🏮', '🎋'];
+module.exports = {
+  img: function (ch) {
+    if (!ch) return '';
+    var i = list.indexOf(ch);
+    return i >= 0 ? '/images/avatar/avatar-' + (i + 1) + '.png' : '';
+  }
+};

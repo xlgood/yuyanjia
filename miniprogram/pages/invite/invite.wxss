@@ -245,3 +245,5 @@
   color: #d8cfc0;
   font-size: 30rpx;
 }
+
+image.invite-avatar { overflow: hidden; }

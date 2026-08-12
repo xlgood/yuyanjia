@@ -1,4 +1,5 @@
 <view class="container">
+  <wxs src="../../utils/avatar.wxs" module="av"/>
   <view class="tab-bar">
     <view class="tab-item {{tab === 'inbox' ? 'active' : ''}}" data-tab="inbox" bindtap="onSwitchTab">
       收到的邀弈
@@ -24,7 +25,8 @@
       <view class="pk-head">
         <view class="pk-vs">
           <view class="pk-user">
-            <view class="pk-avatar">{{item.challenger.avatar || '🔮'}}</view>
+            <image wx:if="{{av.img(item.challenger.avatar)}}" class="pk-avatar" src="{{av.img(item.challenger.avatar)}}" mode="aspectFill"/>
+            <view wx:else class="pk-avatar">{{item.challenger.avatar || '🔮'}}</view>
             <view class="pk-name">{{item.challenger.nickname}}</view>
           </view>
           <view class="pk-vs-text">VS</view>
@@ -58,12 +60,14 @@
       <view class="pk-head">
         <view class="pk-vs">
           <view class="pk-user">
-            <view class="pk-avatar">{{item.myAvatar}}</view>
+            <image wx:if="{{av.img(item.myAvatar)}}" class="pk-avatar" src="{{av.img(item.myAvatar)}}" mode="aspectFill"/>
+            <view wx:else class="pk-avatar">{{item.myAvatar}}</view>
             <view class="pk-name">我</view>
           </view>
           <view class="pk-vs-text">VS</view>
           <view class="pk-user">
-            <view class="pk-avatar">{{item.theirAvatar}}</view>
+            <image wx:if="{{av.img(item.theirAvatar)}}" class="pk-avatar" src="{{av.img(item.theirAvatar)}}" mode="aspectFill"/>
+            <view wx:else class="pk-avatar">{{item.theirAvatar}}</view>
             <view class="pk-name">{{item.theirName}}</view>
           </view>
         </view>

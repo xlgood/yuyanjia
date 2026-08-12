@@ -240,3 +240,8 @@
   border-color: #c03a2b;
   background: #fdf2f0;
 }
+
+/* 图片版资源尺寸（PNG 接入） */
+.badge-img { width: 56rpx; height: 56rpx; border-radius: 12rpx; }
+.avatar-option-img { width: 52rpx; height: 52rpx; }
+image.avatar { overflow: hidden; }

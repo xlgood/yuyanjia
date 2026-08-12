@@ -233,3 +233,5 @@
   font-size: 72rpx;
   margin-bottom: 16rpx;
 }
+
+image.challenger-avatar { overflow: hidden; }

@@ -245,3 +245,5 @@
   font-size: 22rpx;
   padding: 24rpx 0;
 }
+
+image.pk-avatar, image.invite-avatar, image.challenger-avatar { overflow: hidden; }
