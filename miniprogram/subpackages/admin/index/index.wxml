@@ -45,15 +45,14 @@
       <view class="menu-arrow">›</view>
     </view>
 
-    <!-- AI 选题助手已按运营策略隐藏（人工选题 + AI 起草判定条件），如需恢复取消注释即可 -->
-    <!-- <view class="menu card" bindtap="goSuggest">
+    <view class="menu card" bindtap="goSuggest">
       <view class="menu-icon">🤖</view>
       <view class="menu-info">
         <view class="menu-title">AI 选题助手</view>
-        <view class="menu-desc">输入需求，AI 生成候选事件清单</view>
+        <view class="menu-desc">输入需求，AI 联网生成候选事件清单</view>
       </view>
       <view class="menu-arrow">›</view>
-    </view> -->
+    </view>
   </block>
 
   <view class="footnote">本页面仅管理员可见；数据源与判定操作均有云函数权限校验，修改后请核对昭示期与结算状态。</view>
