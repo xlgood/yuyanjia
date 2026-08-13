@@ -9,7 +9,7 @@ const https = require('https');
 
 // =========================================================
 // 模型选择（环境变量 AI_PROVIDER：deepseek | qwen | kimi）
-// deepseek：Responses API + 服务端 web_search（部分账号反对会自动回退离线）
+// deepseek：Responses API + 服务端 web_search（部分账号/模型不支持时会自动回退离线）
 // qwen    ：DashScope OpenAI 兼容接口 + enable_search（阿里官方联网）
 // kimi    ：Moonshot chat/completions + $web_search 内置工具（官方联网）
 // =========================================================
@@ -222,7 +222,7 @@ exports.main = async (event) => {
   }));
 
   const systemPrompt = '你是预测市场「预测卦局」的选题助手。你的职责是发现“截止后能用官方数据或官方公告验证”的硬事实型候选卦题，并写成严格 YES/NO 二值化的问题。你只做选题建议，不裁决结果。';
-  const userPrompt = `今天是北京时间 ${todayCN}。用户需求：${topic}${category ? `，分类偏好：${category}` : ''}
+  const userPrompt = `今天是北京时间 ${todayCN}。用户需求：${topic}${category ? `，分类偏好：${category}（本批次只输出该分类的候选卦题）` : ''}
 
 可选数据源（只能从其中选择 dataSource，禁止编造；无合适来源时 dataSource 填空字符串并把 verifiable 设为 false）：
 ${JSON.stringify(sourceList)}
@@ -340,13 +340,16 @@ ${JSON.stringify(sourceList)}
   const list = parsed
     .filter(c => {
       const title = String(c.title || '').trim();
-      return title.length >= 10 && (!c.category || CATEGORIES.includes(c.category));
+      const catOk = category
+        ? String(c.category || '') === category
+        : (!c.category || CATEGORIES.includes(c.category));
+      return title.length >= 10 && catOk;
     })
     .slice(0, MAX_ITEMS)
     .map((c, i) => ({
       _id: 'c' + i,
       title: String(c.title || '').trim().slice(0, 80),
-      category: CATEGORIES.includes(c.category) ? c.category : '趣味民生',
+      category: CATEGORIES.includes(c.category) ? c.category : (category || '趣味民生'),
       reason: String(c.reason || '').slice(0, 100),
       dataSource: String(c.dataSource || ''),
       suggestedDeadline: String(c.suggestedDeadline || '').slice(0, 30),

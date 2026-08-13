@@ -32,7 +32,7 @@ Page({
   },
 
   onCategory(e) {
-    this.setData({ categoryIndex: Number(e.detail.value) });
+    this.setData({ categoryIndex: Number(e.currentTarget.dataset.index) });
   },
 
   onGenerate() {

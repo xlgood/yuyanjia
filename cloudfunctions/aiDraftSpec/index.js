@@ -1,5 +1,5 @@
 // =========================================================
-// AI 起草断卦条件（DeepSeek）
+// AI 起草断卦条件（DeepSeek，默认走 Responses API + 服务端 web_search 联网核实）
 // 输入：卦题标题 + 分类 + 截止时间 + 数据源注册表
 // 输出：resolutionSpec 草稿（AI 只起草规则，最终由运营确认后发布，
 //       断卦执行仍由 resolver 规则引擎 + 昭示期兜底，AI 不参与裁决）
@@ -13,6 +13,12 @@ const https = require('https');
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
 const DEEPSEEK_BASE_URL = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com';
 const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
+const DEEPSEEK_RESPONSES_MODEL = process.env.DEEPSEEK_RESPONSES_MODEL || 'deepseek-v4-flash';
+const DEEPSEEK_WEB_SEARCH = String(process.env.DEEPSEEK_WEB_SEARCH || 'true') === 'true';
+const DEEPSEEK_TIMEOUT_MS = Number(process.env.DEEPSEEK_TIMEOUT_MS || 110000);
+// 小程序端 callFunction 无超时参数，连接约 60s 会被平台掐断；
+// 这里在 55s 主动收口，返回明确提示而不是 ESOCKETTIMEDOUT
+const AI_SAFE_TIMEOUT_MS = 55000;
 
 // 管理员 openid（部署时在云函数环境变量配置 ADMIN_OPENIDS，逗号分隔；空 = 仅 Mock 可进后台）
 const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -42,10 +48,11 @@ async function securityCheck(content) {
   }
 }
 
-function postJson(url, payload, apiKey) {
+function postJson(url, payload, apiKey, timeoutMs) {
   return new Promise((resolve, reject) => {
     const u = new URL(url);
     const body = JSON.stringify(payload);
+    const t = timeoutMs || 30000;
     const req = https.request({
       hostname: u.hostname,
       path: u.pathname,
@@ -55,7 +62,7 @@ function postJson(url, payload, apiKey) {
         'Authorization': 'Bearer ' + apiKey,
         'Content-Length': Buffer.byteLength(body)
       },
-      timeout: 30000
+      timeout: t
     }, res => {
       let data = '';
       res.on('data', chunk => { data += chunk; });
@@ -85,6 +92,45 @@ function extractJson(text) {
   } catch (e) {
     return null;
   }
+}
+
+// 兼容两种返回格式：Responses API（output/output_text）与 chat/completions（choices）
+function extractContent(resp) {
+  if (!resp) return '';
+  if (typeof resp.output_text === 'string' && resp.output_text) return resp.output_text;
+  if (Array.isArray(resp.output)) {
+    const parts = [];
+    for (const item of resp.output) {
+      if (item && item.type === 'message' && Array.isArray(item.content)) {
+        for (const c of item.content) {
+          if (c && typeof c.text === 'string') parts.push(c.text);
+        }
+      }
+    }
+    if (parts.length) return parts.join('\n');
+  }
+  const msg = resp && resp.choices && resp.choices[0] && resp.choices[0].message;
+  if (msg) {
+    if (typeof msg.content === 'string') return msg.content;
+    if (Array.isArray(msg.content)) {
+      const parts = [];
+      for (const c of msg.content) {
+        if (typeof c === 'string') parts.push(c);
+        else if (c && typeof c.text === 'string') parts.push(c.text);
+      }
+      if (parts.length) return parts.join('\n');
+    }
+  }
+  return '';
+}
+
+function chatCompletions(baseUrl, model, messages, apiKey, extra = {}, timeoutMs) {
+  return postJson(
+    baseUrl.replace(/\/$/, '') + '/chat/completions',
+    Object.assign({ model, messages, temperature: 0.2 }, extra),
+    apiKey,
+    timeoutMs || DEEPSEEK_TIMEOUT_MS
+  );
 }
 
 exports.main = async (event) => {
@@ -119,6 +165,8 @@ exports.main = async (event) => {
 可选数据源（只能从其中选择 provider，禁止编造数据源）：
 ${JSON.stringify(sourceList)}
 
+你有 web_search 联网检索工具：起草前先检索数据源是否可用、官方字段与口径，禁止编造字段/接口；联网失败时基于给定数据源与通用规范起草，但 humanReadable 必须可被运营核实。
+
 输出要求：只输出一个 JSON 对象（不要 markdown 代码块、不要多余文字）：
 {
   "mode": "numeric" 或 "manual",
@@ -128,38 +176,67 @@ ${JSON.stringify(sourceList)}
   "operator": ">=|>|<=|<|==|!=|contains|in",
   "value": 阈值（数值或字符串，contains/in 时可为字符串或数组）,
   "unit": "单位，如 ℃/元/分",
-  "humanReadable": "给用户看的断卦说明（中文，必须包含：数据源、断卦时点、比较规则、缺失数据处理），与上述字段严格一致"
+  "humanReadable": "给用户看的断卦说明（中文，必须包含：数据源、断卦时点、比较规则、缺失数据处理），严格使用当前产品口径（应验/未应验、爻、卦池、昭示），建议格式：根据「{provider}」官方数据，判定时点 {截止时间}，指标 {field} 满足 {operator} {value}{unit} 则“应验”，否则“未应验”；数据缺失时爻原路退回。"
 }
 
 硬性规则：
 1. 优先 numeric（有可机读数据源时）；只有无法机读时才选 manual；
 2. 边界规则固定为：数据缺失时爻原路退回；临界值按条件严格比较，平局判 NO；
-3. humanReadable 用合规词汇（卦意占比/应验，禁用下注/赔率/庄家）；
+3. humanReadable 严格使用当前产品口径：应验/未应验、爻、卦池、昭示、公断；禁用能量/预言/问卦/下注/赔率/庄家等旧词或博彩词；
 4. 【单一结卦源】provider 只能唯一指定一个官方数据源（必须来自上面列表），humanReadable 中只允许出现这一个结卦源，禁止“以 A 为准、B 做参考”的多源表述；
 5. 【物理截止】humanReadable 必须包含明确的断卦时点（截止时间），并注明“截止时点之后产生的任何信息不作为断卦证据”；
 6. 【二元性】断卦条件必须保证结果严格二值（成立/不成立），不存在第三种结果；若卦题可能取消/延期，写明“数据缺失或卦题未发生时爻原路退回”；
-7. 【敏感红线】若卦题属于政治选举、社会争议、司法案件、公共卫生突发卦题等敏感话题，直接返回 {"mode":"manual","provider":"","humanReadable":"卦题涉及敏感红线，禁止发布"}。`;
+7. 【敏感红线】若卦题属于政治选举、社会争议、司法案件、公共卫生突发卦题等敏感话题，直接返回 {"mode":"manual","provider":"","humanReadable":"卦题涉及敏感红线，禁止发布"}；
+8. 【联网核实】优先基于 web_search 检索到的最新官方口径起草；检索结果与给定数据源注册表冲突时，以注册表为准并保留可核实的说明。`;
 
   let resp;
+  let mode = 'offline';
+  let fallbackReason = '';
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ];
   try {
-    resp = await postJson(
-      DEEPSEEK_BASE_URL.replace(/\/$/, '') + '/chat/completions',
-      {
-        model: DEEPSEEK_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.2,
-        response_format: { type: 'json_object' }
-      },
-      DEEPSEEK_API_KEY
-    );
+    const work = (async () => {
+      if (DEEPSEEK_WEB_SEARCH) {
+        try {
+          resp = await postJson(
+            DEEPSEEK_BASE_URL.replace(/\/$/, '') + '/responses',
+            {
+              model: DEEPSEEK_RESPONSES_MODEL,
+              instructions: systemPrompt,
+              input: [{ role: 'user', content: userPrompt }],
+              tools: [{ type: 'web_search' }],
+              temperature: 0.2
+            },
+            DEEPSEEK_API_KEY,
+            DEEPSEEK_TIMEOUT_MS
+          );
+          mode = 'deepseek_search';
+        } catch (e) {
+          fallbackReason = String(e.message || e).slice(0, 300);
+          console.error('DeepSeek Responses/web_search 调用失败，回退离线 chat/completions：', e.message || e);
+          resp = await chatCompletions(DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, messages, DEEPSEEK_API_KEY, {
+            response_format: { type: 'json_object' }
+          }, 30000);
+        }
+      } else {
+        resp = await chatCompletions(DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, messages, DEEPSEEK_API_KEY, {
+          response_format: { type: 'json_object' }
+        }, 30000);
+      }
+    })();
+    await Promise.race([
+      work,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('AI 生成超时（模型响应过慢），请稍后重试或更换更快模型')), AI_SAFE_TIMEOUT_MS)
+      )
+    ]);
   } catch (e) {
     return { ok: false, err: 'AI 调用失败：' + (e.message || '未知错误') };
   }
 
-  const content = resp && resp.choices && resp.choices[0] && resp.choices[0].message && resp.choices[0].message.content;
+  const content = extractContent(resp);
   const parsed = extractJson(content);
   if (!parsed) {
     return { ok: false, err: 'AI 未返回有效 JSON，请重试' };
@@ -176,7 +253,9 @@ ${JSON.stringify(sourceList)}
         mode: 'manual',
         provider: String(parsed.provider || '官方公告').slice(0, 60),
         humanReadable
-      }
+      },
+      aiMode: mode,
+      fallbackReason
     };
   }
 
@@ -206,6 +285,8 @@ ${JSON.stringify(sourceList)}
       value,
       unit: String(parsed.unit || '').slice(0, 20),
       humanReadable: String(parsed.humanReadable || '').slice(0, 300)
-    }
+    },
+    aiMode: mode,
+    fallbackReason
   };
 };

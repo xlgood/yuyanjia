@@ -8,14 +8,18 @@
       placeholder="如：本周热点 / 科技数码发布会 / 电竞赛事"
       maxlength="60"
     />
-    <view class="cat-row">
-      <picker range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategory">
-        <view class="cat-picker">分类：{{categories[categoryIndex]}}</view>
-      </picker>
-      <button class="gen-btn" bindtap="onGenerate" disabled="{{generating}}">
-        {{generating ? '生成中...' : '🤖 AI 生成候选事件'}}
-      </button>
-    </view>
+    <scroll-view class="cat-bar" scroll-x enhanced show-scrollbar="{{false}}">
+      <view
+        wx:for="{{categories}}"
+        wx:key="*this"
+        class="cat-chip {{categoryIndex === index ? 'active' : ''}}"
+        data-index="{{index}}"
+        bindtap="onCategory"
+      >{{item}}</view>
+    </scroll-view>
+    <button class="gen-btn" bindtap="onGenerate" disabled="{{generating}}">
+      {{generating ? '生成中...' : '🤖 AI 生成候选事件'}}
+    </button>
     <view class="gen-tip">AI 只做选题建议，请勾选“可验证”的候选并核对数据源后再发题。</view>
   </view>
 

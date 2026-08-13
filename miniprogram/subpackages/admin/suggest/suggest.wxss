@@ -22,23 +22,31 @@
   margin-bottom: 16rpx;
 }
 
-.cat-row {
-  display: flex;
-  gap: 16rpx;
-  align-items: center;
+.cat-bar {
+  white-space: nowrap;
+  margin-bottom: 16rpx;
 }
 
-.cat-picker {
-  background: #faf6ec;
-  border: 1rpx solid #e7dcc4;
-  border-radius: 14rpx;
-  padding: 14rpx 20rpx;
+.cat-chip {
+  display: inline-block;
+  padding: 10rpx 28rpx;
+  margin-right: 14rpx;
+  background: #fffdf8;
+  border: 1rpx solid #ece2ce;
+  border-radius: 999rpx;
   font-size: 24rpx;
   color: #6f6552;
 }
 
+.cat-chip.active {
+  background: linear-gradient(135deg, #c94a38, #b03224);
+  border-color: #b03224;
+  color: #ffffff;
+  font-weight: 700;
+}
+
 .gen-btn {
-  flex: 1;
+  width: 100%;
   background: linear-gradient(135deg, #8e2a20, #c9a227);
   color: #ffffff;
   border-radius: 14rpx;
