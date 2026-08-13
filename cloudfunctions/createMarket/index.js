@@ -61,7 +61,7 @@ exports.main = async (event) => {
   if (!sourceOfTruth) return { ok: false, err: '缺少断卦标准说明' };
   if (!deadline || deadline <= Date.now()) return { ok: false, err: '截止时间必须晚于当前时间' };
   if (deadline - Date.now() > 90 * 24 * 3600 * 1000) {
-    return { ok: false, err: '截止时间过远（超过 90 天），问卦周期过长，请调整' };
+    return { ok: false, err: '截止时间过远（超过 90 天），预测周期过长，请调整' };
   }
 
   // 机读断卦规范校验

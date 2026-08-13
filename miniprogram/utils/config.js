@@ -47,10 +47,10 @@ module.exports = {
   INVITE_INVITEE_POINTS,
   INVITE_DAILY_CAP,
 
-  // 判定结果录入后的异议昭示期（毫秒），以 README 与服务端为准：默认 5 小时。
+  // 判定结果录入后的异议昭示期（毫秒），以 README 与服务端为准：默认 2 小时。
   // 注意：权威值在云函数环境变量 DISPUTE_WINDOW_HOURS（resolveMarket/resolver 使用），
   // 此处仅用于前端文案展示，修改时请保持一致
-  DISPUTE_WINDOW_MS: 5 * 60 * 60 * 1000,
+  DISPUTE_WINDOW_MS: 2 * 60 * 60 * 1000,
 
   // 订阅消息模板 ID（在微信公众平台「订阅消息」申请后填写）
   // 留空 = 不请求订阅，不影响主流程

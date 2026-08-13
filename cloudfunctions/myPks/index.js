@@ -105,7 +105,7 @@ exports.main = async (event) => {
       ]))
       .count();
 
-    // 补充对手道号/头像（老数据 opponent 可能缺失）
+    // 补充对手雅号/头像（老数据 opponent 可能缺失）
     const users = db.collection('users');
     const ids = new Set();
     [...inbox, ...mineRes.data].forEach(pk => {

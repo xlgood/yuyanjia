@@ -145,7 +145,7 @@
   <!-- 公断入口 -->
   <view class="card arbitration-card" wx:if="{{market.status === 'dispute_window' && myBet}}">
     <view class="action-title">⚖️ 对断卦结果有异议？</view>
-    <view class="arb-tip">
+    <view class="arb-tip" wx:if="{{arbRuleOpen}}">
       <block wx:if="{{participantCount < 10}}">该卦题应卦人数 {{participantCount}} 人，不足 10 人，暂无法发起社区公断。</block>
       <block wx:elif="{{activeArbitration}}">该卦题已有进行中的公断，点击进入公断阁查看附议进展。</block>
       <block wx:else>发起公断需锁定当前全部爻作为保证金，昭示 24 小时由社区附议决定是否推翻断卦。</block>
@@ -155,6 +155,7 @@
       bindtap="onArbitrationAction"
       disabled="{{!isMock && participantCount < 10}}"
     >{{activeArbitration ? '查看公断进展' : '发起社区公断'}}</button>
+    <view class="arb-rule-toggle" bindtap="toggleArbRule">{{arbRuleOpen ? '收起公断规则 ▴' : '查看公断规则 ▾'}}</view>
   </view>
 
   <!-- 发起公断确认面板 -->

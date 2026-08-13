@@ -39,6 +39,15 @@ Page({
     this.refreshUser();
     // 池数据在其他页面操作后可能变化，返回首页时刷新
     this.loadMarkets();
+    this.startRemainTicker();
+  },
+
+  onHide() {
+    this.stopRemainTicker();
+  },
+
+  onUnload() {
+    this.stopRemainTicker();
   },
 
   onPullDownRefresh() {
@@ -95,12 +104,45 @@ Page({
     const total = (m.yesPool || 0) + (m.noPool || 0);
     return Object.assign({}, m, {
       deadlineText: fmt.formatDeadline(m.deadline),
+      remainText: m.status === 'open' ? this.remainText(m.deadline) : '',
       totalPool: total,
       totalText: fmt.formatNumber(total),
       yesRate: fmt.rate(m.yesPool, total),
       noRate: fmt.rate(m.noPool, total),
       statusText: MARKET_STATUS[m.status] || m.status
     });
+  },
+
+  // 列表轻量倒计时（分钟级，60s 刷新一次）
+  remainText(ts) {
+    if (!ts) return '';
+    const remain = ts - Date.now();
+    if (remain <= 0) return '已截止';
+    const d = Math.floor(remain / 86400000);
+    const h = Math.floor((remain % 86400000) / 3600000);
+    const mi = Math.floor((remain % 3600000) / 60000);
+    if (d > 0) return `${d}天${h}时`;
+    if (h > 0) return `${h}时${mi}分`;
+    return `${mi}分`;
+  },
+
+  startRemainTicker() {
+    this.stopRemainTicker();
+    this._remainTimer = setInterval(() => {
+      const mk = (this.data.markets || []).map(m => {
+        if (m.status !== 'open') return m;
+        const remainText = this.remainText(m.deadline);
+        return remainText === m.remainText ? m : Object.assign({}, m, { remainText });
+      });
+      this.setData({ markets: mk });
+    }, 60000);
+  },
+
+  stopRemainTicker() {
+    if (this._remainTimer) {
+      clearInterval(this._remainTimer);
+      this._remainTimer = null;
+    }
   },
 
   onSwitchCategory(e) {
@@ -124,6 +166,6 @@ Page({
   },
 
   onShareTimeline() {
-    return share.timelineShare('🔮 问卦局：热点问卦，测测你的洞察力');
+    return share.timelineShare('🔮 问卦局：热点预测，测测你的洞察力');
   }
 });

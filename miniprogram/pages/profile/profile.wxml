@@ -97,6 +97,11 @@
       <text class="menu-text">运营后台</text>
       <text class="menu-arrow">›</text>
     </view>
+    <button class="menu-item menu-contact" open-type="contact">
+      <text class="menu-icon">💬</text>
+      <text class="menu-text">联系客服</text>
+      <text class="menu-arrow">›</text>
+    </button>
     <view class="menu-item" bindtap="goHistory">
       <text class="menu-icon">📜</text>
       <text class="menu-text">我的卦录</text>

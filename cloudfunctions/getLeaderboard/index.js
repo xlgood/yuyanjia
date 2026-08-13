@@ -80,7 +80,7 @@ async function computePkTop() {
     .sort((a, b) => b.winRate - a.winRate)
     .slice(0, TOP_SIZE);
 
-  // 补充道号/头像（一次批量取）
+  // 补充雅号/头像（一次批量取）
   const ids = entries.map(e => e.openid);
   const nameMap = {};
   if (ids.length) {

@@ -57,7 +57,7 @@ Page({
         });
         api.myPks()
           .then(res => this.setData({ pkInboxCount: (res.inbox || []).length }))
-          .catch(() => {});
+          .catch(e => console.warn('[问卦局] 对弈收件箱加载失败', e && e.message));
       })
       .catch(err => {
         console.error('[问卦局] 刷新用户失败', err);
@@ -226,7 +226,7 @@ Page({
   onShowRules() {
     wx.showModal({
       title: '玩法与断卦规则',
-      content: '① 每个卦题上线前绑定唯一断卦标准与官方数据源；\n② 断卦录入后进入 5 小时异议昭示期（跨夜顺延），无异议后按卦池公式结卦；\n③ 正确方按投入占比分卦卦池，系统向下取整；\n④ 爻为平台虚拟积分，仅用于参与活动与兑换虚拟卦勋，不可兑换现金或可变现实物。',
+      content: '① 每个卦题上线前绑定唯一断卦标准与官方数据源；\n② 断卦录入后进入 2 小时异议昭示期（跨夜顺延），无异议后按卦池公式结卦；\n③ 正确方按投入占比分卦卦池，系统向下取整；\n④ 爻为平台虚拟积分，仅用于参与活动与兑换虚拟卦勋，不可兑换现金或可变现实物。',
       showCancel: false,
       confirmText: '知道了'
     });

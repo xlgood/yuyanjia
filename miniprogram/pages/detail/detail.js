@@ -155,7 +155,7 @@ Page({
           myArbVote: res.myVote || null
         });
       })
-      .catch(() => {});
+      .catch(e => console.warn('[detail] 公断信息加载失败', e && e.message));
   },
 
   onCreateArbitration() {
@@ -213,6 +213,10 @@ Page({
 
   onArbReasonInput(e) {
     this.setData({ arbReason: e.detail.value });
+  },
+
+  toggleArbRule() {
+    this.setData({ arbRuleOpen: !this.data.arbRuleOpen });
   },
 
   onArbitrationAction() {
@@ -441,7 +445,7 @@ Page({
 
   onShareTimeline() {
     const { market } = this.data;
-    if (!market) return share.timelineShare('🔮 问卦局：热点问卦，测测你的洞察力');
+    if (!market) return share.timelineShare('🔮 问卦局：热点预测，测测你的洞察力');
     return share.timelineShare(`🔮 ${market.title}`);
   }
 });

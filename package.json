@@ -10,6 +10,6 @@
     "sync:common": "node scripts/sync-common.js",
     "check:syntax": "node scripts/check-syntax.js",
     "check:drift": "node scripts/sync-common.js --verify",
-    "check": "node scripts/sync-common.js --verify && node scripts/check-syntax.js && node scripts/smoke-test.js && node scripts/check-compliance.js"
+    "check": "node scripts/sync-common.js --verify && node scripts/check-syntax.js && node scripts/check-assets.js && node scripts/smoke-test.js && node scripts/check-compliance.js"
   }
 }

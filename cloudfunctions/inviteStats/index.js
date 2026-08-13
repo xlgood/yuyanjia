@@ -48,7 +48,7 @@ exports.main = async () => {
     const weekRewarded = allInvites.filter(i => i.inviterRewarded && toNumber(i.rewardedAt) >= weekStart).length;
     const pendingCount = allInvites.filter(i => !i.inviterRewarded).length;
 
-    // 补上邀友人道号（用于展示“我邀友了谁”）
+    // 补上邀友人雅号（用于展示“我邀友了谁”）
     const inviteeIds = list.map(i => i.inviteeId);
     let nameMap = {};
     if (inviteeIds.length) {

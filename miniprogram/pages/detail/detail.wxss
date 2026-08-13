@@ -527,3 +527,10 @@
   color: #c03a2b;
   font-weight: 600;
 }
+
+.arb-rule-toggle {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #a39a8b;
+  text-align: center;
+}

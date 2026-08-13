@@ -12,11 +12,11 @@
 | `_id` | string | openid（登录时写入） |
 | nickname | string | 昵称，默认「预言新人」 |
 | avatarUrl | string | 头像链接，可为空 |
-| points | number | 当前能量值（初始 1000） |
+| points | number | 当前爻余额（初始 100） |
 | streak | number | 当前连胜 |
 | bestStreak | number | 历史最高连胜 |
-| weekPoints | number | 本周获得能量（周榜） |
-| monthPoints | number | 本月获得能量（月榜） |
+| weekPoints | number | 本周获得爻（周榜） |
+| monthPoints | number | 本月获得爻（月榜） |
 | totalPoints | number | 累计净收益（不含本金返还，用于总榜） |
 | lastReliefAt | number | 上次破产补助时间戳 |
 | invitedBy | string | 邀请人 openid（被邀请人注册时写入，为空表示无邀请归属） |
@@ -24,9 +24,9 @@
 | inviteCount | number | 累计有效邀请人数 |
 | inviteRewardDate | string | 最近发放邀请奖励的日期（YYYY-MM-DD，每日限额用） |
 | inviteRewardToday | number | 当日已发放邀请奖励次数 |
-| pkOpen | boolean | 是否允许被好友邀请 PK（默认 true） |
+| pkOpen | boolean | 是否允许被道友邀请 PK（默认 true） |
 | pkWins / pkLosses | number | PK 胜 / 负场次（结算时累加，用于胜率榜） |
-| honors | string[] | 已解锁荣誉 ID 列表（自动解锁，不消耗能量） |
+| honors | string[] | 已解锁荣誉 ID 列表（自动解锁，不消耗爻） |
 | betCount / pkCount | number | 累计表态数 / 累计 PK 场数（荣誉里程碑判定用） |
 | createdAt / updatedAt | Date | 创建 / 更新时间 |
 
@@ -48,7 +48,7 @@
 
 建议索引：`inviterId + createdAt`（邀请记录列表）、`inviterId + inviterRewarded`（统计）。
 
-## 8. pks（好友 PK 对战）
+## 8. pks（道友 PK 对战）
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
@@ -90,7 +90,7 @@
 | title | string | 预言标题（严格 YES/NO 二项化表述） |
 | sourceOfTruth | string | 胜负判定标准与唯一数据源（铁证规范） |
 | deadline | number | 截止时间戳 |
-| yesPool / noPool | number | 双方能量池 |
+| yesPool / noPool | number | 双方爻池 |
 | totalPool | number | 冗余字段 = yesPool + noPool（表态/PK 收退注时原子维护；热门榜按此索引排序，存量数据用 `migratePoints` 回填） |
 | status | string | `open` 进行中 / `locked` 已锁定待判定 / `dispute_window` 判定昭示 / `arbitration_window` 仲裁昭示（临时）/ `resolved` 已结算 |
 | lockedAt | number | 锁定时间（截止时间到达时由 lockMarkets 写入） |
@@ -119,7 +119,7 @@
 | marketId | string | 合约 ID |
 | openid | string | 用户 openid |
 | choice | string | `YES` / `NO` |
-| amount | number | 投入能量 |
+| amount | number | 投入爻 |
 | marketTitle / marketCategory / marketDeadline | 冗余快照 | 便于历史记录查询，无需联表 |
 | status | string | `active` / `won` / `lost` / `refunded` |
 | payout | number | 结算返还（0 表示无） |
@@ -193,7 +193,7 @@
 | marketId / marketTitle | string | 绑定事件 |
 | reason | string | 仲裁理由（必填，10-200 字，敏感词/注入字符校验） |
 | challenger | object | 发起人 `{ openid, nickname, avatar, bond }` |
-| challengerBond | number | 发起人保证金（当前能量 100%） |
+| challengerBond | number | 发起人保证金（当前爻 100%） |
 | supportPool / opposePool | number | 支持 / 否决保证金池 |
 | supportVotes / opposeVotes | number | 支持 / 否决票数（发起人默认 1 支持票） |
 | participantCount | number | 事件表态人数（门槛基数） |
@@ -208,7 +208,7 @@
 2. 总票数 ≥ max(ceil(参与人数 × 10%), 2)；
 3. 支持票 ≥ 2 且 否决票 ≥ 1（防单人操纵）。
 
-保证金分配：投对票者按投入比例瓜分投错票者的保证金池（能量守恒，平台不收取费用）。成立则判定结果翻转，按新结果结算；不成立维持原判定。
+保证金分配：投对票者按投入比例瓜分投错票者的保证金池（爻守恒，平台不收取费用）。成立则判定结果翻转，按新结果结算；不成立维持原判定。
 
 > 仲裁终局：`settleArbitration` 结算后市场直接进入可结算状态（`disputeEndsAt = 当前时间`），不再重新昭示，防止「判定 → 昭示 → 仲裁 → 昭示」循环。
 
@@ -249,7 +249,7 @@
 | --- | --- | --- |
 | `_id` | string | 微信广告回调的 `transaction_id`（天然去重） |
 | userId | string | 用户 openid（广告回调 `user_id`） |
-| amount | number | 本次发放能量 |
+| amount | number | 本次发放爻 |
 | granted | boolean | 是否实际发放（超每日限额时为 false） |
 | createdAt | Date | 回调登记时间 |
 

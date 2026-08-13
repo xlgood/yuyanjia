@@ -245,3 +245,19 @@
 .badge-img { width: 56rpx; height: 56rpx; border-radius: 12rpx; }
 .avatar-option-img { width: 52rpx; height: 52rpx; }
 image.avatar { overflow: hidden; }
+
+/* 客服入口（button 重置默认样式，对齐菜单项）*/
+button.menu-contact {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  font-size: inherit;
+  line-height: inherit;
+  text-align: left;
+  width: 100%;
+}
+button.menu-contact::after {
+  border: none;
+}

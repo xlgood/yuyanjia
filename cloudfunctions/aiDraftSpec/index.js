@@ -109,8 +109,8 @@ exports.main = async (event) => {
     notes: String(s.notes || '').slice(0, 100)
   }));
 
-  const systemPrompt = '你是问卦市场「问卦局」的断卦条件起草助手。你的职责是把卦题改写成严格二值化（YES/NO）、机器可执行的断卦条件（resolutionSpec）。你只起草规则，不裁决结果。';
-  const userPrompt = `请为以下问卦卦题起草断卦条件。
+  const systemPrompt = '你是预测市场「问卦局」的断卦条件起草助手。你的职责是把卦题改写成严格二值化（YES/NO）、机器可执行的断卦条件（resolutionSpec）。你只起草规则，不裁决结果。';
+  const userPrompt = `请为以下预测卦题起草断卦条件。
 
 卦题描述：${title}
 分类：${category || '未指定'}

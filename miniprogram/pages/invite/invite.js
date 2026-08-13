@@ -67,12 +67,12 @@ Page({
 
   onShareAppMessage() {
     return share.appShare(
-      `🔮 我在这玩「问卦局」，一起来问卦热点，双方各得爻！`,
+      `🔮 我在这玩「问卦局」，一起来预测热点，双方各得爻！`,
       '/pages/index/index'
     );
   },
 
   onShareTimeline() {
-    return share.timelineShare('🔮 问卦局：热点问卦，测测你的洞察力');
+    return share.timelineShare('🔮 问卦局：热点预测，测测你的洞察力');
   }
 });
