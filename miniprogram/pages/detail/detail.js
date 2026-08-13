@@ -110,6 +110,8 @@ Page({
     if (this.data.id) {
       this.refreshUser();
       this.loadDetail();
+      // 从后台/其它页返回时重启倒计时（onHide 已停）
+      this.startCountdown();
     }
   },
 
