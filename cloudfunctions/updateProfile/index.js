@@ -16,13 +16,13 @@ const db = cloud.database();
 
 function validateNickname(name) {
   const value = String(name == null ? '' : name).trim();
-  if (!value) return { ok: false, err: '道号不能为空' };
-  if (value.length > NICKNAME_MAX_LEN) return { ok: false, err: `道号不能超过 ${NICKNAME_MAX_LEN} 个字` };
-  if (CONTROL_RE.test(value)) return { ok: false, err: '道号包含非法控制字符' };
-  if (INJECTION_RE.test(value)) return { ok: false, err: '道号包含不允许的字符（< > 引号 脚本等）' };
+  if (!value) return { ok: false, err: '雅号不能为空' };
+  if (value.length > NICKNAME_MAX_LEN) return { ok: false, err: `雅号不能超过 ${NICKNAME_MAX_LEN} 个字` };
+  if (CONTROL_RE.test(value)) return { ok: false, err: '雅号包含非法控制字符' };
+  if (INJECTION_RE.test(value)) return { ok: false, err: '雅号包含不允许的字符（< > 引号 脚本等）' };
   const lower = value.toLowerCase();
   for (let i = 0; i < SENSITIVE_WORDS.length; i++) {
-    if (lower.indexOf(SENSITIVE_WORDS[i]) >= 0) return { ok: false, err: '道号包含敏感词汇，请更换' };
+    if (lower.indexOf(SENSITIVE_WORDS[i]) >= 0) return { ok: false, err: '雅号包含敏感词汇，请更换' };
   }
   return { ok: true, value };
 }
@@ -48,7 +48,7 @@ exports.main = async (event) => {
     const check = validateNickname(event.nickname);
     if (!check.ok) return { ok: false, err: check.err };
     const pass = await securityCheck(check.value);
-    if (!pass) return { ok: false, err: '道号包含敏感内容，请更换' };
+    if (!pass) return { ok: false, err: '雅号包含敏感内容，请更换' };
     data.nickname = check.value;
   }
   if (event.avatarUrl !== undefined) {

@@ -14,7 +14,7 @@
       <view class="p-edit">
         <text bindtap="onEditAvatar">更换头像</text>
         <text class="p-edit-sep">·</text>
-        <text bindtap="onEditNickname">编辑道号</text>
+        <text bindtap="onEditNickname">编辑雅号</text>
       </view>
     </view>
   </view>
@@ -84,7 +84,7 @@
     </view>
     <view class="menu-item" bindtap="goTask">
       <text class="menu-icon">🎁</text>
-      <text class="menu-text">修行台（每日问签 / 看视频领爻）</text>
+      <text class="menu-text">修习台（每日问签 / 看视频领爻）</text>
       <text class="menu-arrow">›</text>
     </view>
     <view class="menu-item" bindtap="goShop">
@@ -125,18 +125,18 @@
   </view>
 
   <view class="footnote">
-    爻为平台虚拟积分，仅用于参与卦题活动与兑换虚拟卦勋，不可兑换现金或实物。
+    爻为平台虚拟积分，仅用于参与卦题活动与兑换虚拟卦勋，不可兑换现金或实物。本应用内容仅供娱乐参考，不构成任何预测、投资或决策建议。
   </view>
 
   <view class="mask" wx:if="{{editVisible}}" bindtap="onCloseEdit">
     <view class="modal" catchtap="noop">
-      <view class="modal-title">编辑道号</view>
+      <view class="modal-title">编辑雅号</view>
       <input
         class="modal-input"
         value="{{nicknameInput}}"
         bindinput="onNicknameInput"
         maxlength="{{nicknameMax}}"
-        placeholder="输入新道号（1-12 个字）"
+        placeholder="输入新雅号（1-12 个字）"
       />
       <view class="modal-btns">
         <button class="modal-cancel" bindtap="onCloseEdit">取消</button>

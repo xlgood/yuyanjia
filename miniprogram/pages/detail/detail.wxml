@@ -204,7 +204,7 @@
       </view>
       <view class="modal-btns">
         <button class="modal-cancel" bindtap="onCloseInsufficient">暂不应卦</button>
-        <button class="modal-ok" bindtap="goTaskCenter">去修行台获取</button>
+        <button class="modal-ok" bindtap="goTaskCenter">去修习台获取</button>
       </view>
     </view>
   </view>
@@ -246,3 +246,4 @@
     <view>卦题不存在或已被移除</view>
   </view>
 </view>
+<view class="footer-disclaimer">本应用内容仅供娱乐参考，不构成任何预测、投资或决策建议；爻为虚拟积分，不可兑换现金或实物。</view>

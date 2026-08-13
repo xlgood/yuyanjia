@@ -2,7 +2,7 @@
   <view class="hero card">
     <view>
       <view class="hero-title">🔮 问卦局</view>
-      <view class="hero-sub">以爻观卦，洞见真相</view>
+      <view class="hero-sub">以爻观势，趣探热点</view>
     </view>
     <view class="hero-stats" wx:if="{{!compliance}}">
       <view class="hero-stat">
@@ -87,4 +87,5 @@
   </view>
 
   <view class="safe-bottom"></view>
+  <view class="footer-disclaimer">本应用内容仅供娱乐参考，不构成任何预测、投资或决策建议；爻为虚拟积分，不可兑换现金或实物。</view>
 </view>

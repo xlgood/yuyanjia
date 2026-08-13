@@ -42,7 +42,7 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "问卦",
+        "text": "预测",
         "iconPath": "images/tabbar/guawen.png",
         "selectedIconPath": "images/tabbar/guawen-active.png"
       },
