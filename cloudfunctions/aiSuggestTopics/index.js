@@ -40,7 +40,9 @@ const CUSTOM_SEARCH = String(process.env.CUSTOM_SEARCH || 'false') === 'true';
 const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
 
 const CATEGORIES = ['影视娱乐', '科技数码', '游戏电竞', '体育竞技', '趣味民生', '财经宏观'];
-const MAX_ITEMS = 5;
+const MAX_ITEMS = 3;
+// 联网检索单次预算：超时即回退离线 chat/completions，保证总耗时压在 55s 上限内
+const SEARCH_TIMEOUT_MS = Math.min(DEEPSEEK_TIMEOUT_MS, 30000);
 // 本地兜底词表：msgSecCheck 不可用（云调用未开通/异常）时降级使用，避免 fail-open
 const LOCAL_SENSITIVE_WORDS = [
   '选举', '大选', '总统', '议会', '国会', '审判', '开庭', '判决', '起诉', '立案', '庭审',
@@ -254,7 +256,7 @@ ${JSON.stringify(sourceList)}
 6. 【物理截止时间】每个候选必须有明确截止日期与时刻；截止后出现的任何信息不得作为断卦证据，suggestedDeadline 必须具体到日或时刻；
 7. 【敏感红线】严禁输出任何国内外政治选举（含美国大选）、国内社会争议民生卦题、法院正在审理的司法案件、公共卫生突发卦题等敏感话题；无法判断是否敏感时一律不选；
 8. 【悬念区间】只选结果概率大致落在 20%-80% 之间的卦题；99% 确定（如太阳升起）或实力悬殊到无悬念的卦题必须排除；
-9. 【时效性】你有 web_search 联网检索工具：必须先检索 ${todayCN} 前后的最新信息，再基于检索结果生成候选；禁止把记忆里的旧卦题当作“当前热点”，禁止编造检索不到的卦题。所有候选截止时间必须在 ${todayCN} 之后仍可验证。优先输出周期性/持续性可验证的硬事实（未来天气、周票房、汇率/指数、官方天榜、已官宣日程），并把标题与 suggestedDeadline 写成面向 ${todayCN} 之后的可断卦版本；
+9. 【时效性】你有 web_search 联网检索工具：整个任务只允许发起一次检索（覆盖所有候选），检索完成后直接基于结果生成候选清单，禁止逐条/反复检索；禁止把记忆里的旧卦题当作“当前热点”，禁止编造检索不到的卦题。所有候选截止时间必须在 ${todayCN} 之后仍可验证。优先输出周期性/持续性可验证的硬事实（未来天气、周票房、汇率/指数、官方天榜、已官宣日程），并把标题与 suggestedDeadline 写成面向 ${todayCN} 之后的可断卦版本；
 10. 每个候选的 constraintCheck 五项必须全部为 true，否则不要输出该候选。`;
 
   let resp;
@@ -300,10 +302,11 @@ ${JSON.stringify(sourceList)}
               instructions: systemPrompt,
               input: [{ role: 'user', content: userPrompt }],
               tools: [{ type: 'web_search' }],
-              temperature: 0.7
+              temperature: 0.7,
+              reasoning: { effort: 'low' }
             },
             DEEPSEEK_API_KEY,
-            DEEPSEEK_TIMEOUT_MS
+            SEARCH_TIMEOUT_MS
           );
           mode = 'deepseek_search';
         } catch (e) {
@@ -322,7 +325,7 @@ ${JSON.stringify(sourceList)}
     await Promise.race([
       work,
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('AI 生成超时（模型响应过慢），请稍后重试或更换更快模型')), AI_SAFE_TIMEOUT_MS)
+        setTimeout(() => reject(new Error('AI 生成超时：联网检索与生成超过 55 秒上限（微信平台限制），已自动尝试离线回退仍失败；可稍后重试，或减少候选数量/更换更快模型')), AI_SAFE_TIMEOUT_MS)
       )
     ]);
   } catch (e) {

@@ -16,6 +16,8 @@ const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
 const DEEPSEEK_RESPONSES_MODEL = process.env.DEEPSEEK_RESPONSES_MODEL || 'deepseek-v4-flash';
 const DEEPSEEK_WEB_SEARCH = String(process.env.DEEPSEEK_WEB_SEARCH || 'true') === 'true';
 const DEEPSEEK_TIMEOUT_MS = Number(process.env.DEEPSEEK_TIMEOUT_MS || 110000);
+// 联网检索单次预算：超时即回退离线 chat/completions，保证总耗时压在 55s 上限内
+const SEARCH_TIMEOUT_MS = Math.min(DEEPSEEK_TIMEOUT_MS, 30000);
 // 小程序端 callFunction 无超时参数，连接约 60s 会被平台掐断；
 // 这里在 55s 主动收口，返回明确提示而不是 ESOCKETTIMEDOUT
 const AI_SAFE_TIMEOUT_MS = 55000;
@@ -207,10 +209,11 @@ ${JSON.stringify(sourceList)}
               instructions: systemPrompt,
               input: [{ role: 'user', content: userPrompt }],
               tools: [{ type: 'web_search' }],
-              temperature: 0.2
+              temperature: 0.2,
+              reasoning: { effort: 'low' }
             },
             DEEPSEEK_API_KEY,
-            DEEPSEEK_TIMEOUT_MS
+            SEARCH_TIMEOUT_MS
           );
           mode = 'deepseek_search';
         } catch (e) {
@@ -229,7 +232,7 @@ ${JSON.stringify(sourceList)}
     await Promise.race([
       work,
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('AI 生成超时（模型响应过慢），请稍后重试或更换更快模型')), AI_SAFE_TIMEOUT_MS)
+        setTimeout(() => reject(new Error('AI 生成超时：联网检索与生成超过 55 秒上限（微信平台限制），已自动尝试离线回退仍失败；可稍后重试或更换更快模型')), AI_SAFE_TIMEOUT_MS)
       )
     ]);
   } catch (e) {
