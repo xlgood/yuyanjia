@@ -21,7 +21,7 @@ const FIELD_MAP = {
 };
 const TYPES = Object.keys(FIELD_MAP);
 // 对弈 榜最少场次门槛：与 rankSnapshot / pkLeaderboard 保持一致
-const 对弈_MIN_GAMES = 5;
+const MIN_GAMES = 5;
 const TOP_SIZE = 200;                       // 缓存最多存 200 名
 const CACHE_TTL_MS = (Number(process.env.LEADERBOARD_CACHE_MINUTES) || 10) * 60 * 1000;
 
@@ -70,7 +70,7 @@ async function computePkTop() {
     skip += 100;
   }
   const entries = Object.keys(pkStats)
-    .filter(openid => pkStats[openid].total >= 对弈_MIN_GAMES)
+    .filter(openid => pkStats[openid].total >= MIN_GAMES)
     .map(openid => {
       const s = pkStats[openid];
       const winRate = s.total > 0 ? s.wins / s.total : 0;

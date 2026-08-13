@@ -2,14 +2,14 @@
 // 自动断卦执行器（resolver）
 // 每 10 分钟扫描「已过截止时间 + 带 resolutionSpec」的合约，
 // 按数据源类型调用适配器拉取官方数据并自动断卦：
-//   - 成功：写入 result / 证据，状态 → dispute_window（12h 昭示）
+//   - 成功：写入 result / 证据，状态 → dispute_window（2h 昭示）
 //   - 失败：记录日志并重试，连续 3 次失败转人工复核
 // 之后由 settleMarket 定时器自动结卦，全链路无人值守。
 // =========================================================
 const cloud = require('wx-server-sdk');
 
-// 昭示期时长（小时，默认 5；可通过 DISPUTE_WINDOW_HOURS 调整）
-const DISPUTE_WINDOW_MS = (Number(process.env.DISPUTE_WINDOW_HOURS) || 5) * 3600 * 1000;
+// 昭示期时长（小时，默认 2；可通过 DISPUTE_WINDOW_HOURS 调整）
+const DISPUTE_WINDOW_MS = (Number(process.env.DISPUTE_WINDOW_HOURS) || 2) * 3600 * 1000;
 const MAX_ATTEMPTS = 3;
 const GRACE_MS = 5 * 60 * 1000; // 截止后等待 5 分钟再断卦（等官方数据刷新）
 
