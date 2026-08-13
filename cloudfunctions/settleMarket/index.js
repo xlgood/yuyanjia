@@ -202,7 +202,7 @@ async function settleOne(marketId) {
         r = await settleOneBet(market, bet, refundAll, totalPool, winningPool);
       } catch (e) {
         console.error('单注结卦失败，等待下轮重试', marketId, bet._id, e.message || e);
-        await postWebhook(`【问卦局·结卦异常】市场 ${marketId}（${market.title}）单注结卦失败：${String(e.message || e).slice(0, 200)}，10 分钟后自动重试`);
+        await postWebhook(`【预测卦局·结卦异常】市场 ${marketId}（${market.title}）单注结卦失败：${String(e.message || e).slice(0, 200)}，10 分钟后自动重试`);
         return { settled: false, reason: 'bet_settle_failed', marketId };
       }
       if (r.skipped) continue;

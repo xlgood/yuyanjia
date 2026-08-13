@@ -102,7 +102,7 @@ exports.main = async () => {
     if (WEBHOOK_URL && (locked.length || flagged.length)) {
       const parts = [];
       if (locked.length) {
-        parts.push(`【问卦局】${locked.length} 个卦题已锁定，需断卦：\n${locked.map(m => `- ${m.title}`).join('\n')}`);
+        parts.push(`【预测卦局】${locked.length} 个卦题已锁定，需断卦：\n${locked.map(m => `- ${m.title}`).join('\n')}`);
       }
       if (flagged.length) {
         parts.push(`【断卦超时已转人工】${flagged.length} 个卦题锁定超过阈值：\n${flagged.map(m => `- ${m.title}`).join('\n')}`);

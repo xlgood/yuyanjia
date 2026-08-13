@@ -142,7 +142,7 @@
   box-shadow: 0 4rpx 12rpx rgba(176, 50, 36, 0.28);
 }
 
-/* ---------- 预言卡 ---------- */
+/* ---------- 卦题卡 ---------- */
 .market-card {
   padding: 28rpx;
   margin-bottom: 20rpx;

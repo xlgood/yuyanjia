@@ -1,7 +1,7 @@
 <view class="container">
   <view class="hero card">
     <view>
-      <view class="hero-title">🔮 问卦局</view>
+      <view class="hero-title">🔮 预测卦局</view>
       <view class="hero-sub">以爻观势，趣探热点</view>
     </view>
     <view class="hero-stats" wx:if="{{!compliance}}">

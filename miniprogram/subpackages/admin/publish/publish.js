@@ -75,7 +75,7 @@ Page({
   onAiDraft() {
     const title = this.data.title.trim();
     if (title.length < 10) {
-      wx.showToast({ title: '请先填写预言标题（至少 10 字）', icon: 'none' });
+      wx.showToast({ title: '请先填写卦题标题（至少 10 字）', icon: 'none' });
       return;
     }
     this.setData({ aiDrafting: true });
@@ -147,7 +147,7 @@ Page({
       if (!this.data.field.trim() || this.data.value === '' || isNaN(value)) return null;
       const humanReadable =
         `根据「${src.name}」官方数据，判定时点 ${this.data.deadlineDate} ${this.data.deadlineTime}，` +
-        `指标 ${this.data.field} 满足 ${operator} ${value}${this.data.unit} 则“预言成功”，否则“预言未成功”；` +
+        `指标 ${this.data.field} 满足 ${operator} ${value}${this.data.unit} 则“应验”，否则“未应验”；` +
         `数据缺失时爻原路退回。`;
       return {
         version: 1,

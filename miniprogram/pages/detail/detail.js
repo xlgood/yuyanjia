@@ -439,13 +439,13 @@ Page({
 
   onShareAppMessage() {
     const { market } = this.data;
-    if (!market) return share.appShare('🔮 问卦局', '/pages/index/index');
+    if (!market) return share.appShare('🔮 预测卦局', '/pages/index/index');
     return share.appShare(`${market.title} —— 来测测你的判断！`, `/pages/detail/detail?id=${market._id}`);
   },
 
   onShareTimeline() {
     const { market } = this.data;
-    if (!market) return share.timelineShare('🔮 问卦局：热点预测，测测你的洞察力');
+    if (!market) return share.timelineShare('🔮 预测卦局：热点预测，测测你的洞察力');
     return share.timelineShare(`🔮 ${market.title}`);
   }
 });

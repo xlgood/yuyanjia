@@ -2,7 +2,7 @@
   "name": "yuyanjia-deploy",
   "private": true,
   "version": "1.0.0",
-  "description": "预言大师小程序 · 部署与质量门禁（cloudbase cli / node --check / 冒烟 / 合规 / 公共模块漂移）",
+  "description": "预测卦局小程序 · 部署与质量门禁（cloudbase cli / node --check / 冒烟 / 合规 / 公共模块漂移）",
   "scripts": {
     "deploy:login": "bash scripts/deploy.sh login",
     "deploy": "bash scripts/deploy.sh deploy",

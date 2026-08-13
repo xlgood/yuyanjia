@@ -223,7 +223,7 @@ function seedState() {
   });
 
   const users = [
-    { _id: 'u1', nickname: '问卦局·诸葛', avatarUrl: '', streak: 12, bestStreak: 15, weekPoints: 3200, monthPoints: 12800, totalPoints: 45600, points: 3200, inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u1', nickname: '诸葛·卦友', avatarUrl: '', streak: 12, bestStreak: 15, weekPoints: 3200, monthPoints: 12800, totalPoints: 45600, points: 3200, inviteRewardDate: '', inviteRewardToday: 0 },
     { _id: 'u2', nickname: '数码极客阿杰', avatarUrl: '', streak: 9, bestStreak: 11, weekPoints: 2850, monthPoints: 10400, totalPoints: 38900, points: 2850, inviteRewardDate: '', inviteRewardToday: 0 },
     { _id: 'u3', nickname: '猫眼老影迷', avatarUrl: '', streak: 8, bestStreak: 9, weekPoints: 2400, monthPoints: 9600, totalPoints: 33200, points: 2400, inviteRewardDate: '', inviteRewardToday: 0 },
     { _id: 'u4', nickname: '篮球先知老王', avatarUrl: '', streak: 7, bestStreak: 8, weekPoints: 2100, monthPoints: 8800, totalPoints: 30100, points: 2100, inviteRewardDate: '', inviteRewardToday: 0 },

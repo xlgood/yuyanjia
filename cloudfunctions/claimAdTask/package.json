@@ -1,7 +1,7 @@
 {
   "name": "claimAdTask",
   "version": "1.0.0",
-  "description": "广告任务：看激励视频领能量（每日限次）",
+  "description": "广告任务：看激励视频领爻（每日限次）",
   "main": "index.js",
   "dependencies": {
     "wx-server-sdk": "4.0.2"

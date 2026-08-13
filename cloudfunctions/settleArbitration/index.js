@@ -266,7 +266,7 @@ exports.main = async (event) => {
     try {
       return { ok: true, ...(await settleArbitrationId(arbId)) };
     } catch (e) {
-      await postWebhook(`【问卦局·公断结卦异常】公断 ${arbId} 结卦抛错：${String(e.message || e).slice(0, 200)}`);
+      await postWebhook(`【预测卦局·公断结卦异常】公断 ${arbId} 结卦抛错：${String(e.message || e).slice(0, 200)}`);
       return { ok: false, err: e.message || '结卦失败' };
     }
   }
@@ -281,7 +281,7 @@ exports.main = async (event) => {
     try {
       results.push(await settleArbitrationId(arb._id));
     } catch (e) {
-      await postWebhook(`【问卦局·公断结卦异常】公断 ${arb._id} 结卦抛错：${String(e.message || e).slice(0, 200)}，下个周期自动重试`);
+      await postWebhook(`【预测卦局·公断结卦异常】公断 ${arb._id} 结卦抛错：${String(e.message || e).slice(0, 200)}，下个周期自动重试`);
       results.push({ settled: false, reason: 'exception', arbitrationId: arb._id });
     }
   }

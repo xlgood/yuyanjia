@@ -36,7 +36,7 @@ App({
       this.setUser(user);
       return user;
     }).catch(err => {
-      console.error('[问卦局] 登录失败', err);
+      console.error('[预测卦局] 登录失败', err);
       return null;
     });
   },
@@ -54,7 +54,7 @@ App({
     return this.login();
   },
 
-  // TTL 内复用缓存；force=true 强制重新登录（如完成修行后需立即刷新能量）
+  // TTL 内复用缓存；force=true 强制重新登录（如完成修行后需立即刷新爻）
   refreshUser(force) {
     if (!force && this.globalData.user && Date.now() - (this.globalData.userAt || 0) < USER_CACHE_TTL_MS) {
       return Promise.resolve(this.globalData.user);

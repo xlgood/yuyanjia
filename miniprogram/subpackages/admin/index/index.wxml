@@ -19,7 +19,7 @@
     <view class="menu card" bindtap="goPublish">
       <view class="menu-icon">📢</view>
       <view class="menu-info">
-        <view class="menu-title">发布新预言</view>
+        <view class="menu-title">发布新卦题</view>
         <view class="menu-desc">选择数据源，自动生成判定规范</view>
       </view>
       <view class="menu-arrow">›</view>

@@ -203,7 +203,7 @@
   box-sizing: border-box;
 }
 
-/* ---------- 能量不足面板 ---------- */
+/* ---------- 爻不足面板 ---------- */
 .insuff-tip {
   font-size: 26rpx;
   color: #6f6552;

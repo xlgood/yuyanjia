@@ -10,7 +10,7 @@
     </view>
 
     <view class="field">
-      <text class="field-label">预言标题 *（YES/NO 二项化表述）</text>
+      <text class="field-label">卦题标题 *（YES/NO 二项化表述）</text>
       <textarea class="field-area" value="{{title}}" bindinput="onTitle" placeholder="如：明天 14:00 北京南郊观象台气温是否 ≥ 35.0℃？" maxlength="100" />
     </view>
 
@@ -70,7 +70,7 @@
       </view>
       <view class="field">
         <text class="field-label">判定说明 *（用户可见，含数据源与边界规则）</text>
-        <textarea class="field-area" value="{{humanReadable}}" bindinput="onHuman" placeholder="如：以品牌官方微博公告为准，出现官方发布日期声明则“预言成功”，否则“预言未成功”" maxlength="200" />
+        <textarea class="field-area" value="{{humanReadable}}" bindinput="onHuman" placeholder="如：以品牌官方微博公告为准，出现官方发布日期声明则“应验”，否则“未应验”" maxlength="200" />
       </view>
     </block>
   </view>
@@ -85,5 +85,5 @@
   </view>
 
   <button class="btn preview-btn" bindtap="onPreview">生成判定规范预览</button>
-  <button class="btn publish-btn" bindtap="onPublish" disabled="{{publishing}}">{{publishing ? '发布中...' : '发布预言'}}</button>
+  <button class="btn publish-btn" bindtap="onPublish" disabled="{{publishing}}">{{publishing ? '发布中...' : '发布卦题'}}</button>
 </view>

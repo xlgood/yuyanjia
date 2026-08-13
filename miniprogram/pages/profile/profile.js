@@ -57,10 +57,10 @@ Page({
         });
         api.myPks()
           .then(res => this.setData({ pkInboxCount: (res.inbox || []).length }))
-          .catch(e => console.warn('[问卦局] 对弈收件箱加载失败', e && e.message));
+          .catch(e => console.warn('[预测卦局] 对弈收件箱加载失败', e && e.message));
       })
       .catch(err => {
-        console.error('[问卦局] 刷新用户失败', err);
+        console.error('[预测卦局] 刷新用户失败', err);
       });
   },
 
@@ -235,10 +235,10 @@ Page({
   noop() {},
 
   onShareAppMessage() {
-    return share.appShare('🔮 问卦局：来邀弈 7 连胜，测测你的卦题力', '/pages/index/index');
+    return share.appShare('🔮 预测卦局：来邀弈 7 连胜，测测你的卦题力', '/pages/index/index');
   },
 
   onShareTimeline() {
-    return share.timelineShare('🔮 问卦局：来邀弈 7 连胜，测测你的卦题力');
+    return share.timelineShare('🔮 预测卦局：来邀弈 7 连胜，测测你的卦题力');
   }
 });

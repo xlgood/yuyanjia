@@ -221,7 +221,7 @@ exports.main = async (event) => {
     notes: String(s.notes || '').slice(0, 100)
   }));
 
-  const systemPrompt = '你是预测市场「问卦局」的选题助手。你的职责是发现“截止后能用官方数据或官方公告验证”的硬事实型候选卦题，并写成严格 YES/NO 二值化的问题。你只做选题建议，不裁决结果。';
+  const systemPrompt = '你是预测市场「预测卦局」的选题助手。你的职责是发现“截止后能用官方数据或官方公告验证”的硬事实型候选卦题，并写成严格 YES/NO 二值化的问题。你只做选题建议，不裁决结果。';
   const userPrompt = `今天是北京时间 ${todayCN}。用户需求：${topic}${category ? `，分类偏好：${category}` : ''}
 
 可选数据源（只能从其中选择 dataSource，禁止编造；无合适来源时 dataSource 填空字符串并把 verifiable 设为 false）：

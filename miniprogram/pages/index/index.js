@@ -162,10 +162,10 @@ Page({
   },
 
   onShareAppMessage() {
-    return share.appShare('🔮 问卦局：来测测你的热点洞察力', '/pages/index/index');
+    return share.appShare('🔮 预测卦局：来测测你的热点洞察力', '/pages/index/index');
   },
 
   onShareTimeline() {
-    return share.timelineShare('🔮 问卦局：热点预测，测测你的洞察力');
+    return share.timelineShare('🔮 预测卦局：热点预测，测测你的洞察力');
   }
 });

@@ -6,5 +6,5 @@
 {"name":"猫眼/灯塔专业版票房","category":"影视娱乐","type":"api","access":"paid","url":"","notes":"无公开 API，需商务授权；未接入前用官方票房页截图+人工录入，走昭示期","status":"pending","_id":"SRC-MOVIE-BOXOFFICE"}
 {"name":"豆瓣评分页","category":"影视娱乐","type":"web","access":"free","url":"https://movie.douban.com","notes":"页面稳定但反爬较强；判定只需开分时点抓一次并截图存证，建议用托管抓取服务","status":"trial","_id":"SRC-DOUBAN-SCORE"}
 {"name":"品牌发布会/官网参数页","category":"科技数码","type":"web","access":"free","url":"","notes":"以发布会直播/官网页面为准；事实型事件，抓一次存证即可，也可人工录入+铁证链接","status":"verified","_id":"SRC-LAUNCH-PAGE"}
-{"name":"官方公告/官宣（通用）","category":"全品类","type":"manual","access":"free","url":"","notes":"事实型事件通用通道：运营在截止后录入官方判定 + 官方链接/截图铁证，走 5 小时昭示（跨夜顺延）与仲裁兜底","status":"verified","_id":"SRC-EVENT-FACT"}
+{"name":"官方公告/官宣（通用）","category":"全品类","type":"manual","access":"free","url":"","notes":"事实型事件通用通道：运营在截止后录入官方判定 + 官方链接/截图铁证，走 2 小时昭示（跨夜顺延）与仲裁兜底","status":"verified","_id":"SRC-EVENT-FACT"}
 {"name":"托管抓取服务","category":"全品类","type":"scraper","access":"paid","url":"","notes":"ScrapingBee / Apify / 八爪鱼等，解决 IP 池、渲染、反爬；用于判定时的一次性取值+截图存证","status":"pending","_id":"SRC-SCRAPER-MANAGED"}
