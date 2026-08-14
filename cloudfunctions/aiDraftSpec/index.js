@@ -145,24 +145,29 @@ async function callDeepSeekResponses(instructions, userPrompt, apiKey, temperatu
   let input = [{ role: 'user', content: userPrompt }];
   const t0 = Date.now();
   for (let round = 0; round < 4; round++) {
-    // 首轮给足搜索时间；后续轮按剩余预算分配（至少 15s），总耗时由外层 55s 上限兜底
-    const budget = round === 0 ? 30000 : Math.max(15000, 50000 - (Date.now() - t0));
-    const resp = await postJson(
-      DEEPSEEK_BASE_URL.replace(/\/$/, '') + '/responses',
-      {
-        model: DEEPSEEK_RESPONSES_MODEL,
-        instructions,
-        input,
-        tools: [{ type: 'web_search' }],
-        // 首轮强制发起联网检索，避免模型只写计划不执行
-        tool_choice: round === 0 ? { type: 'web_search' } : 'auto',
-        temperature,
-        reasoning: { effort: 'low' },
-        max_output_tokens: 8000
-      },
-      apiKey,
-      budget
-    );
+    // 首轮给足搜索时间；后续轮尽量用满剩余预算，总耗时由外层 55s 上限兜底
+    const budget = round === 0 ? 45000 : Math.max(15000, 54000 - (Date.now() - t0));
+    let resp;
+    try {
+      resp = await postJson(
+        DEEPSEEK_BASE_URL.replace(/\/$/, '') + '/responses',
+        {
+          model: DEEPSEEK_RESPONSES_MODEL,
+          instructions,
+          input,
+          tools: [{ type: 'web_search' }],
+          // 首轮强制发起联网检索，避免模型只写计划不执行
+          tool_choice: round === 0 ? { type: 'web_search' } : 'auto',
+          temperature,
+          reasoning: { effort: 'low' },
+          max_output_tokens: 8000
+        },
+        apiKey,
+        budget
+      );
+    } catch (e) {
+      throw new Error(`联网请求失败（第 ${round + 1} 轮，预算 ${Math.round(budget / 1000)}s）：${e.message}`);
+    }
     const output = Array.isArray(resp.output) ? resp.output : [];
     // 输出被 token 上限截断 → 立即报错（走离线回退），不拿半截内容当结果
     if (resp.status === 'incomplete' && resp.incomplete_details && resp.incomplete_details.reason === 'max_output_tokens') {
