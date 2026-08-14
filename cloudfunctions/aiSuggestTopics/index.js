@@ -41,6 +41,27 @@ const CUSTOM_SEARCH = String(process.env.CUSTOM_SEARCH || 'false') === 'true';
 const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
 
 const CATEGORIES = ['影视娱乐', '科技数码', '游戏电竞', '体育竞技', '趣味民生', '财经宏观'];
+// 分类别名归一化：AI 可能返回“影视/电影/体育”等简称，统一映射到六类
+const CATEGORY_ALIASES = {
+  '影视': '影视娱乐', '电影': '影视娱乐', '电视剧': '影视娱乐', '综艺': '影视娱乐', '影娱': '影视娱乐', '文娱': '影视娱乐',
+  '科技': '科技数码', '数码': '科技数码', '互联网': '科技数码', '手机': '科技数码', '3c': '科技数码',
+  '游戏': '游戏电竞', '电竞': '游戏电竞',
+  '体育': '体育竞技', '竞技': '体育竞技', '足球': '体育竞技', '篮球': '体育竞技',
+  '民生': '趣味民生', '社会': '趣味民生', '生活': '趣味民生', '趣闻': '趣味民生',
+  '财经': '财经宏观', '金融': '财经宏观', '经济': '财经宏观', '宏观': '财经宏观'
+};
+
+function normalizeCategory(cat) {
+  const s = String(cat || '').trim();
+  if (!s) return '';
+  if (CATEGORIES.includes(s)) return s;
+  return CATEGORY_ALIASES[s] || '';
+}
+
+function categoryMatch(cat, selected) {
+  if (!cat) return true; // 缺分类时允许，展示阶段归入所选分类
+  return cat === selected || cat.indexOf(selected) >= 0 || selected.indexOf(cat) >= 0;
+}
 const MAX_ITEMS = 12;
 // 联网检索单次预算：超时即回退离线 chat/completions，剩余时间留给离线生成，保证总耗时压在 55s 上限内
 const SEARCH_TIMEOUT_MS = Math.min(DEEPSEEK_TIMEOUT_MS, 20000);
@@ -474,11 +495,16 @@ ${JSON.stringify(sourceList)}
     return { ok: false, err: (searchMode ? '联网模式未返回有效候选清单' : 'AI 未返回有效候选清单') + '，返回内容：' + snippet };
   }
 
-  const list = parsed
+  // 先归一化分类，再做过滤（避免 AI 返回“影视/电影”等简称导致 0 条）
+  const normalizedParsed = parsed
+    .filter(c => c && typeof c === 'object' && !Array.isArray(c))
+    .map(c => Object.assign({}, c, { category: normalizeCategory(c.category) }));
+
+  const list = normalizedParsed
     .filter(c => {
       const title = String(c.title || '').trim();
       const catOk = category
-        ? (!c.category || c.category === category)
+        ? categoryMatch(c.category, category)
         : (!c.category || CATEGORIES.includes(c.category));
       return title.length >= 10 && catOk;
     })
@@ -494,6 +520,14 @@ ${JSON.stringify(sourceList)}
       probability: String(c.probability || '').slice(0, 8),
       constraintCheck: c.constraintCheck && typeof c.constraintCheck === 'object' ? c.constraintCheck : null
     }));
+
+  if (!list.length) {
+    console.error('[aiSuggestTopics] 候选过滤后为 0，原始返回：', JSON.stringify(parsed).slice(0, 800));
+    return {
+      ok: false,
+      err: 'AI 返回的候选与所选分类不匹配或缺少有效标题（0 条通过过滤）。建议选择「全部」分类或更换时间范围重试；持续出现时查看云函数日志中的“原始返回”。'
+    };
+  }
 
   // 逐条过微信内容安全，命中敏感内容的不进入候选清单
   const safeList = [];
