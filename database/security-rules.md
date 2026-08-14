@@ -65,13 +65,13 @@ wx.cloud.database().collection('users').limit(1).get()
 
 | 集合 | 索引 |
 |------|------|
-| `users` | `streak`↓、`weekPoints`↓、`monthPoints`↓、`totalPoints`↓ |
-| `markets` | `status+deadline`、`category+status+deadline` |
-| `bets` | `openid+createdAt`、`marketId+status` |
+| `users` | `streak`↓、`weekPoints`↓、`monthPoints`↓、`totalPoints`↓、**`points`↓**（总榜按当前爻余额，2026-08-14 新增） |
+| `markets` | `status+deadline`、`category+status+deadline`、`status+totalPool`、**`needsManualReview`**、**`status+disputeEndsAt`** |
+| `bets` | `openid+createdAt`、`marketId+status`、**`openid+status`**（公断资格统计） |
 | `pks` | `marketId+participantIds+status`、`status+expiresAt`、`status` |
 | `invites` | `inviterId+createdAt`、`inviterId+inviterRewarded` |
 | `rank_snapshots` | `type+date` |
 | `arbitrations` | `marketId+status`、`status+endsAt`、`challenger.openid` |
-| `arbitration_votes` | `arbitrationId`、`openid` |
+| `arbitration_votes` | `arbitrationId`、`openid`、**`arbitrationId+openid`** |
 
 > `markets` 的 `status+deadline` 与 `bets` 的 `marketId+status` 直接影响首页列表与结算扫描的读成本，缺失会在数据量上来后拖慢云函数。

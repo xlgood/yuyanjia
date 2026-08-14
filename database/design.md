@@ -12,13 +12,14 @@
 | `_id` | string | openid（登录时写入） |
 | nickname | string | 昵称，默认「预言新人」 |
 | avatarUrl | string | 头像链接，可为空 |
-| points | number | 当前爻余额（初始 100） |
+| points | number | 当前爻余额（初始 100；总榜按此排序，见 getLeaderboard） |
 | streak | number | 当前连胜 |
 | bestStreak | number | 历史最高连胜 |
 | weekPoints | number | 本周获得爻（周榜） |
 | monthPoints | number | 本月获得爻（月榜） |
-| totalPoints | number | 累计净收益（不含本金返还，用于总榜） |
+| totalPoints | number | 累计净收益（不含本金返还；历史累计统计，非总榜排名依据） |
 | lastReliefAt | number | 上次破产补助时间戳 |
+| inviteCode | string | 不透明邀友码（8 位随机，分享链接对外使用；存量用户登录时惰性补发） |
 | invitedBy | string | 邀请人 openid（被邀请人注册时写入，为空表示无邀请归属） |
 | inviteRewarded | boolean | 是否已触发邀请人奖励（首次表态后置 true） |
 | inviteCount | number | 累计有效邀请人数 |
@@ -26,11 +27,12 @@
 | inviteRewardToday | number | 当日已发放邀请奖励次数 |
 | pkOpen | boolean | 是否允许被道友邀请 PK（默认 true） |
 | pkWins / pkLosses | number | PK 胜 / 负场次（结算时累加，用于胜率榜） |
+| lastArbAt | number | 最近一次发起公断的时间戳（事务内 CAS 冷却，防并发双创建） |
 | honors | string[] | 已解锁荣誉 ID 列表（自动解锁，不消耗爻） |
 | betCount / pkCount | number | 累计表态数 / 累计 PK 场数（荣誉里程碑判定用） |
 | createdAt / updatedAt | Date | 创建 / 更新时间 |
 
-建议索引（降序）：`streak`、`weekPoints`、`monthPoints`、`totalPoints`（榜单排序）。
+建议索引（降序）：`streak`、`weekPoints`、`monthPoints`、`totalPoints`、`points`（榜单排序；`inviteCode` 单字段由平台自动建索引）。
 
 ## 7. invites（邀请记录）
 
@@ -40,7 +42,7 @@
 | inviterId | string | 邀请人 openid |
 | inviteeId | string | 被邀请人 openid |
 | inviteeNickname | string | 被邀请人昵称快照 |
-| rewardToInviter | number | 邀请人可获奖励（50） |
+| rewardToInviter | number | 邀请人可获奖励（5，与 _shared/config.js INVITE_INVITER_POINTS 一致） |
 | inviterRewarded | boolean | 邀请人奖励是否已发放（被邀请人首次表态后） |
 | rewardedAt | Date | 奖励发放时间 |
 | source | string | `friend` / `group`（预留：分享渠道标记） |
@@ -222,7 +224,7 @@
 | arbitrationId / marketId | string | 关联仲裁与事件 |
 | openid | string | 投票人 |
 | side | string | `support` 支持仲裁 / `oppose` 否决仲裁 |
-| bond | number | 投票保证金（≥ 100，自定义投入） |
+| bond | number | 投票保证金（≥ 10，自定义投入整数爻，与 _shared/config.js VOTE_BOND_MIN 一致） |
 | isChallenger | boolean | 是否为发起人 |
 | createdAt | Date | 投票时间 |
 
