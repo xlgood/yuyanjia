@@ -56,10 +56,11 @@ exports.main = async (event) => {
         .get();
       if (pendingRes.data.length) throw new Error('您对该卦题已有未完成的对弈邀弈');
 
-      const pkId = '对弈' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
+      const pkId = 'PK' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
       const nowTs = Date.now();
       const pk = {
-        _id: pkId,
+        // 注意：data 中不允许携带 _id（doc(pkId).set 时 _id 由 doc id 指定，
+        // 否则报 -50100 invalid parameters）；返回给前端时再补 _id
         marketId,
         marketTitle: market.title,
         challengerId: OPENID,

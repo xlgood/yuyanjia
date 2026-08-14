@@ -135,7 +135,8 @@ exports.main = async (event) => {
 
       const arbId = 'ARB' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
       const arb = {
-        _id: arbId,
+        // 注意：data 中不允许携带 _id（doc(arbId).set 时 _id 由 doc id 指定，
+        // 否则报 -50100 invalid parameters）；返回给前端时再补 _id
         marketId,
         marketTitle: market.title,
         reason: reasonCheck.value,
