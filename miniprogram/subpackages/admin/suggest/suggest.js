@@ -16,7 +16,8 @@ Page({
     errorMsg: '',
     candidates: [],
     selected: {},
-    selectedCount: 0
+    selectedCount: 0,
+    selectAll: false
   },
 
   onLoad() {
@@ -71,6 +72,7 @@ Page({
           candidates: res.list || [],
           selected: {},
           selectedCount: 0,
+          selectAll: false,
           generated: true,
           mode: res.mode || '',
           fallbackReason: res.fallbackReason || '',
@@ -96,7 +98,24 @@ Page({
     const selected = Object.assign({}, this.data.selected);
     selected[id] = !selected[id];
     const selectedCount = Object.keys(selected).filter(k => selected[k]).length;
-    this.setData({ selected, selectedCount });
+    this.setData({
+      selected,
+      selectedCount,
+      selectAll: this.data.candidates.length > 0 && selectedCount === this.data.candidates.length
+    });
+  },
+
+  onSelectAll() {
+    const selectAll = !this.data.selectAll;
+    const selected = {};
+    if (selectAll) {
+      this.data.candidates.forEach(c => { selected[c._id] = true; });
+    }
+    this.setData({
+      selectAll,
+      selected,
+      selectedCount: Object.keys(selected).length
+    });
   },
 
   goPublish() {

@@ -62,6 +62,11 @@
       </view>
     </view>
 
+    <view class="op-row">
+      <view class="select-all" bindtap="onSelectAll">{{selectAll ? '☑ 取消全选' : '☐ 全选'}}</view>
+      <button class="again-btn" bindtap="onGenerate" disabled="{{generating}}">🔄 换一批</button>
+    </view>
+
     <view class="bottom-bar">
       <view class="bottom-row">
         <button class="single-btn" bindtap="goPublish" disabled="{{generating}}">单个发题</button>

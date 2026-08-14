@@ -168,6 +168,38 @@
   padding: 2rpx 12rpx;
 }
 
+.op-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin: 8rpx 0 16rpx;
+}
+
+.select-all {
+  flex: 1;
+  padding: 14rpx 20rpx;
+  background: #faf6ec;
+  border: 1rpx solid #e7dcc4;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  color: #6f6552;
+  text-align: center;
+}
+
+.again-btn {
+  flex: 1;
+  background: #faf0d7;
+  color: #9c2f22;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+.again-btn[disabled] {
+  background: #c3cbe0;
+  color: #ffffff;
+}
+
 .bottom-bar {
   position: sticky;
   bottom: 0;
