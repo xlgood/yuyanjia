@@ -3,7 +3,7 @@ const cloud = require('wx-server-sdk');
 // 业务常量单一来源：cloudfunctions/_shared/config.js（npm run sync:common 同步）
 const { INIT_POINTS, INVITE_INVITER_POINTS, INVITE_INVITEE_POINTS } = require('./common-config');
 // 邀友奖励附议环境变量覆盖（login/placeBet/inviteStats 共用同一组环境变量）
-const INVITEE_POINTS = Number(process.env.INVITE_INVITEE_POINTS) || INVITE_INVITEE_POINTS; // 被邀友人初入道加成
+const INVITEE_POINTS = Number(process.env.INVITE_INVITEE_POINTS) || INVITE_INVITEE_POINTS; // 被邀友人新人礼加成
 const INVITER_POINTS = Number(process.env.INVITE_INVITER_POINTS) || INVITE_INVITER_POINTS; // 邀友人奖励（首次应卦后发放，见 placeBet）
 // 每日计次上限 INVITE_DAILY_CAP 由 placeBet 在实际发奖时校验，本函数不再占用名额
 
@@ -141,7 +141,7 @@ exports.main = async (event) => {
         } catch (e2) { /* 不存在 */ }
         if (existing) return;
 
-        // 被邀友人初入道加成随档案一并落库（points 与周/月榜同步加成，
+        // 被邀友人新人礼加成随档案一并落库（points 与周/月榜同步加成，
         // 避免「响应 110 / 落库 100」不一致导致重登后余额跳变、按 110 下注被拒）
         await t.collection('users').doc(OPENID).set({
           data: Object.assign({}, user, {
@@ -174,7 +174,7 @@ exports.main = async (event) => {
       return { ok: false, err: '注册失败，请稍后重试' };
     }
 
-    // 事务已把初入道加成落库（含 points），这里同步返回对象的展示口径
+    // 事务已把新人礼加成落库（含 points），这里同步返回对象的展示口径
     if (inviteFrom) {
       user.invitedBy = inviteFrom;
       user.points = INIT_POINTS + INVITEE_POINTS;

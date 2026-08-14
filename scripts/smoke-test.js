@@ -277,7 +277,7 @@ async function main() {
   assert.strictEqual(sim.stats.totalInvites, before.stats.totalInvites + 1, '累计邀请应 +1');
   assert.strictEqual(sim.stats.rewardedCount, before.stats.rewardedCount + 1, '已得奖励应 +1');
   assert.strictEqual(sim.list[0].inviterRewarded, true);
-  assert.strictEqual(sim.list[0].inviteeNickname, '测试道友1');
+  assert.strictEqual(sim.list[0].inviteeNickname, '测试卦友1');
   const inviteAfter = await mock.call('inviteStats');
   assert.strictEqual(inviteAfter.stats.totalInvites, 1);
   assert.ok(inviteAfter.list.length === 1);

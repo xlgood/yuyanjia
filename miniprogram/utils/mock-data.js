@@ -232,7 +232,7 @@ function seedState() {
     { _id: 'u7', nickname: '吃瓜群众甲', avatarUrl: '', streak: 4, bestStreak: 5, weekPoints: 1200, monthPoints: 5100, totalPoints: 18700, points: 1200, inviteCode: 'UA7', inviteRewardDate: '', inviteRewardToday: 0 },
     { _id: 'u8', nickname: '理性分析菌', avatarUrl: '', streak: 3, bestStreak: 5, weekPoints: 900, monthPoints: 4300, totalPoints: 15600, points: 900, inviteCode: 'UA8', inviteRewardDate: '', inviteRewardToday: 0 },
     { _id: 'u9', nickname: '都市夜猫子', avatarUrl: '', streak: 2, bestStreak: 4, weekPoints: 600, monthPoints: 3200, totalPoints: 12100, points: 600, inviteCode: 'UA9', inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u10', nickname: '初入道上路', avatarUrl: '', streak: 1, bestStreak: 2, weekPoints: 300, monthPoints: 1800, totalPoints: 7600, points: 300, inviteCode: 'UA10', inviteRewardDate: '', inviteRewardToday: 0 }
+    { _id: 'u10', nickname: '新手上路', avatarUrl: '', streak: 1, bestStreak: 2, weekPoints: 300, monthPoints: 1800, totalPoints: 7600, points: 300, inviteCode: 'UA10', inviteRewardDate: '', inviteRewardToday: 0 }
   ];
 
   const dataSources = [
@@ -625,12 +625,12 @@ function call(name, data = {}) {
     }
 
     case 'simulateInvite': {
-      // 开发/演示用：模拟一位道友通过分享链接注册并完成首次应卦
+      // 开发/演示用：模拟一位卦友通过分享链接注册并完成首次应卦
       state.inviteeSeq = (state.inviteeSeq || 0) + 1;
       const inviteeId = 'MOCK_INVITEE_' + state.inviteeSeq;
       const invitee = {
         _id: inviteeId,
-        nickname: '测试道友' + state.inviteeSeq,
+        nickname: '测试卦友' + state.inviteeSeq,
         avatarUrl: '',
         avatar: ['🐼', '🦊', '🐯', '🦁'][(state.inviteeSeq - 1) % 4],
         points: 0,
@@ -890,7 +890,7 @@ function call(name, data = {}) {
     }
 
     case 'simulatePkChallenge': {
-      // 开发/演示用：模拟一位道友发起对弈邀弈
+      // 开发/演示用：模拟一位卦友发起对弈邀弈
       const marketId = String(data.marketId || 'M003');
       const market = findMarket(state, marketId);
       if (!market || market.status !== 'open') return { ok: false, err: '该卦题不可邀弈' };

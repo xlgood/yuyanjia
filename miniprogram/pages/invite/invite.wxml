@@ -2,12 +2,12 @@
   <wxs src="../../utils/avatar.wxs" module="av"/>
   <!-- 邀友奖励主视觉 -->
   <view class="card hero-card">
-    <view class="hero-title">🎁 邀友论卦，双方得爻</view>
-    <view class="hero-desc">道友通过你的链接注册并首次应卦，你得 {{inviterPoints}} 爻；道友首开即得 {{inviteePoints}} 初入道爻。</view>
+    <view class="hero-title">🎁 邀友参与，双方得爻</view>
+    <view class="hero-desc">卦友通过你的链接注册并首次应卦，你得 {{inviterPoints}} 爻；卦友首开即得 {{inviteePoints}} 新人礼爻。</view>
     <view class="reward-row">
       <view class="reward-box">
         <view class="reward-num">+{{inviteePoints}}</view>
-        <view class="reward-label">道友首开礼</view>
+        <view class="reward-label">卦友首开礼</view>
       </view>
       <view class="reward-arrow">→</view>
       <view class="reward-box">
@@ -16,9 +16,9 @@
       </view>
     </view>
     <button class="primary-btn share-main-btn" open-type="share" data-channel="group" hover-class="btn-hover">
-      📣 分享给道友 / 群
+      📣 分享给卦友 / 群
     </button>
-    <view class="share-tip">道友通过你分享的卡片打开小程序即自动记录邀友；分享到朋友圈请使用右上角「···」→ 分享到朋友圈。</view>
+    <view class="share-tip">卦友通过你分享的卡片打开小程序即自动记录邀友；分享到朋友圈请使用右上角「···」→ 分享到朋友圈。</view>
   </view>
 
   <!-- 邀友战绩 -->
@@ -44,14 +44,14 @@
     <view class="list-head">我的邀友记录</view>
     <view wx:if="{{list.length === 0}}" class="list-empty">
       <view class="empty-icon">🌱</view>
-      <view>还没有道友通过你的邀友加入，快分享出去吧</view>
+      <view>还没有卦友通过你的邀友加入，快分享出去吧</view>
     </view>
     <view class="invite-row" wx:for="{{list}}" wx:key="inviteeId">
       <image wx:if="{{av.img(item.invitee.avatar)}}" class="invite-avatar" src="{{av.img(item.invitee.avatar)}}" mode="aspectFill"/>
       <view wx:else class="invite-avatar">{{item.invitee.avatar || '🔮'}}</view>
       <view class="invite-info">
         <view class="invite-name">{{item.invitee.nickname}}</view>
-        <view class="invite-time">{{item.inviterRewarded ? '已完成首次应卦，奖励已发放' : '等待道友完成首次应卦'}}</view>
+        <view class="invite-time">{{item.inviterRewarded ? '已完成首次应卦，奖励已发放' : '等待卦友完成首次应卦'}}</view>
       </view>
       <view class="invite-status {{item.inviterRewarded ? 'done' : 'pending'}}">
         {{item.inviterRewarded ? '+' + item.rewardToInviter : '待完成'}}
@@ -59,12 +59,12 @@
     </view>
   </view>
 
-  <!-- Mock 模式：模拟道友加入（演示裂变链路） -->
+  <!-- Mock 模式：模拟卦友加入（演示裂变链路） -->
   <view class="card dev-card" wx:if="{{isMock && !compliance}}">
     <view class="dev-title">🛠️ 开发者模拟（本地测试）</view>
-    <view class="dev-tip">模拟一位道友通过你的链接注册并完成首次应卦，验证邀友奖励链路。</view>
+    <view class="dev-tip">模拟一位卦友通过你的链接注册并完成首次应卦，验证邀友奖励链路。</view>
     <button class="dev-btn" bindtap="onSimulateInvite" disabled="{{simulating}}">
-      {{simulating ? '模拟中...' : '模拟道友加入'}}
+      {{simulating ? '模拟中...' : '模拟卦友加入'}}
     </button>
   </view>
 

@@ -117,7 +117,7 @@
       </button>
       <button class="pk-btn" bindtap="onCreatePk" disabled="{{submitting}}">
         <view class="pk-btn-title">⚔️ 发起对弈邀弈</view>
-        <view class="pk-btn-sub">邀友论卦应弈，双方立场相反</view>
+        <view class="pk-btn-sub">邀友参与应弈，双方立场相反</view>
       </button>
     </block>
   </view>

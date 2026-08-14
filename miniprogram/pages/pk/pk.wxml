@@ -15,7 +15,7 @@
     <view class="empty" wx:if="{{inbox.length === 0}}">
       <view class="empty-icon">🛡️</view>
       <view>暂无收到的邀弈</view>
-      <view class="empty-sub">去卦题详情页邀弈，或分享 对弈中心邀友论卦来战</view>
+      <view class="empty-sub">去卦题详情页邀弈，或分享 对弈中心邀友参与来战</view>
     </view>
     <view
       class="card pk-card {{highlightPk === item._id ? 'highlight' : ''}}"
@@ -86,8 +86,8 @@
 
   <view class="card dev-card" wx:if="{{isMock}}">
     <view class="dev-title">🛠️ 开发者模拟（本地测试）</view>
-    <view class="dev-tip">模拟道友向你发起对弈，验证应弈/拒绝流程。</view>
-    <button class="dev-btn" bindtap="onSimulateChallenge">模拟道友邀弈</button>
+    <view class="dev-tip">模拟卦友向你发起对弈，验证应弈/拒绝流程。</view>
+    <button class="dev-btn" bindtap="onSimulateChallenge">模拟卦友邀弈</button>
   </view>
 
   <view class="footnote">对弈 双方必须持相反立场，断卦与结卦沿用卦题卦题规则。爻为虚拟积分，不可兑换现金或实物。</view>

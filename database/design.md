@@ -25,7 +25,7 @@
 | inviteCount | number | 累计有效邀请人数 |
 | inviteRewardDate | string | 最近发放邀请奖励的日期（YYYY-MM-DD，每日限额用） |
 | inviteRewardToday | number | 当日已发放邀请奖励次数 |
-| pkOpen | boolean | 是否允许被道友邀请 PK（默认 true） |
+| pkOpen | boolean | 是否允许被卦友邀请 PK（默认 true） |
 | pkWins / pkLosses | number | PK 胜 / 负场次（结算时累加，用于胜率榜） |
 | lastArbAt | number | 最近一次发起公断的时间戳（事务内 CAS 冷却，防并发双创建） |
 | honors | string[] | 已解锁荣誉 ID 列表（自动解锁，不消耗爻） |
@@ -50,7 +50,7 @@
 
 建议索引：`inviterId + createdAt`（邀请记录列表）、`inviterId + inviterRewarded`（统计）。
 
-## 8. pks（道友 PK 对战）
+## 8. pks（卦友 PK 对战）
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |

@@ -38,7 +38,7 @@ Page({
       });
   },
 
-  // Mock 模式专用：模拟一位道友注册并首次应卦，验证奖励链路
+  // Mock 模式专用：模拟一位卦友注册并首次应卦，验证奖励链路
   onSimulateInvite() {
     if (this.data.simulating) return;
     this.setData({ simulating: true });
@@ -59,7 +59,7 @@ Page({
   onShowRules() {
     wx.showModal({
       title: '邀友规则',
-      content: `① 分享邀友链接给道友，道友首次打开并完成一次应卦，您可获得 ${this.data.inviterPoints} 爻；\n② 道友通过您的链接首次注册，额外获得 ${this.data.inviteePoints} 初入道爻；\n③ 您每日最多 ${this.data.dailyCap} 次有效邀友；\n④ 爻为平台虚拟积分，仅用于参与卦题与兑换虚拟卦勋。`,
+      content: `① 分享邀友链接给卦友，卦友首次打开并完成一次应卦，您可获得 ${this.data.inviterPoints} 爻；\n② 卦友通过您的链接首次注册，额外获得 ${this.data.inviteePoints} 新人礼爻；\n③ 您每日最多 ${this.data.dailyCap} 次有效邀友；\n④ 爻为平台虚拟积分，仅用于参与卦题与兑换虚拟卦勋。`,
       showCancel: false,
       confirmText: '知道了'
     });

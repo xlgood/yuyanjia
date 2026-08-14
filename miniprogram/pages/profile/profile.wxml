@@ -63,7 +63,7 @@
   <view class="card menu-card">
     <view class="menu-item pk-toggle-row">
       <text class="menu-icon">⚔️</text>
-      <text class="menu-text">允许道友向我发起对弈</text>
+      <text class="menu-text">允许卦友向我发起对弈</text>
       <switch checked="{{pkOpen}}" bindchange="onTogglePkOpen" color="#c03a2b" />
     </view>
     <view class="menu-item" bindtap="goPk">
@@ -115,7 +115,7 @@
     </view>
     <view class="menu-item" bindtap="goInvite">
       <text class="menu-icon">📣</text>
-      <text class="menu-text">邀友论卦，双方各得 {{invitePoints}} 爻</text>
+      <text class="menu-text">邀友参与，双方各得 {{invitePoints}} 爻</text>
       <text class="menu-sub" wx:if="{{inviteTotal > 0}}">已邀友 {{inviteTotal}} 人</text>
       <text class="menu-arrow">›</text>
     </view>

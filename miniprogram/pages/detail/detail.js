@@ -447,7 +447,7 @@ Page({
             getApp().setUser(result.user);
             wx.showModal({
               title: '邀弈已发出',
-              content: '把 对弈中心分享给道友，对方接受后双方立场锁定，等待卦题断卦自动结卦。',
+              content: '把 对弈中心分享给卦友，对方接受后双方立场锁定，等待卦题断卦自动结卦。',
               showCancel: false,
               confirmText: '去分享',
               success: () => {

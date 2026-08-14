@@ -155,11 +155,11 @@ Page({
     wx.navigateTo({ url: `/pages/detail/detail?id=${id}` });
   },
 
-  // Mock 模式：模拟一位道友邀弈（演示收到邀弈 → 应弈/拒绝）
+  // Mock 模式：模拟一位卦友邀弈（演示收到邀弈 → 应弈/拒绝）
   onSimulateChallenge() {
     wx.showModal({
-      title: '模拟道友邀弈',
-      content: '模拟一位道友对「LPL 首局大龙」发起对弈邀弈（投入 100 爻、立场为正），可在下方接受或拒绝。',
+      title: '模拟卦友邀弈',
+      content: '模拟一位卦友对「LPL 首局大龙」发起对弈邀弈（投入 100 爻、立场为正），可在下方接受或拒绝。',
       success: res => {
         if (!res.confirm) return;
         api.call('simulatePkChallenge', {
