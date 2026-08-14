@@ -1,0 +1,2 @@
+{"_id":"SRC-GITHUB-TRENDING","name":"GitHub Trending（官方 API）","category":"科技数码","type":"api","access":"free","url":"https://api.github.com/search/repositories","notes":"官方公开 API（未认证限 10 次/分钟），近 7 天 star 增长热门仓库；用于定时选题素材与科技类事件判定","status":"verified"}
+{"_id":"SRC-HN-API","name":"Hacker News（官方 API）","category":"科技数码","type":"api","access":"free","url":"https://hacker-news.firebaseio.com/v0","notes":"官方公开 Firebase API，全球科技热帖实时榜；用于定时选题素材与科技/趣味类事件判定","status":"verified"}
