@@ -32,13 +32,19 @@ App({
 
   login(inviteCode) {
     const api = require('./utils/api');
-    return api.login(inviteCode ? { invite: inviteCode } : {}).then(user => {
+    // 启动期多个页面 onShow 可能并发触发 login：复用 in-flight 请求，
+    // 避免重复云调用（login 内还串联 checkHonors，成本更高）
+    if (this._loginPromise) return this._loginPromise;
+    this._loginPromise = api.login(inviteCode ? { invite: inviteCode } : {}).then(user => {
+      this._loginPromise = null;
       this.setUser(user);
       return user;
     }).catch(err => {
+      this._loginPromise = null;
       console.error('[预测卦局] 登录失败', err);
       return null;
     });
+    return this._loginPromise;
   },
 
   // 各页面操作（应卦/问签/兑换等）拿到最新用户后统一走这里更新缓存

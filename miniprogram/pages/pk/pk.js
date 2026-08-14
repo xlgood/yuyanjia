@@ -38,7 +38,7 @@ Page({
   },
 
   onReachBottom() {
-    if (this.data.tab === 'mine' && this.data.hasMore && !this.data.loadingMore) {
+    if (this.data.tab === 'mine' && this.data.hasMore && !this.data.loadingMore && !this.data.loading) {
       this.loadMore();
     }
   },
@@ -49,9 +49,13 @@ Page({
   },
 
   refresh(append) {
+    // 竞态守卫：onShow 刷新与 loadMore 并发时，过期响应直接丢弃
+    this.loadSeq = (this.loadSeq || 0) + 1;
+    const seq = this.loadSeq;
     if (!append) this.setData({ page: 1 });
     api.myPks({ page: this.data.page, pageSize: this.data.pageSize })
       .then(res => {
+        if (seq !== this.loadSeq) return; // 过期响应
         this.setData({
           inbox: (res.inbox || []).map(pk => this.decorate(pk)),
           list: append
@@ -64,6 +68,7 @@ Page({
         });
       })
       .catch(err => {
+        if (seq !== this.loadSeq) return;
         this.setData({ loading: false, loadingMore: false });
         wx.showToast({ title: err.message || '加载失败', icon: 'none' });
       });
@@ -154,7 +159,7 @@ Page({
   onSimulateChallenge() {
     wx.showModal({
       title: '模拟道友邀弈',
-      content: '模拟一位道友对「LPL 首局大龙」发起 对弈 邀弈（投入 100 爻、立场为正），可在下方接受或拒绝。',
+      content: '模拟一位道友对「LPL 首局大龙」发起对弈邀弈（投入 100 爻、立场为正），可在下方接受或拒绝。',
       success: res => {
         if (!res.confirm) return;
         api.call('simulatePkChallenge', {
@@ -171,7 +176,7 @@ Page({
   },
 
   onShareAppMessage() {
-    return share.appShare('⚔️ 我在「预测卦局」发起了 对弈 邀弈，敢来应弈吗？', '/pages/pk/pk');
+    return share.appShare('⚔️ 我在「预测卦局」发起了 对弈邀弈，敢来应弈吗？', '/pages/pk/pk');
   },
 
   onShareTimeline() {

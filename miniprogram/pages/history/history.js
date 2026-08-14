@@ -14,11 +14,12 @@ Page({
   },
 
   onShow() {
+    this.loadSeq = this.loadSeq || 0;
     this.load();
   },
 
   onReachBottom() {
-    if (this.data.hasMore && !this.data.loadingMore) {
+    if (this.data.hasMore && !this.data.loadingMore && !this.data.loading) {
       this.loadMore();
     }
   },
@@ -33,9 +34,13 @@ Page({
   },
 
   load(done, append) {
+    // 竞态守卫：onShow 刷新与 loadMore 并发时，过期响应直接丢弃
+    this.loadSeq = (this.loadSeq || 0) + 1;
+    const seq = this.loadSeq;
     if (!append) this.setData({ loading: true, page: 1 });
     api.getMyRecords({ page: this.data.page, pageSize: this.data.pageSize })
       .then(res => {
+        if (seq !== this.loadSeq) return; // 过期响应
         const pageList = (res.list || []).map(b => Object.assign({}, b, {
           createdAtText: fmt.formatDate(b.createdAt),
           statusText: BET_STATUS[b.status] || b.status,
@@ -51,6 +56,7 @@ Page({
         });
       })
       .catch(err => {
+        if (seq !== this.loadSeq) return;
         this.setData({ loading: false, loadingMore: false });
         wx.showToast({ title: err.message || '加载失败', icon: 'none' });
       })

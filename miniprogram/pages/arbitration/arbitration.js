@@ -1,8 +1,7 @@
 const api = require('../../utils/api');
 const config = require('../../utils/config');
 const fmt = require('../../utils/format');
-
-const VOTE_BOND_MIN = 100;
+const { VOTE_BOND_MIN } = require('../../utils/constants');
 
 Page({
   data: {
@@ -12,6 +11,7 @@ Page({
     eligible: false,
     loading: true,
     bond: VOTE_BOND_MIN,
+    minBond: VOTE_BOND_MIN,
     submitting: false,
     isMock: config.USE_MOCK
   },
@@ -27,8 +27,27 @@ Page({
 
   refresh() {
     if (!this.data.id) {
-      // 无 ID：加载最近一个公断（从详情页/我的页进入）
-      this.setData({ loading: false });
+      // 无 ID（从「我的-公断阁」进入）：加载我最近参与的公断
+      this.setData({ loading: true });
+      api.getArbitration({})
+        .then(res => {
+          const arb = res.arbitration;
+          if (!arb) {
+            this.setData({ arbitration: null, myVote: null, eligible: false, loading: false });
+            return;
+          }
+          this.setData({ id: arb.marketId || '' });
+          this.setData({
+            arbitration: this.decorate(arb),
+            myVote: res.myVote || null,
+            eligible: !!res.eligible,
+            loading: false
+          });
+        })
+        .catch(err => {
+          this.setData({ loading: false });
+          wx.showToast({ title: err.message || '加载失败', icon: 'none' });
+        });
       return;
     }
     api.getArbitration({ marketId: this.data.id })
@@ -59,7 +78,7 @@ Page({
       opposeRate: (arb.supportVotes + arb.opposeVotes) > 0
         ? Math.round((arb.opposeVotes / (arb.supportVotes + arb.opposeVotes)) * 100) + '%'
         : '--',
-      minVotesText: `需总票数 ≥ ${arb.minVotes}（参与 ${arb.participantCount} 人 × 10%），且附议票 > 反对票`,
+      minVotesText: `结卦条件：附议票 > 反对票，总票数 ≥ ${arb.minVotes}（参与 ${arb.participantCount} 人 × 10%），且附议 ≥ 2 票、反对 ≥ 1 票`,
       statusText: arb.status === 'pending' ? '昭示中' : (arb.status === 'settled' ? '已结束' : arb.status)
     });
   },
@@ -72,7 +91,9 @@ Page({
   },
 
   onBondInput(e) {
-    this.setData({ bond: Number(e.detail.value) || 0 });
+    // 只接受整数爻数（输入框 type="digit" 不含小数点；这里再兜一层）
+    const num = Number(e.detail.value);
+    this.setData({ bond: (Number.isInteger(num) && num > 0) ? num : 0 });
   },
 
   onVote(e) {
@@ -83,8 +104,8 @@ Page({
       wx.showToast({ title: '公断已结束', icon: 'none' });
       return;
     }
-    if (bond < VOTE_BOND_MIN) {
-      wx.showToast({ title: `保证金至少 ${VOTE_BOND_MIN} 爻`, icon: 'none' });
+    if (!Number.isInteger(bond) || bond < VOTE_BOND_MIN) {
+      wx.showToast({ title: `保证金必须为整数，且至少 ${VOTE_BOND_MIN} 爻`, icon: 'none' });
       return;
     }
     wx.showModal({

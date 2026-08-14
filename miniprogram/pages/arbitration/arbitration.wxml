@@ -49,8 +49,8 @@
       <view class="sec-label">参与附议（需缴纳保证金）</view>
       <view class="bond-row">
         <text class="bond-label">保证金</text>
-        <input class="bond-input" type="number" value="{{bond}}" bindinput="onBondInput" />
-        <text class="bond-unit">爻（≥ 100）</text>
+        <input class="bond-input" type="digit" value="{{bond}}" bindinput="onBondInput" />
+        <text class="bond-unit">爻（整数，≥ {{minBond}}）</text>
       </view>
       <view class="vote-btns">
         <button class="vote-btn oppose" data-side="oppose" bindtap="onVote" disabled="{{!eligible || submitting}}">👎 反对公断</button>

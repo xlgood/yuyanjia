@@ -30,6 +30,7 @@ Page({
   },
 
   onLoad() {
+    this.loadSeq = 0;
     if (!this.maybeSwitchToPk()) {
       this.load();
     }
@@ -61,6 +62,8 @@ Page({
   },
 
   onLoadMore() {
+    // 去抖：加载中不重复触发
+    if (this.data.loading || this.data.loadingMore) return;
     this.setData({ limit: this.data.limit + 50 });
     this.load();
   },
@@ -73,13 +76,16 @@ Page({
   },
 
   load(done) {
-    this.setData({ loading: true });
-    const isPk = this.data.activeTab === 'pk';
-    this.setData({ isPk });
-    const req = isPk ? api.pkLeaderboard() : api.getLeaderboard({ type: this.data.activeTab, limit: this.data.limit });
+    // 竞态守卫：快速切榜时过期响应直接丢弃，且 isPk 与响应映射取同一口径
+    const seq = ++this.loadSeq;
+    const reqTab = this.data.activeTab;
+    const isPk = reqTab === 'pk';
+    this.setData({ loading: true, isPk });
+    const req = isPk ? api.pkLeaderboard() : api.getLeaderboard({ type: reqTab, limit: this.data.limit });
     req
       .then(res => {
-        const tab = TABS.find(t => t.key === this.data.activeTab) || TABS[0];
+        if (seq !== this.loadSeq) return; // 过期响应
+        const tab = TABS.find(t => t.key === reqTab) || TABS[0];
         const list = (res.list || []).map((item, i) => isPk
           ? {
               rank: i + 1,
@@ -107,6 +113,7 @@ Page({
         this.setData({ list, total: res.totalCount || res.list.length || 0, loading: false });
       })
       .catch(err => {
+        if (seq !== this.loadSeq) return;
         this.setData({ loading: false });
         wx.showToast({ title: err.message || '加载失败', icon: 'none' });
       })

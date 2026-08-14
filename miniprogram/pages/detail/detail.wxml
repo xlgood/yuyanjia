@@ -105,8 +105,8 @@
         <text class="custom-label">自定义</text>
         <input
           class="custom-input"
-          type="number"
-          placeholder="输入任意爻"
+          type="digit"
+          placeholder="输入任意爻（整数）"
           value="{{customAmount}}"
           bindinput="onCustomAmount"
         />
@@ -116,7 +116,7 @@
         {{submitting ? '提交中...' : '确认附议 ' + (selectedAmount || 0) + ' 爻'}}
       </button>
       <button class="pk-btn" bindtap="onCreatePk" disabled="{{submitting}}">
-        <view class="pk-btn-title">⚔️ 发起 对弈 邀弈</view>
+        <view class="pk-btn-title">⚔️ 发起对弈邀弈</view>
         <view class="pk-btn-sub">邀友论卦应弈，双方立场相反</view>
       </button>
     </block>
@@ -142,18 +142,19 @@
     <view class="voted-payout" wx:if="{{myBet.status === 'refunded'}}">池数据异常，爻已原路退回。</view>
   </view>
 
-  <!-- 公断入口 -->
-  <view class="card arbitration-card" wx:if="{{market.status === 'dispute_window' && myBet}}">
+  <!-- 公断入口（与服务端一致：不要求本卦已应卦，仅要求资格与人数门槛） -->
+  <view class="card arbitration-card" wx:if="{{market.status === 'dispute_window'}}">
     <view class="action-title">⚖️ 对断卦结果有异议？</view>
     <view class="arb-tip" wx:if="{{arbRuleOpen}}">
-      <block wx:if="{{participantCount < 10}}">该卦题应卦人数 {{participantCount}} 人，不足 10 人，暂无法发起社区公断。</block>
+      <block wx:if="{{!arbEligible}}">公断参与资格：已结卦应卦 ≥ 5 次或已结卦 对弈 ≥ 3 场，当前不满足。</block>
+      <block wx:elif="{{participantCount < 10}}">该卦题应卦人数 {{participantCount}} 人，不足 10 人，暂无法发起社区公断。</block>
       <block wx:elif="{{activeArbitration}}">该卦题已有进行中的公断，点击进入公断阁查看附议进展。</block>
       <block wx:else>发起公断需锁定当前全部爻作为保证金，昭示 24 小时由社区附议决定是否推翻断卦。</block>
     </view>
     <button
       class="primary-btn"
       bindtap="onArbitrationAction"
-      disabled="{{!isMock && participantCount < 10}}"
+      disabled="{{!isMock && (!arbEligible || participantCount < 10)}}"
     >{{activeArbitration ? '查看公断进展' : '发起社区公断'}}</button>
     <view class="arb-rule-toggle" bindtap="toggleArbRule">{{arbRuleOpen ? '收起公断规则 ▴' : '查看公断规则 ▾'}}</view>
   </view>
@@ -219,7 +220,9 @@
   <view class="card arbitration-card" wx:if="{{market.status === 'dispute_window' && arbitration && arbitration.status === 'settled'}}">
     <view class="action-title">⚖️ 公断已结束</view>
     <view class="arb-tip">
-      {{arbitration.winner === 'support' ? '公断成立，断卦已翻转为' + (market.result === 'YES' ? '反' : '正') : '公断未成立，维持原断卦'}}
+      <block wx:if="{{arbitration.winner === 'no_bet'}}">公断无有效对赌，所有保证金已原路退回，维持原断卦。</block>
+      <block wx:elif="{{arbitration.winner === 'support'}}">公断成立，断卦已翻转为{{market.result === 'YES' ? '反' : '正'}}</block>
+      <block wx:else>公断未成立，维持原断卦</block>
     </view>
     <button class="primary-btn" bindtap="goArbitration">查看公断详情</button>
   </view>

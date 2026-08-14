@@ -39,6 +39,8 @@ Page({
     this.setData({ id });
     // onLoad 后紧跟的首次 onShow 不再重复加载（修复双请求）
     this._skipNextShow = true;
+    // 竞态守卫：快速进出/重复刷新时丢弃过期响应
+    this.loadSeq = 0;
     this.refreshUser();
     this.loadDetail();
     this.startCountdown();
@@ -72,15 +74,17 @@ Page({
     const now = Date.now();
     let target = 0;
     // 倒计时只输出纯时间，标签（距截止/昭示剩余）由模板统一提供，避免重复拼接
+    // 时间字段统一走 fmt.toNumber，兼容 number/string/Date/{$date} 多种形态
     if (m.status === 'open' && m.deadline) {
-      target = m.deadline;
+      target = fmt.toNumber(m.deadline);
     } else if (m.status === 'dispute_window' && m.disputeEndsAt) {
-      target = m.disputeEndsAt;
+      target = fmt.toNumber(m.disputeEndsAt);
     } else {
       // 非倒计时状态：清掉显示（避免残留旧文案）
       if (m.countdownText) this.setData({ 'market.countdownText': '' });
       return;
     }
+    if (!target) return;
     const remain = target - now;
     if (remain <= 0) {
       // 到点：刷新详情，让状态推进（locked → 断卦 / 昭示 → 结卦由云函数定时器处理）
@@ -126,8 +130,10 @@ Page({
       this.setData({ loading: false });
       return;
     }
+    const seq = ++this.loadSeq;
     api.getMarketDetail({ marketId: this.data.id })
       .then(res => {
+        if (seq !== this.loadSeq) return; // 过期响应
         const pollChoice = wx.getStorageSync('poll_' + this.data.id) || '';
         this.setData({
           market: res.market ? this.decorate(res.market) : null,
@@ -141,6 +147,7 @@ Page({
         this.loadArbitration();
       })
       .catch(err => {
+        if (seq !== this.loadSeq) return;
         this.setData({ loading: false });
         wx.showToast({ title: err.message || '加载失败', icon: 'none' });
       });
@@ -275,12 +282,23 @@ Page({
   },
 
   onCustomAmount(e) {
+    // 爻数必须为整数：输入框 type="digit" 不含小数点，这里再兜一层
+    // （小数如 10.5 不再被 parseInt 静默截断成 10，而是按无效处理）
     const val = e.detail.value;
-    const num = parseInt(val, 10);
+    const num = Number(val);
+    const valid = Number.isInteger(num) && num > 0;
     this.setData({
       customAmount: val,
-      selectedAmount: !isNaN(num) && num > 0 ? num : 0
+      selectedAmount: valid ? num : 0
     });
+  },
+
+  // 自定义金额是否合法（整数且 > 0）；用于提交前的明确提示
+  customAmountInvalid() {
+    const raw = String(this.data.customAmount || '').trim();
+    if (!raw) return false; // 未使用自定义金额
+    const num = Number(raw);
+    return !(Number.isInteger(num) && num > 0);
   },
 
   onConfirmBet() {
@@ -296,6 +314,10 @@ Page({
     }
     if (!selectedChoice) {
       wx.showToast({ title: '请先定下您的卦意', icon: 'none' });
+      return;
+    }
+    if (this.customAmountInvalid()) {
+      wx.showToast({ title: '爻数必须为整数', icon: 'none' });
       return;
     }
     const amount = Number(selectedAmount);
@@ -397,11 +419,15 @@ Page({
   onCreatePk() {
     const { market, selectedChoice, selectedAmount, customAmount } = this.data;
     if (!market || market.status !== 'open') {
-      wx.showToast({ title: '该卦题已截止，无法发起 对弈', icon: 'none' });
+      wx.showToast({ title: '该卦题已截止，无法发起对弈', icon: 'none' });
       return;
     }
     if (!selectedChoice) {
       wx.showToast({ title: '请先定下您的卦意（应 / 否）', icon: 'none' });
+      return;
+    }
+    if (this.customAmountInvalid()) {
+      wx.showToast({ title: '爻数必须为整数', icon: 'none' });
       return;
     }
     const amount = customAmount ? Number(customAmount) : selectedAmount;
@@ -410,7 +436,7 @@ Page({
       return;
     }
     wx.showModal({
-      title: '发起 对弈 邀弈',
+      title: '发起对弈邀弈',
       content: `以「${selectedChoice === 'YES' ? '正' : '反'}」立场邀弈，投入 ${amount} 爻？对方应弈后将锁定反向立场，爻先入卦题池，断卦后按分卦规则结卦。`,
       confirmText: '发起',
       success: res => {
@@ -421,7 +447,7 @@ Page({
             getApp().setUser(result.user);
             wx.showModal({
               title: '邀弈已发出',
-              content: '把 对弈 中心分享给道友，对方接受后双方立场锁定，等待卦题断卦自动结卦。',
+              content: '把 对弈中心分享给道友，对方接受后双方立场锁定，等待卦题断卦自动结卦。',
               showCancel: false,
               confirmText: '去分享',
               success: () => {

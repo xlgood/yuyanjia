@@ -29,6 +29,9 @@ Page({
     this._skipNextShow = true;
     this.refreshUser();
     this.loadMarkets();
+    // 首次进入也启动列表倒计时（onShow 的首次被 _skipNextShow 跳过，
+    // 若不在这里启动，首屏剩余时间将永不刷新，直到离开再返回）
+    this.startRemainTicker();
   },
 
   onShow() {
@@ -115,8 +118,9 @@ Page({
 
   // 列表轻量倒计时（分钟级，60s 刷新一次）
   remainText(ts) {
-    if (!ts) return '';
-    const remain = ts - Date.now();
+    const t = fmt.toNumber(ts);
+    if (!t) return '';
+    const remain = t - Date.now();
     if (remain <= 0) return '已截止';
     const d = Math.floor(remain / 86400000);
     const h = Math.floor((remain % 86400000) / 3600000);

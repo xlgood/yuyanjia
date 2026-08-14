@@ -223,16 +223,16 @@ function seedState() {
   });
 
   const users = [
-    { _id: 'u1', nickname: '诸葛·卦友', avatarUrl: '', streak: 12, bestStreak: 15, weekPoints: 3200, monthPoints: 12800, totalPoints: 45600, points: 3200, inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u2', nickname: '数码极客阿杰', avatarUrl: '', streak: 9, bestStreak: 11, weekPoints: 2850, monthPoints: 10400, totalPoints: 38900, points: 2850, inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u3', nickname: '猫眼老影迷', avatarUrl: '', streak: 8, bestStreak: 9, weekPoints: 2400, monthPoints: 9600, totalPoints: 33200, points: 2400, inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u4', nickname: '篮球先知老王', avatarUrl: '', streak: 7, bestStreak: 8, weekPoints: 2100, monthPoints: 8800, totalPoints: 30100, points: 2100, inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u5', nickname: 'LPL 观察员', avatarUrl: '', streak: 6, bestStreak: 7, weekPoints: 1900, monthPoints: 7200, totalPoints: 26800, points: 1900, inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u6', nickname: '气象小达人', avatarUrl: '', streak: 5, bestStreak: 6, weekPoints: 1600, monthPoints: 6500, totalPoints: 22400, points: 1600, inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u7', nickname: '吃瓜群众甲', avatarUrl: '', streak: 4, bestStreak: 5, weekPoints: 1200, monthPoints: 5100, totalPoints: 18700, points: 1200, inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u8', nickname: '理性分析菌', avatarUrl: '', streak: 3, bestStreak: 5, weekPoints: 900, monthPoints: 4300, totalPoints: 15600, points: 900, inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u9', nickname: '都市夜猫子', avatarUrl: '', streak: 2, bestStreak: 4, weekPoints: 600, monthPoints: 3200, totalPoints: 12100, points: 600, inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u10', nickname: '初入道上路', avatarUrl: '', streak: 1, bestStreak: 2, weekPoints: 300, monthPoints: 1800, totalPoints: 7600, points: 300, inviteRewardDate: '', inviteRewardToday: 0 }
+    { _id: 'u1', nickname: '诸葛·卦友', avatarUrl: '', streak: 12, bestStreak: 15, weekPoints: 3200, monthPoints: 12800, totalPoints: 45600, points: 3200, inviteCode: 'UA1', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u2', nickname: '数码极客阿杰', avatarUrl: '', streak: 9, bestStreak: 11, weekPoints: 2850, monthPoints: 10400, totalPoints: 38900, points: 2850, inviteCode: 'UA2', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u3', nickname: '猫眼老影迷', avatarUrl: '', streak: 8, bestStreak: 9, weekPoints: 2400, monthPoints: 9600, totalPoints: 33200, points: 2400, inviteCode: 'UA3', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u4', nickname: '篮球先知老王', avatarUrl: '', streak: 7, bestStreak: 8, weekPoints: 2100, monthPoints: 8800, totalPoints: 30100, points: 2100, inviteCode: 'UA4', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u5', nickname: 'LPL 观察员', avatarUrl: '', streak: 6, bestStreak: 7, weekPoints: 1900, monthPoints: 7200, totalPoints: 26800, points: 1900, inviteCode: 'UA5', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u6', nickname: '气象小达人', avatarUrl: '', streak: 5, bestStreak: 6, weekPoints: 1600, monthPoints: 6500, totalPoints: 22400, points: 1600, inviteCode: 'UA6', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u7', nickname: '吃瓜群众甲', avatarUrl: '', streak: 4, bestStreak: 5, weekPoints: 1200, monthPoints: 5100, totalPoints: 18700, points: 1200, inviteCode: 'UA7', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u8', nickname: '理性分析菌', avatarUrl: '', streak: 3, bestStreak: 5, weekPoints: 900, monthPoints: 4300, totalPoints: 15600, points: 900, inviteCode: 'UA8', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u9', nickname: '都市夜猫子', avatarUrl: '', streak: 2, bestStreak: 4, weekPoints: 600, monthPoints: 3200, totalPoints: 12100, points: 600, inviteCode: 'UA9', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u10', nickname: '初入道上路', avatarUrl: '', streak: 1, bestStreak: 2, weekPoints: 300, monthPoints: 1800, totalPoints: 7600, points: 300, inviteCode: 'UA10', inviteRewardDate: '', inviteRewardToday: 0 }
   ];
 
   const dataSources = [
@@ -270,6 +270,7 @@ function seedState() {
       betCount: 0,
       pkCount: 0,
       // 邀友裂变字段
+      inviteCode: 'MOCKCODE',
       invitedBy: '',
       inviteRewarded: false,
       inviteCount: 0,
@@ -296,7 +297,8 @@ function seedState() {
     streak: snapshotFor('streak', u => u.streak || 0, 7),
     week: snapshotFor('week', u => u.weekPoints || 0, 13),
     month: snapshotFor('month', u => u.monthPoints || 0, 4),
-    total: snapshotFor('total', u => u.monthPoints || 0, 4)
+    // 总榜与云端 getLeaderboard 一致：按当前爻余额 points 排名
+    total: snapshotFor('total', u => u.points || 0, 4)
   };
 
   return {
@@ -328,7 +330,8 @@ function buildMockSnapshots(me, users) {
     streak: mk('streak', u => u.streak || 0, 7),
     week: mk('week', u => u.weekPoints || 0, 13),
     month: mk('month', u => u.monthPoints || 0, 4),
-    total: mk('total', u => u.monthPoints || 0, 4)
+    // 总榜与云端 getLeaderboard 一致：按当前爻余额 points 排名
+    total: mk('total', u => u.points || 0, 4)
   };
 }
 
@@ -475,7 +478,7 @@ function checkHonorsForState(state) {
         case 'honor_invite_10': earned = (me.inviteCount || 0) >= 10; break;
       }
     } else if (h.type === 'rank') {
-      const fieldMap = { streak: 'streak', total: 'totalPoints' };
+      const fieldMap = { streak: 'streak', total: 'points' };
       const field = fieldMap[h.rankType];
       if (field) {
         const r = rankOf(field);
@@ -573,8 +576,9 @@ function call(name, data = {}) {
     case 'login': {
       const inviteCode = String((data && data.invite) || '');
       // 邀友链接进入：模拟“新用户通过邀友链接首次打开”（切换到新的被邀友人档案）
+      // 邀友参数兼容两种形态：不透明邀友码（inviteCode）或旧版 openid（_id）
       if (inviteCode && inviteCode !== MOCK_OPENID) {
-        const inviter = findUser(state, inviteCode);
+        const inviter = findUser(state, inviteCode) || state.users.find(u => u.inviteCode === inviteCode);
         if (inviter && !findUser(state, 'MOCK_INVITEE')) {
           const invitee = {
             _id: 'MOCK_INVITEE',
@@ -596,7 +600,8 @@ function call(name, data = {}) {
             avatarFrame: '',
             title: '',
             badges: [],
-            invitedBy: inviteCode,
+            inviteCode: 'INVITEE01',
+            invitedBy: inviter._id,
             inviteRewarded: false,
             inviteCount: 0,
             inviteRewardDate: '',
@@ -606,7 +611,7 @@ function call(name, data = {}) {
           state.users.push(invitee);
           state.user = invitee;
           state.invites.unshift({
-            inviterId: inviteCode,
+            inviterId: inviter._id,
             inviteeId: invitee._id,
             inviteeNickname: invitee.nickname,
             rewardToInviter: INVITE_INVITER_POINTS,
@@ -681,12 +686,12 @@ function call(name, data = {}) {
       if (!market || market.status !== 'open') return { ok: false, err: '该卦题已截止或正在结卦' };
       if (market.needsManualReview) return { ok: false, err: '该卦题已停止接收应卦' };
       if (choice !== 'YES' && choice !== 'NO') return { ok: false, err: '参数不合法' };
-      if (!Number.isInteger(amount) || amount < MIN_BET_AMOUNT) return { ok: false, err: `至少投入 ${MIN_BET_AMOUNT} 爻` };
+      if (!Number.isInteger(amount) || amount < MIN_BET_AMOUNT || amount > 100000) return { ok: false, err: `至少投入 ${MIN_BET_AMOUNT} 爻` };
       if (state.user.points < amount) return { ok: false, err: '爻不足' };
       const betKey = `${state.user._id}_${marketId}`;
-      if (state.bets[betKey]) return { ok: false, err: '您已参与过该卦题，不能重复发起 对弈' };
+      if (state.bets[betKey]) return { ok: false, err: '您已参与过该卦题，不能重复发起对弈' };
       if (state.pks.some(p => p.marketId === marketId && p.challengerId === state.user._id && p.status === 'pending')) {
-        return { ok: false, err: '您对该卦题已有未完成的 对弈 邀弈' };
+        return { ok: false, err: '您对该卦题已有未完成的对弈邀弈' };
       }
 
       state.pkSeq = (state.pkSeq || 0) + 1;
@@ -885,7 +890,7 @@ function call(name, data = {}) {
     }
 
     case 'simulatePkChallenge': {
-      // 开发/演示用：模拟一位道友发起 对弈 邀弈
+      // 开发/演示用：模拟一位道友发起对弈邀弈
       const marketId = String(data.marketId || 'M003');
       const market = findMarket(state, marketId);
       if (!market || market.status !== 'open') return { ok: false, err: '该卦题不可邀弈' };
@@ -946,15 +951,17 @@ function call(name, data = {}) {
     }
 
     case 'getMarkets': {
+      // 与云端一致：open / locked / dispute_window 均展示
+      const VISIBLE = ['open', 'locked', 'dispute_window'];
       if (data.hot) {
         const min = Number(data.minTotal) || 0;
         const list = state.markets
-          .filter(m => ['open', 'locked'].includes(m.status) && !m.needsManualReview && (m.yesPool || 0) + (m.noPool || 0) >= min)
+          .filter(m => VISIBLE.includes(m.status) && !m.needsManualReview && (m.yesPool || 0) + (m.noPool || 0) >= min)
           .sort((a, b) => ((b.yesPool || 0) + (b.noPool || 0)) - ((a.yesPool || 0) + (a.noPool || 0)));
         return { ok: true, list: clone(list) };
       }
       const category = data.category || '';
-      const list = state.markets.filter(m => ['open', 'locked'].includes(m.status) && !m.needsManualReview && (!category || m.category === category));
+      const list = state.markets.filter(m => VISIBLE.includes(m.status) && !m.needsManualReview && (!category || m.category === category));
       list.sort((a, b) => a.deadline - b.deadline);
       return { ok: true, list: clone(list) };
     }
@@ -987,8 +994,8 @@ function call(name, data = {}) {
       const participantCount = Object.keys(state.bets).filter(k => state.bets[k].marketId === marketId).length;
       if (participantCount < 10) return { ok: false, err: `该卦题应卦人数不足 10 人，暂反对社区公断（当前 ${participantCount} 人）` };
 
-      // 资格：已结卦应卦 ≥ 5 或 已结卦 对弈 ≥ 3
-      const settledBets = Object.keys(state.bets).filter(k => state.bets[k].openid === state.user._id && state.bets[k].status === 'won').length;
+      // 资格：已结卦应卦 ≥ 5 或 已结卦 对弈 ≥ 3（won/lost/refunded 均算已结卦，与云端一致）
+      const settledBets = Object.keys(state.bets).filter(k => state.bets[k].openid === state.user._id && ['won', 'lost', 'refunded'].includes(state.bets[k].status)).length;
       const settledPks = state.pks.filter(p => p.status === 'settled' && p.participantIds && p.participantIds.includes(state.user._id)).length;
       if (settledBets < 5 && settledPks < 3) {
         return { ok: false, err: '公断参与资格：需已结卦应卦 ≥ 5 次或已结卦 对弈 ≥ 3 场' };
@@ -1002,10 +1009,11 @@ function call(name, data = {}) {
       if (state.arbitrations.some(a => a.status === 'pending' && a.challenger.openid === state.user._id)) {
         return { ok: false, err: '您同时只能参与 1 个公断' };
       }
+      // 发起冷却：距上次发起（无论是否已结卦）不足 24 小时则拒绝（与云端一致）
       const lastArb = state.arbitrations
         .filter(a => a.challenger.openid === state.user._id)
         .sort((a, b) => b.createdAt - a.createdAt)[0];
-      if (lastArb && lastArb.status === 'pending' && now() - lastArb.createdAt < 24 * 3600 * 1000) {
+      if (lastArb && now() - lastArb.createdAt < 24 * 3600 * 1000) {
         return { ok: false, err: '24 小时内只能发起 1 次公断' };
       }
 
@@ -1042,10 +1050,27 @@ function call(name, data = {}) {
 
     case 'getArbitration': {
       const marketId = String(data.marketId || '');
-      const arb = state.arbitrations.filter(a => a.marketId === marketId).sort((a, b) => b.createdAt - a.createdAt)[0] || null;
+      // 无卦题（「公断阁」入口）：加载我最近参与的公断（发起或附议过）
+      let arb = null;
+      if (marketId) {
+        arb = state.arbitrations.filter(a => a.marketId === marketId).sort((a, b) => b.createdAt - a.createdAt)[0] || null;
+      } else {
+        arb = state.arbitrations
+          .filter(a => a.challenger.openid === state.user._id)
+          .sort((a, b) => b.createdAt - a.createdAt)[0] || null;
+        if (!arb) {
+          const voted = Object.keys(state.arbitrationVotes)
+            .filter(k => state.arbitrationVotes[k].openid === state.user._id)
+            .map(k => state.arbitrationVotes[k])
+            .sort((a, b) => b.createdAt - a.createdAt)[0];
+          if (voted && voted.arbitrationId) {
+            arb = state.arbitrations.find(a => a._id === voted.arbitrationId) || null;
+          }
+        }
+      }
       if (!arb) return { ok: true, arbitration: null, myVote: null, eligible: false };
       const myVote = state.arbitrationVotes[`${arb._id}_${state.user._id}`] || null;
-      const settledBets = Object.keys(state.bets).filter(k => state.bets[k].openid === state.user._id && state.bets[k].status === 'won').length;
+      const settledBets = Object.keys(state.bets).filter(k => state.bets[k].openid === state.user._id && ['won', 'lost', 'refunded'].includes(state.bets[k].status)).length;
       const settledPks = state.pks.filter(p => p.status === 'settled' && p.participantIds && p.participantIds.includes(state.user._id)).length;
       return {
         ok: true,
@@ -1066,7 +1091,7 @@ function call(name, data = {}) {
       if (side !== 'support' && side !== 'oppose') return { ok: false, err: '参数不合法' };
       if (bond < VOTE_BOND_MIN) return { ok: false, err: '附议保证金至少 ' + VOTE_BOND_MIN + ' 爻' };
 
-      const settledBets = Object.keys(state.bets).filter(k => state.bets[k].openid === state.user._id && state.bets[k].status === 'won').length;
+      const settledBets = Object.keys(state.bets).filter(k => state.bets[k].openid === state.user._id && ['won', 'lost', 'refunded'].includes(state.bets[k].status)).length;
       const settledPks = state.pks.filter(p => p.status === 'settled' && p.participantIds && p.participantIds.includes(state.user._id)).length;
       if (settledBets < 5 && settledPks < 3) {
         return { ok: false, err: '公断参与资格：需已结卦应卦 ≥ 5 次或已结卦 对弈 ≥ 3 场' };
@@ -1094,6 +1119,16 @@ function call(name, data = {}) {
       }
       save(state);
       return { ok: true, user: clone(state.user) };
+    }
+
+    // 测试辅助：把本人最近的公断发起时间拨回 24h 前（绕过发起冷却，冒烟测试用）
+    case 'mockResetArbitrationCooldown': {
+      const t = now() - 25 * 3600 * 1000;
+      state.arbitrations.forEach(a => {
+        if (a.challenger.openid === state.user._id) a.createdAt = t;
+      });
+      save(state);
+      return { ok: true };
     }
 
     case 'settleArbitration': {
@@ -1248,13 +1283,13 @@ function call(name, data = {}) {
       if (market.needsManualReview) return { ok: false, err: '该卦题已停止接收应卦' };
       if (!data.choice || (data.choice !== 'YES' && data.choice !== 'NO')) return { ok: false, err: '参数不合法' };
       const amount = Number(data.amount);
-      if (!Number.isInteger(amount) || amount < MIN_BET_AMOUNT) return { ok: false, err: `至少投入 ${MIN_BET_AMOUNT} 爻` };
+      if (!Number.isInteger(amount) || amount < MIN_BET_AMOUNT || amount > 100000) return { ok: false, err: `至少投入 ${MIN_BET_AMOUNT} 爻` };
       if (state.user.points < amount) return { ok: false, err: '爻不足' };
 
       const betId = `${state.user._id}_${market._id}`;
       if (state.bets[betId]) return { ok: false, err: '您已参与过该卦题' };
       if (state.pks.some(p => p.marketId === market._id && p.participantIds && p.participantIds.includes(state.user._id) && (p.status === 'pending' || p.status === 'accepted'))) {
-        return { ok: false, err: '您已参与该卦题的 对弈 邀弈，不能重复应卦' };
+        return { ok: false, err: '您已参与该卦题的对弈邀弈，不能重复应卦' };
       }
 
       state.user.points -= amount;
@@ -1282,6 +1317,7 @@ function call(name, data = {}) {
       let inviteRewardGranted = 0;
       if (state.user.invitedBy && !state.user.inviteRewarded) {
         const inviter = findUser(state, state.user.invitedBy);
+        const invite = findInvite(state, state.user.invitedBy, state.user._id);
         if (inviter) {
           const today = dayKey(now());
           const dailyUsed = inviter.inviteRewardDate === today ? (inviter.inviteRewardToday || 0) : 0;
@@ -1293,11 +1329,13 @@ function call(name, data = {}) {
             inviter.inviteRewardDate = today;
             inviter.inviteRewardToday = dailyUsed + 1;
             inviteRewardGranted = INVITE_INVITER_POINTS;
+            if (invite) invite.inviterRewarded = true;
+          } else {
+            // 达日上限：标记 rewardSkipped，避免永远显示「待发奖」（与云端 placeBet 一致）
+            if (invite) invite.rewardSkipped = true;
           }
         }
         state.user.inviteRewarded = true;
-        const invite = findInvite(state, state.user.invitedBy, state.user._id);
-        if (invite) invite.inviterRewarded = true;
       }
 
       save(state);
@@ -1512,7 +1550,7 @@ function call(name, data = {}) {
     }
 
     case 'getLeaderboard': {
-      const fieldMap = { streak: 'streak', week: 'weekPoints', month: 'monthPoints', total: 'totalPoints' };
+      const fieldMap = { streak: 'streak', week: 'weekPoints', month: 'monthPoints', total: 'points' };
       const field = fieldMap[data.type] || 'streak';
       const type = data.type || 'streak';
       const limit = Math.min(Math.max(Number(data.limit) || 50, 10), 200);
@@ -1575,7 +1613,10 @@ function call(name, data = {}) {
         } else if (Object.keys(prevRankMap).length) {
           trend = 'new';
         }
-        return Object.assign({}, item, { trend });
+        const o = Object.assign({}, item, { trend });
+        // 数据最小化：不向客户端下发 openid（与云端 getLeaderboard 一致）
+        delete o.openid;
+        return o;
       });
       return { ok: true, list, myRank, limit, totalCount: state.users.length };
     }

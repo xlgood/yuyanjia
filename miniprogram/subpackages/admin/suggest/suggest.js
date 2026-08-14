@@ -124,6 +124,10 @@ Page({
       wx.showToast({ title: '请先勾选候选事件', icon: 'none' });
       return;
     }
+    if (picked.length > 1) {
+      wx.showToast({ title: '单个发题仅支持勾选 1 项，多项请使用批量发题', icon: 'none' });
+      return;
+    }
     const first = picked[0];
     wx.navigateTo({
       url: `/subpackages/admin/publish/publish?title=${encodeURIComponent(first.title)}&category=${encodeURIComponent(first.category)}`
