@@ -404,3 +404,10 @@
   background: #c3cbe0;
   color: #ffffff;
 }
+
+.auto-news {
+  margin-top: 12rpx;
+  padding: 12rpx 0;
+  font-size: 24rpx;
+  color: #9c2f22;
+}

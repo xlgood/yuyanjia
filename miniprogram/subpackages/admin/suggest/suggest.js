@@ -44,6 +44,10 @@ Page({
           date: d.date,
           status: d.status,
           aiError: d.aiError || '',
+          aiMaterialSources: d.aiMaterialSources || [],
+          newsSummary: d.newsSummary || '',
+          summary: d.summary || '',
+          expanded: false,
           items: (d.items || []).map((it, i) => Object.assign({}, it, {
             autoKey: d.date + '_' + i
           }))
@@ -51,6 +55,15 @@ Page({
         this.setData({ autoDays: days, autoLoading: false });
       })
       .catch(() => this.setData({ autoLoading: false }));
+  },
+
+  // 展开/收起素材库
+  onAutoToggleNews(e) {
+    const date = e.currentTarget.dataset.date;
+    const autoDays = this.data.autoDays.map(d =>
+      d.date === date ? Object.assign({}, d, { expanded: !d.expanded }) : d
+    );
+    this.setData({ autoDays });
   },
 
   onAutoToggle(e) {

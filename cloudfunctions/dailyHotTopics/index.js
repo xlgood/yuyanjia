@@ -188,39 +188,47 @@ exports.main = async () => {
   } catch (e) { /* 集合不存在等异常：继续生成 */ }
 
   // 1) 拉取稳定免费源（GitHub + HN + 4 个中文 RSS 并行；
-  //    预算：拉取最大 ~12s + AI 38s ≈ 50s < 云函数 60s 上限）
-  const sources = [
+  //    预算：拉取最大 ~12s + AI 45s ≈ 57s < 云函数 60s 上限）
+  // 素材分流：
+  //   - aiPool（GitHub + HN）：可预测性高（趋势/数值类），注入 AI 生成候选
+  //   - newsPool（中文 RSS）：已发生新闻，模型无法自然转化为未来预测题，
+  //     保留为「素材库」供运营人工选题参考（避免 AI 被新闻素材逼出空数组）
+  const aiSources = [
     fetchGithubTrending().then(r => r, e => { throw new Error('GitHub: ' + ((e && e.message) || e)); }),
     fetchHackerNews().then(r => r, e => { throw new Error('HN: ' + ((e && e.message) || e)); })
-  ].concat(RSS_SOURCES.map(s =>
+  ];
+  const newsSources = RSS_SOURCES.map(s =>
     fetchRss(s).then(r => r, e => { throw new Error(s.name + ': ' + ((e && e.message) || e)); })
-  ));
-  const settled = await Promise.allSettled(sources);
-  const materials = [];
+  );
+  const settled = await Promise.allSettled(aiSources.concat(newsSources));
+  const aiPool = [];
+  const newsPool = [];
   const fails = [];
   settled.forEach((s, i) => {
+    const target = i < aiSources.length ? aiPool : newsPool;
     if (s.status === 'fulfilled') {
-      (Array.isArray(s.value) ? s.value : [s.value]).forEach(v => { if (v) materials.push(v); });
+      (Array.isArray(s.value) ? s.value : [s.value]).forEach(v => { if (v) target.push(v); });
     } else {
       fails.push(String(s.reason && s.reason.message || s.reason));
     }
   });
   fails.forEach(f => console.error('素材源失败', f));
-  if (!materials.length) {
+  if (!aiPool.length && !newsPool.length) {
     await postWebhook('【预测卦局·选题告警】定时选题：全部数据源拉取失败，本轮跳过\n' + fails.join('\n').slice(0, 500));
     return { ok: false, err: '数据源拉取全部失败: ' + fails.join('; ').slice(0, 300) };
   }
-  const summary = materials.join('\n').slice(0, SUMMARY_MAX);
+  const summary = aiPool.concat(newsPool).join('\n').slice(0, SUMMARY_MAX);
+  const newsSummary = newsPool.join('\n').slice(0, SUMMARY_MAX);
 
-  // 2) 调用 AI 选题（注入素材作为 searchSummary，跳过独立联网检索；
-  //    限时 38s：整体预算 拉取12s+AI38s ≈ 50s < 云函数 60s 上限）
+  // 2) 调用 AI 选题（仅注入可预测性高的 aiPool；
+  //    限时 45s：整体预算 拉取12s+AI45s ≈ 57s < 云函数 60s 上限）
   let candidates = [];
   let aiMode = '';
   let aiError = '';
   try {
     const hr = await cloud.callFunction({
       name: 'aiSuggestTopics',
-      data: { topic: '从素材中挖掘未来 7 天可验证的热点预测事件', category: '', timeRange: '一周内', searchSummary: summary, timeoutMs: 38000 }
+      data: { topic: '从素材中挖掘未来 7 天可验证的热点预测事件', category: '', timeRange: '一周内', searchSummary: aiPool.join('\n').slice(0, SUMMARY_MAX), timeoutMs: 45000 }
     });
     const r = hr.result || {};
     if (r.ok) {
@@ -235,6 +243,7 @@ exports.main = async () => {
 
   // 素材来源构成（管理端展示用）
   const materialSources = ['GitHub Trending', 'Hacker News'].concat(RSS_SOURCES.map(s => s.name));
+  const aiMaterialSources = ['GitHub Trending', 'Hacker News'];
 
   // 3) 落库（即使 AI 失败也保留素材，供管理端人工参考）
   const doc = {
@@ -242,7 +251,9 @@ exports.main = async () => {
     source: 'auto',
     status: 'pending', // pending / accepted / rejected（管理端处理后更新）
     summary: summary.slice(0, SUMMARY_MAX),
+    newsSummary: newsSummary.slice(0, SUMMARY_MAX), // 新闻素材库（人工选题参考）
     materialSources,
+    aiMaterialSources,
     items: candidates,
     aiMode,
     aiError: candidates.length ? '' : (aiError || 'AI 未返回候选'),
@@ -259,5 +270,5 @@ exports.main = async () => {
     await postWebhook(`【预测卦局·选题】今日自动生成 ${candidates.length} 条候选事件，请到运营后台「定时候选」确认发题`);
   }
 
-  return { ok: true, date, materials: materials.length, sources: materialSources, candidates: candidates.length, aiError: aiError || undefined };
+  return { ok: true, date, materials: aiPool.length + newsPool.length, aiMaterials: aiPool.length, newsMaterials: newsPool.length, sources: materialSources, candidates: candidates.length, aiError: aiError || undefined };
 };

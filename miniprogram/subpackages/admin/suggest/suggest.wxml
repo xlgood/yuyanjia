@@ -34,12 +34,11 @@
           <text class="auto-day-date">📅 {{day.date}}</text>
           <text class="auto-day-status {{day.status}}">{{day.status === 'pending' ? '待确认' : day.status}}</text>
           <text class="auto-day-count" wx:if="{{day.items.length}}">{{day.items.length}} 条候选</text>
-          <text class="auto-day-src" wx:if="{{day.materialSources.length}}">素材源：{{day.materialSources}}</text>
+          <text class="auto-day-src" wx:if="{{day.aiMaterialSources.length}}">AI 素材源：{{day.aiMaterialSources}}</text>
           <text class="auto-day-err" wx:if="{{day.aiError}}">{{day.aiError}}</text>
         </view>
         <view wx:if="{{day.items.length === 0}}" class="auto-empty">
-          <view>AI 未生成候选（数据源素材已保留）</view>
-          <view class="auto-summary" wx:if="{{day.summary}}">{{day.summary}}</view>
+          <view>AI 未生成候选（新闻素材已保留，见下方素材库）</view>
         </view>
         <view class="cand {{autoSelected[item.autoKey] ? 'picked' : ''}}"
           wx:for="{{day.items}}" wx:for-item="item" wx:key="autoKey"
@@ -56,6 +55,11 @@
             <view class="cand-deadline" wx:if="{{item.suggestedDeadline}}">建议截止：{{item.suggestedDeadline}}</view>
           </view>
         </view>
+        <!-- 素材库（新闻类素材供人工选题参考） -->
+        <view class="auto-news" wx:if="{{day.newsSummary}}" data-date="{{day.date}}" bindtap="onAutoToggleNews">
+          <text>{{day.expanded ? '▾ 收起素材库（新闻类，人工选题参考）' : '▸ 素材库（新闻类，人工选题参考）'}}</text>
+        </view>
+        <view class="auto-summary" wx:if="{{day.expanded && day.newsSummary}}">{{day.newsSummary}}</view>
       </view>
     </block>
 
