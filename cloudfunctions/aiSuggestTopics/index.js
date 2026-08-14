@@ -320,8 +320,10 @@ exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
   if (!ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
 
-  const topic = String(event.topic || '').trim() || '本周热点';
+  const topic = String(event.topic || '').trim() || '热点事件';
   const category = String(event.category || '');
+  const timeRange = String(event.timeRange || '').trim() || '一周内';
+  const rangeDays = timeRange.indexOf('一个月') >= 0 ? 30 : (timeRange.indexOf('三个月') >= 0 ? 90 : 7);
   const sources = Array.isArray(event.sources) ? event.sources.slice(0, 30) : [];
   // 以北京时间锚定“今天”，防止模型按训练数据的旧日期生成选题
   const todayCN = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
@@ -354,7 +356,7 @@ exports.main = async (event) => {
   }));
 
   const systemPrompt = '你是预测市场「预测卦局」的选题助手。你的职责是发现“截止后能用官方数据或官方公告验证”的硬事实型候选卦题，并写成严格 YES/NO 二值化的问题。你只做选题建议，不裁决结果。';
-  const userPrompt = `今天是北京时间 ${todayCN}。用户需求：${topic}${category ? `，分类偏好：${category}（本批次只输出该分类的候选卦题）` : ''}
+  const userPrompt = `今天是北京时间 ${todayCN}。时间范围：${timeRange}（所有候选的截止时间必须落在今天起 ${rangeDays} 天内）。用户需求：${topic}${category ? `，分类偏好：${category}（本批次只输出该分类的候选卦题）` : ''}
 
 可选数据源（只能从其中选择 dataSource，禁止编造；无合适来源时 dataSource 填空字符串并把 verifiable 设为 false）：
 ${JSON.stringify(sourceList)}
@@ -388,7 +390,7 @@ ${JSON.stringify(sourceList)}
 8. 【悬念区间】只选结果概率大致落在 20%-80% 之间的卦题；99% 确定（如太阳升起）或实力悬殊到无悬念的卦题必须排除；
 9. 【时效性】你有 web_search 联网检索工具：整个任务只允许发起一次检索（覆盖所有候选），检索完成后直接基于结果生成候选清单，禁止逐条/反复检索；禁止把记忆里的旧卦题当作“当前热点”，禁止编造检索不到的卦题。所有候选截止时间必须在 ${todayCN} 之后仍可验证。优先输出周期性/持续性可验证的硬事实（未来天气、周票房、汇率/指数、官方天榜、已官宣日程），并把标题与 suggestedDeadline 写成面向 ${todayCN} 之后的可断卦版本；
 10. 每个候选的 constraintCheck 五项必须全部为 true，否则不要输出该候选；
-11. 【截止即可验证】裁决数据必须在截止时刻就已公开可用：优先赛事结束、发布会结束、官方统计发布时刻等有确定时间的形态；禁止选用“开分、开奖、榜单首更、预售/销量揭晓”等发布时间不确定、可能晚于截止的数据形态。若确需使用此类数据，suggestedDeadline 必须设在数据预期最晚发布之后，并在 reason 中写明数据发布时间依据与缺失兜底（数据缺失时爻原路退回）。`;
+11. 【结果时点确定】区分“停止收注截止”与“结果可得时点”：比赛结束、发布会结束、官方统计发布时刻这类结果时点确定的事件可以选用，停止收注截止应设在结果时点之前（如开赛前），suggestedDeadline 需写明截止时间，reason 中注明结果时点（判定在结果时点后自动进行）；禁止“开分、榜单首更、开奖、销量揭晓”等结果时点不确定的数据形态（无法安排判定）；若确需使用，必须给出数据发布的最晚预期时点，并写明缺失兜底（数据缺失时爻原路退回）。`;
 
   let resp;
   let mode = 'offline';

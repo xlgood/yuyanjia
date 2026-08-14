@@ -3,7 +3,8 @@ const { CATEGORIES } = require('../../../utils/constants');
 
 Page({
   data: {
-    topic: '本周热点',
+    timeRanges: ['一周内', '一个月内', '三个月内'],
+    timeRangeIndex: 0,
     categories: ['全部'].concat(CATEGORIES),
     categoryIndex: 0,
     sources: [],
@@ -27,21 +28,22 @@ Page({
       });
   },
 
-  onTopic(e) {
-    this.setData({ topic: e.detail.value });
+  onTimeRange(e) {
+    this.setData({ timeRangeIndex: Number(e.detail.value) });
   },
 
   onCategory(e) {
-    this.setData({ categoryIndex: Number(e.currentTarget.dataset.index) });
+    this.setData({ categoryIndex: Number(e.detail.value) });
   },
 
   onGenerate() {
-    const topic = (this.data.topic || '').trim() || '本周热点';
+    const timeRange = this.data.timeRanges[this.data.timeRangeIndex];
     const category = this.data.categories[this.data.categoryIndex];
     this.setData({ generating: true });
     wx.showLoading({ title: 'AI 生成中...' });
     api.aiSuggestTopics({
-      topic,
+      topic: '热点事件',
+      timeRange,
       category: category === '全部' ? '' : category,
       sources: this.data.sources.map(s => ({
         name: s.name,

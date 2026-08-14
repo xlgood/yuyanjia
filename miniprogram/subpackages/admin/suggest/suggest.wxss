@@ -22,27 +22,31 @@
   margin-bottom: 16rpx;
 }
 
-.cat-bar {
-  white-space: nowrap;
+.pick-row {
+  display: flex;
+  gap: 16rpx;
   margin-bottom: 16rpx;
 }
 
-.cat-chip {
-  display: inline-block;
-  padding: 10rpx 28rpx;
-  margin-right: 14rpx;
-  background: #fffdf8;
-  border: 1rpx solid #ece2ce;
-  border-radius: 999rpx;
-  font-size: 24rpx;
-  color: #6f6552;
+.pick-item {
+  flex: 1;
+  background: #faf6ec;
+  border: 1rpx solid #e7dcc4;
+  border-radius: 14rpx;
+  padding: 14rpx 18rpx;
 }
 
-.cat-chip.active {
-  background: linear-gradient(135deg, #c94a38, #b03224);
-  border-color: #b03224;
-  color: #ffffff;
-  font-weight: 700;
+.pick-label {
+  display: block;
+  font-size: 20rpx;
+  color: #a39a8b;
+  margin-bottom: 6rpx;
+}
+
+.pick-box {
+  font-size: 26rpx;
+  color: #2d2926;
+  font-weight: 600;
 }
 
 .gen-btn {

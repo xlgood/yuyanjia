@@ -1,22 +1,20 @@
 <view class="container">
   <view class="card input-card">
-    <view class="input-title">想要哪些方向的预测事件？</view>
-    <textarea
-      class="topic-input"
-      value="{{topic}}"
-      bindinput="onTopic"
-      placeholder="如：本周热点 / 科技数码发布会 / 电竞赛事"
-      maxlength="60"
-    />
-    <scroll-view class="cat-bar" scroll-x enhanced show-scrollbar="{{false}}">
-      <view
-        wx:for="{{categories}}"
-        wx:key="*this"
-        class="cat-chip {{categoryIndex === index ? 'active' : ''}}"
-        data-index="{{index}}"
-        bindtap="onCategory"
-      >{{item}}</view>
-    </scroll-view>
+    <view class="input-title">选择时间范围与分类，AI 自动生成候选事件</view>
+    <view class="pick-row">
+      <view class="pick-item">
+        <text class="pick-label">时间</text>
+        <picker mode="selector" range="{{timeRanges}}" value="{{timeRangeIndex}}" bindchange="onTimeRange">
+          <view class="pick-box">📅 {{timeRanges[timeRangeIndex]}}</view>
+        </picker>
+      </view>
+      <view class="pick-item">
+        <text class="pick-label">分类</text>
+        <picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategory">
+          <view class="pick-box">🏷 {{categories[categoryIndex]}}</view>
+        </picker>
+      </view>
+    </view>
     <button class="gen-btn" bindtap="onGenerate" disabled="{{generating}}">
       {{generating ? '生成中...' : '🤖 AI 生成候选事件'}}
     </button>
