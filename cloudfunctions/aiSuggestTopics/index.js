@@ -228,8 +228,8 @@ async function callDeepSeekResponses(instructions, userPrompt, apiKey, temperatu
   let input = [{ role: 'user', content: userPrompt }];
   const t0 = Date.now();
   for (let round = 0; round < 4; round++) {
-    // 首轮给足搜索时间；后续轮尽量用满剩余预算，总耗时由外层 55s 上限兜底
-    const budget = round === 0 ? 45000 : Math.max(15000, 54000 - (Date.now() - t0));
+    // 首轮搜索给 30s；后续轮尽量用满剩余预算，总耗时由外层 55s 上限兜底
+    const budget = round === 0 ? 30000 : Math.max(15000, 54000 - (Date.now() - t0));
     let resp;
     try {
       resp = await postJson(
@@ -467,9 +467,13 @@ ${JSON.stringify(sourceList)}
         } catch (e) {
           fallbackReason = String(e.message || e).slice(0, 300);
           console.error('DeepSeek Responses/web_search 调用失败，回退离线 chat/completions：', e.message || e);
-          // 联网环节已耗时，剩余预算留给离线生成（至少 12s）
+          // 联网环节已耗时，剩余预算留给离线生成（至少 12s）；离线生成降量为最多 5 条，保证预算内出结果
           const remaining = Math.max(12000, 50000 - (Date.now() - t0));
-          resp = await chatCompletions(DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, messages, DEEPSEEK_API_KEY, {
+          const offlineUser = userPrompt + '\n（联网检索暂不可用：请直接基于你已有的知识，最多输出 5 条近期可验证候选，必须输出 JSON 数组，不要解释。）';
+          resp = await chatCompletions(DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: offlineUser }
+          ], DEEPSEEK_API_KEY, {
             response_format: { type: 'json_object' }
           }, remaining);
         }
