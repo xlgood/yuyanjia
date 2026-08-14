@@ -83,6 +83,12 @@
 |----------|--------------|----------|--------|
 | `idx_source_date` | source 升序 + date **降序** | 幂等检查 `where date+source`、管理端读取 `where source orderBy date desc` | 🟢 |
 
+## notification_outbox（通知重试）—— 1 个
+
+| 索引名称 | 字段（方向） | 服务查询 | 优先级 |
+|----------|--------------|----------|--------|
+| `idx_status_nextRetryAt` | status 升序 + nextRetryAt 升序 | Outbox 失败重试扫描 `where status=failed and nextRetryAt<=now`（settleMarket） | 🟢 |
+
 ## 无需建索引的集合
 
 | 集合 | 原因 |
