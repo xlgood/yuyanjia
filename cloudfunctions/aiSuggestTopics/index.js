@@ -617,5 +617,5 @@ ${JSON.stringify(sourceList)}
       err: `AI 生成的 ${list.length} 条候选均未通过内容安全检测（示例：${sample}）。请更换时间范围/分类后重试；若反复出现，可能是 AI 生成了政治/赌博等敏感题材，请人工检查选题。`
     };
   }
-  return { ok: true, list: safeList, mode, fallbackReason };
+  return { ok: true, list: safeList, mode };
 };
