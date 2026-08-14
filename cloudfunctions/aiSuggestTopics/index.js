@@ -9,7 +9,7 @@ const https = require('https');
 
 // =========================================================
 // 模型选择（环境变量 AI_PROVIDER：deepseek | qwen | kimi）
-// deepseek：Responses API + 服务端 web_search（部分账号/模型不支持时会自动回退离线）
+// deepseek：Responses API + 服务端 web_search（失败直接报错，绝不回退离线凑数）
 // qwen    ：DashScope OpenAI 兼容接口 + enable_search（阿里官方联网）
 // kimi    ：Moonshot chat/completions + Formula 官方工具通道（web-search，kimi-k3 推荐）
 // =========================================================
@@ -257,7 +257,7 @@ async function callDeepSeekResponses(instructions, userPrompt, apiKey, temperatu
       throw new Error(`联网请求失败（第 ${round + 1} 轮，预算 ${Math.round(budget / 1000)}s）：${e.message}`);
     }
     const output = Array.isArray(resp.output) ? resp.output : [];
-    // 输出被 token 上限截断 → 立即报错（走离线回退），不拿半截内容当结果
+    // 输出被 token 上限截断 → 立即报错，不拿半截内容当结果
     if (resp.status === 'incomplete' && resp.incomplete_details && resp.incomplete_details.reason === 'max_output_tokens') {
       throw new Error('AI 输出被截断（max_output_tokens），请重试');
     }
@@ -485,7 +485,7 @@ category 必须从「${CATEGORIES.join(' / ')}」中精确取值；当指定了�
 硬性规则：
 1. 只选「在某个时间点能用官方数据/官方公告验证」的硬事实，避免主观话题和无法验证的传闻；
 2. 标题必须二值化（是否/能否/是否达到），禁用“下注/赔率/庄家”等博彩词；
-3. 至少输出 10 条、最多 ${MAX_ITEMS} 条，按可验证性和热度排序；
+3. 宁缺毋滥：最多 ${MAX_ITEMS} 条，能出几条出几条，禁止为了凑数输出质量不达标的候选，更禁止混入旧记忆或他分类内容；
 4. 【绝对二元性】结果必须非此即彼，不存在平局、取消、改期之外的第三种可判读结果；若卦题可能“取消/延期导致无法断卦”，仍可接受，但必须在 reason 中说明断卦兜底（数据缺失原路退回）；
 5. 【单一权威结卦源】每个候选只允许绑定一个第三方权威公开结卦源（官方数据/官方公告/权威天榜），禁止多个来源混用、禁止平台自设来源；dataSource 只能从给定列表选择；
 6. 【物理截止时间】每个候选必须有明确截止日期与时刻；截止后出现的任何信息不得作为断卦证据，suggestedDeadline 必须具体到日或时刻；
