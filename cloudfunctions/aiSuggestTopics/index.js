@@ -11,7 +11,7 @@ const https = require('https');
 // 模型选择（环境变量 AI_PROVIDER：deepseek | qwen | kimi）
 // deepseek：Responses API + 服务端 web_search（部分账号/模型不支持时会自动回退离线）
 // qwen    ：DashScope OpenAI 兼容接口 + enable_search（阿里官方联网）
-// kimi    ：Moonshot chat/completions + $web_search 内置工具（官方联网）
+// kimi    ：Moonshot chat/completions + Formula 官方工具通道（web-search，kimi-k3 推荐）
 // =========================================================
 const AI_PROVIDER = String(process.env.AI_PROVIDER || 'deepseek').toLowerCase();
 
@@ -29,6 +29,7 @@ const QWEN_MODEL = process.env.QWEN_MODEL || 'qwen-plus';
 const KIMI_API_KEY = process.env.KIMI_API_KEY || '';
 const KIMI_BASE_URL = process.env.KIMI_BASE_URL || 'https://api.moonshot.cn/v1';
 const KIMI_MODEL = process.env.KIMI_MODEL || 'kimi-k2-0711-preview';
+const KIMI_FORMULA_URI = process.env.KIMI_FORMULA_URI || 'moonshot/web-search:latest';
 
 // 通用 OpenAI 兼容接口（如 OpenCode Zen / 各类中转网关）
 const CUSTOM_API_KEY = process.env.CUSTOM_API_KEY || '';
@@ -104,6 +105,39 @@ function postJson(url, payload, apiKey, timeoutMs) {
     req.on('timeout', () => req.destroy(new Error('AI 请求超时')));
     req.on('error', reject);
     req.write(body);
+    req.end();
+  });
+}
+
+function getJson(url, apiKey, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const t = timeoutMs || 20000;
+    const req = https.request({
+      hostname: u.hostname,
+      path: u.pathname + (u.search || ''),
+      method: 'GET',
+      headers: { 'Authorization': 'Bearer ' + apiKey },
+      timeout: t
+    }, res => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          if (res.statusCode >= 400) {
+            const errDetail = (parsed.error && (parsed.error.message || JSON.stringify(parsed.error))) || data;
+            reject(new Error(`Kimi 接口返回 ${res.statusCode}: ${String(errDetail).slice(0, 200)}`));
+            return;
+          }
+          resolve(parsed);
+        } catch (e) {
+          reject(new Error('Kimi 响应解析失败: ' + String(data).slice(0, 200)));
+        }
+      });
+    });
+    req.on('timeout', () => req.destroy(new Error('Kimi 请求超时')));
+    req.on('error', reject);
     req.end();
   });
 }
@@ -209,33 +243,77 @@ async function callDeepSeekResponses(instructions, userPrompt, apiKey, temperatu
   throw new Error('联网检索轮次过多，请重试');
 }
 
-// Kimi 联网搜索：$web_search 是平台内置工具，模型要求时原样回传 arguments 即可
+// Kimi k3 联网搜索：官方 Formula 工具通道（OpenAI 协议标准 function tool）
+// 流程：GET /formulas/{uri}/tools 拉取工具声明 → chat 让模型调用 →
+//       POST /formulas/{uri}/fibers 执行搜索 → 结果以 tool 消息回传后继续
 async function callKimiWithSearch(systemPrompt, userPrompt, apiKey) {
+  // 1) 拉取官方工具声明
+  const toolsRes = await getJson(
+    KIMI_BASE_URL.replace(/\/$/, '') + '/formulas/' + KIMI_FORMULA_URI + '/tools',
+    apiKey,
+    20000
+  );
+  const tools = (toolsRes && Array.isArray(toolsRes.tools) ? toolsRes.tools : [])
+    .filter(t => t && t.type === 'function' && t.function && t.function.name);
+  if (!tools.length) throw new Error('Kimi Formula 未返回可用工具，请检查 KIMI_FORMULA_URI');
+
+  // 2) 聊天循环：模型调用工具时执行 formula，结果回传后继续
   const messages = [
     { role: 'system', content: systemPrompt },
     { role: 'user', content: userPrompt }
   ];
-  const tools = [{ type: 'builtin_function', function: { name: '$web_search' } }];
-
-  for (let i = 0; i < 4; i++) {
-    const resp = await chatCompletions(KIMI_BASE_URL, KIMI_MODEL, messages, apiKey, { tools });
+  for (let round = 0; round < 6; round++) {
+    const resp = await chatCompletions(KIMI_BASE_URL, KIMI_MODEL, messages, apiKey, {
+      tools,
+      // 首轮强制调用 web-search，避免模型只写计划不执行
+      tool_choice: round === 0 ? { type: 'function', function: { name: tools[0].function.name } } : 'auto'
+    });
     const choice = resp && resp.choices && resp.choices[0];
     const msg = choice && choice.message;
     if (choice && choice.finish_reason === 'tool_calls' && msg && Array.isArray(msg.tool_calls) && msg.tool_calls.length) {
-      messages.push({ role: 'assistant', content: msg.content || '', tool_calls: msg.tool_calls });
+      // 完整回传 assistant 消息（保留 content / tool_calls / reasoning_content）
+      messages.push(msg);
       for (const tc of msg.tool_calls) {
-        const args = tc.function && tc.function.arguments;
-        messages.push({
-          role: 'tool',
-          tool_call_id: tc.id,
-          content: typeof args === 'string' ? args : JSON.stringify(args || {})
-        });
+        const fnName = tc.function && tc.function.name;
+        let output;
+        if (fnName) {
+          let args = {};
+          try { args = JSON.parse(tc.function.arguments || '{}'); } catch (e) { args = { query: String(tc.function.arguments || '') }; }
+          output = await execKimiFormula(fnName, args, apiKey);
+        } else {
+          output = JSON.stringify({ error: '工具缺少名称' });
+        }
+        messages.push({ role: 'tool', tool_call_id: tc.id, content: String(output).slice(0, 3000) });
       }
+      continue;
+    }
+    // 没有工具调用但内容为空：再给一轮，要求直接输出 JSON
+    const contentOk = msg && (typeof msg.content === 'string'
+      ? msg.content.trim()
+      : Array.isArray(msg.content) ? msg.content.length > 0 : !!msg.content);
+    if (!contentOk && round < 2) {
+      messages.push({ role: 'user', content: '请直接输出最终 JSON，不要输出任何解释或计划文字。' });
       continue;
     }
     return resp;
   }
-  throw new Error('Kimi 联网搜索轮次过多，请重试');
+  throw new Error('Kimi 联网检索轮次过多，请重试');
+}
+
+// 执行 Kimi Formula（web-search）：POST /formulas/{uri}/fibers
+async function execKimiFormula(name, args, apiKey) {
+  const res = await postJson(
+    KIMI_BASE_URL.replace(/\/$/, '') + '/formulas/' + KIMI_FORMULA_URI + '/fibers',
+    { name, arguments: JSON.stringify(args) },
+    apiKey,
+    25000
+  );
+  const ctx = res.context || {};
+  if (res.status === 'succeeded') {
+    const out = ctx.output || ctx.encrypted_output || '';
+    return typeof out === 'string' ? out : JSON.stringify(out);
+  }
+  return JSON.stringify({ error: res.error || ctx.error || '搜索执行失败' });
 }
 
 exports.main = async (event) => {
