@@ -16,8 +16,8 @@ const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
 const DEEPSEEK_RESPONSES_MODEL = process.env.DEEPSEEK_RESPONSES_MODEL || 'deepseek-v4-flash';
 const DEEPSEEK_WEB_SEARCH = String(process.env.DEEPSEEK_WEB_SEARCH || 'true') === 'true';
 const DEEPSEEK_TIMEOUT_MS = Number(process.env.DEEPSEEK_TIMEOUT_MS || 110000);
-// 联网检索单次预算：超时即回退离线 chat/completions，保证总耗时压在 55s 上限内
-const SEARCH_TIMEOUT_MS = Math.min(DEEPSEEK_TIMEOUT_MS, 30000);
+// 联网检索单次预算：超时即回退离线 chat/completions，剩余时间留给离线生成，保证总耗时压在 55s 上限内
+const SEARCH_TIMEOUT_MS = Math.min(DEEPSEEK_TIMEOUT_MS, 20000);
 // 小程序端 callFunction 无超时参数，连接约 60s 会被平台掐断；
 // 这里在 55s 主动收口，返回明确提示而不是 ESOCKETTIMEDOUT
 const AI_SAFE_TIMEOUT_MS = 55000;
@@ -70,7 +70,13 @@ function postJson(url, payload, apiKey, timeoutMs) {
       res.on('data', chunk => { data += chunk; });
       res.on('end', () => {
         try {
-          resolve(JSON.parse(data));
+          const parsed = JSON.parse(data);
+          if (res.statusCode >= 400) {
+            const errDetail = (parsed.error && (parsed.error.message || JSON.stringify(parsed.error))) || data;
+            reject(new Error(`AI 接口返回 ${res.statusCode}: ${String(errDetail).slice(0, 200)}`));
+            return;
+          }
+          resolve(parsed);
         } catch (e) {
           reject(new Error('AI 响应解析失败: ' + String(data).slice(0, 200)));
         }
@@ -194,6 +200,7 @@ ${JSON.stringify(sourceList)}
   let resp;
   let mode = 'offline';
   let fallbackReason = '';
+  const t0 = Date.now();
   const messages = [
     { role: 'system', content: systemPrompt },
     { role: 'user', content: userPrompt }
@@ -219,9 +226,11 @@ ${JSON.stringify(sourceList)}
         } catch (e) {
           fallbackReason = String(e.message || e).slice(0, 300);
           console.error('DeepSeek Responses/web_search 调用失败，回退离线 chat/completions：', e.message || e);
+          // 联网环节已耗时，剩余预算留给离线生成（至少 12s）
+          const remaining = Math.max(12000, 50000 - (Date.now() - t0));
           resp = await chatCompletions(DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, messages, DEEPSEEK_API_KEY, {
             response_format: { type: 'json_object' }
-          }, 30000);
+          }, remaining);
         }
       } else {
         resp = await chatCompletions(DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, messages, DEEPSEEK_API_KEY, {
@@ -232,7 +241,11 @@ ${JSON.stringify(sourceList)}
     await Promise.race([
       work,
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('AI 生成超时：联网检索与生成超过 55 秒上限（微信平台限制），已自动尝试离线回退仍失败；可稍后重试或更换更快模型')), AI_SAFE_TIMEOUT_MS)
+        setTimeout(() => reject(new Error(
+          `AI 生成超时（联网+离线共超 ${AI_SAFE_TIMEOUT_MS / 1000}s 上限）` +
+          (fallbackReason ? `；联网环节失败原因：${fallbackReason}` : '；联网环节耗时过长') +
+          '；离线回退也未在预算内完成，请稍后重试或更换更快模型'
+        )), AI_SAFE_TIMEOUT_MS)
       )
     ]);
   } catch (e) {
