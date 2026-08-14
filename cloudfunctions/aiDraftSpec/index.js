@@ -194,8 +194,9 @@ async function callDeepSeekResponses(instructions, userPrompt, apiKey, temperatu
 }
 
 exports.main = async (event) => {
-  const { OPENID } = cloud.getWXContext();
-  if (!ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
+  const { OPENID, SOURCE } = cloud.getWXContext();
+  // 门禁：客户端调用需管理员身份；定时器/云间调用放行
+  if (SOURCE === 'wx_client' && !ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
 
   const title = String(event.title || '').trim();
   const category = String(event.category || '');

@@ -73,7 +73,7 @@ exports.main = async () => {
     resolved: 0,
     manual: 0,
     dailyCreated: last7Days(),
-    methodDist: { auto_api: 0, manual: 0, none: 0 },
+    methodDist: { auto_api: 0, auto_webpage: 0, manual: 0, none: 0 },
     autoStats: {},
     pending: { manual: 0, dispute: 0, disputes: arbitrations.filter(a => a.status === 'pending').length }
   };
@@ -95,9 +95,10 @@ exports.main = async () => {
     const provider = (spec.dataSource && spec.dataSource.provider) || '未配置数据源';
     if (!stats.autoStats[provider]) stats.autoStats[provider] = { ok: 0, fail: 0 };
 
-    if (m.status === 'resolved' && m.resolutionMethod === 'auto_api') {
-      // 仅自动断卦成功计入 autoStats.ok（人工录入/复核改判已记 resolutionMethod='manual'）
-      stats.methodDist.auto_api = (stats.methodDist.auto_api || 0) + 1;
+    const autoMethod = m.resolutionMethod === 'auto_webpage' ? 'auto_webpage' : 'auto_api';
+    if (m.status === 'resolved' && (m.resolutionMethod === 'auto_api' || m.resolutionMethod === 'auto_webpage')) {
+      // 仅自动断卦（API/网页）成功计入 autoStats.ok（人工录入/复核改判已记 resolutionMethod='manual'）
+      stats.methodDist[autoMethod] = (stats.methodDist[autoMethod] || 0) + 1;
       stats.autoStats[provider].ok++;
     } else if (m.status === 'resolved') {
       // 已结卦但没有自动断卦记录 → 视为人工录入断卦
@@ -127,6 +128,7 @@ exports.main = async () => {
     .sort((a, b) => b.ok - a.ok);
   stats.methodDist = [
     { method: 'auto_api', label: 'API 自动断卦', count: stats.methodDist.auto_api || 0 },
+    { method: 'auto_webpage', label: '网页自动断卦', count: stats.methodDist.auto_webpage || 0 },
     { method: 'manual', label: '人工录入断卦', count: stats.methodDist.manual || 0 },
     { method: 'none', label: '未断卦', count: stats.methodDist.none || 0 }
   ];

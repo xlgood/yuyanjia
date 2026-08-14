@@ -1,0 +1,14 @@
+{
+  "triggers": [
+    {
+      "name": "dailyHotTopicsMorning",
+      "type": "timer",
+      "config": "0 0 8 * * * *"
+    },
+    {
+      "name": "dailyHotTopicsEvening",
+      "type": "timer",
+      "config": "0 0 20 * * * *"
+    }
+  ]
+}

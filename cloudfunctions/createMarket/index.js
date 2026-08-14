@@ -77,10 +77,11 @@ async function handle(event) {
   // 机读断卦规范校验
   //   - type=manual：事实型卦题，无需数值条件，运营在截止后人工录入官方断卦 + 铁证链接
   //   - type=api/weather：数值型卦题，必须带可执行的 condition
-  // type 白名单：仅接受 resolver 适配器支持的 manual/api/weather，杜绝 web/scraper 等死类型
-  const SOURCE_TYPES = ['manual', 'api', 'weather'];
+  //   - type=webpage：官方网页型卦题，按 regex/selector 提取结果字段后走 condition 判定
+  // type 白名单：仅接受 resolver 适配器支持的 manual/api/weather/webpage，杜绝 web/scraper 等死类型
+  const SOURCE_TYPES = ['manual', 'api', 'weather', 'webpage'];
   if (!spec || !spec.dataSource || !SOURCE_TYPES.includes(spec.dataSource.type)) {
-    return { ok: false, err: '缺少 resolutionSpec（dataSource.type 仅支持 manual/api/weather）' };
+    return { ok: false, err: '缺少 resolutionSpec（dataSource.type 仅支持 manual/api/weather/webpage）' };
   }
   if (spec.dataSource.type === 'manual') {
     if (!spec.humanReadable) return { ok: false, err: 'manual 类型必须提供 humanReadable 断卦说明' };
@@ -94,9 +95,48 @@ async function handle(event) {
       return { ok: false, err: '断卦阈值必须为数字或字符串' };
     }
     if (typeof cv === 'number' && !isFinite(cv)) return { ok: false, err: '断卦阈值必须是有限数字' };
-    const field = String(spec.dataSource.field || '').trim();
-    if (!field || field.length > 100 || !/^[A-Za-z0-9_.\[\]']+$/.test(field)) {
-      return { ok: false, err: '取值字段不合法（仅允许字母数字点号下划线方括号单引号，长度 ≤ 100）' };
+    if (spec.dataSource.type === 'webpage') {
+      // webpage 类型：url 必填；regex / selector 至少提供一个（都不配则按全文匹配）
+      if (!String(spec.dataSource.url || '').trim()) return { ok: false, err: 'webpage 类型必须提供数据源 url' };
+      if (spec.dataSource.regex && typeof spec.dataSource.regex !== 'string') return { ok: false, err: 'regex 必须为字符串' };
+      if (spec.dataSource.selector && typeof spec.dataSource.selector !== 'string') return { ok: false, err: 'selector 必须为字符串' };
+      if (!spec.dataSource.regex && !spec.dataSource.selector && !spec.dataSource.transform) {
+        return { ok: false, err: 'webpage 类型至少配置 regex 或 selector（否则按全文匹配，请明确判定方式）' };
+      }
+    } else {
+      const field = String(spec.dataSource.field || '').trim();
+      if (!field || field.length > 100 || !/^[A-Za-z0-9_.\[\]']+$/.test(field)) {
+        return { ok: false, err: '取值字段不合法（仅允许字母数字点号下划线方括号单引号，长度 ≤ 100）' };
+      }
+    }
+  }
+
+  // 可选：防信息套利的时间戳字段（数据源返回结果时间的点分路径）
+  const timestampField = String(spec.dataSource.timestampField || '').trim();
+  if (timestampField && !/^[A-Za-z0-9_.\[\]']{1,100}$/.test(timestampField)) {
+    return { ok: false, err: 'timestampField 不合法（仅允许字母数字点号下划线方括号单引号）' };
+  }
+
+  // 可选：多源交叉验证 backupSources（类型白名单、url 必填、不得与主源同 url）
+  const backupSources = Array.isArray(spec.backupSources) ? spec.backupSources.slice(0, 2) : [];
+  for (const bs of backupSources) {
+    if (!bs || !SOURCE_TYPES.slice(1).includes(bs.type)) {
+      return { ok: false, err: 'backupSources 类型仅支持 api/weather/webpage' };
+    }
+    if (!String(bs.url || '').trim()) return { ok: false, err: 'backupSources 必须提供 url' };
+    if (String(bs.url || '') === String(spec.dataSource.url || '')) {
+      return { ok: false, err: 'backupSources 不得与主源使用同一 url' };
+    }
+    if (bs.type === 'api' && !String(bs.field || '').trim()) return { ok: false, err: 'backupSources(api) 必须提供 field' };
+    if (bs.type === 'webpage' && !bs.regex && !bs.selector) return { ok: false, err: 'backupSources(webpage) 必须提供 regex 或 selector' };
+  }
+
+  // 可选：预期结果揭晓时刻（管理端复核队列排序/展示用；不影响判定逻辑）
+  let expectedResultAt = 0;
+  if (event.expectedResultAt !== undefined && event.expectedResultAt !== null && event.expectedResultAt !== '') {
+    expectedResultAt = Number(event.expectedResultAt);
+    if (!expectedResultAt || isNaN(expectedResultAt) || expectedResultAt <= deadline) {
+      return { ok: false, err: 'expectedResultAt 必须晚于截止时间' };
     }
   }
 
@@ -120,9 +160,13 @@ async function handle(event) {
     if (!matched) {
       return { ok: false, err: `数据源未注册：请先在数据源注册表登记「${sourceName || sourceUrl || sourceType}」` };
     }
-    if (!sourceUrl) return { ok: false, err: 'api/weather 类型必须提供数据源 url' };
-    if (!String(spec.dataSource.field || '').trim()) return { ok: false, err: 'api/weather 类型必须提供取值字段 field' };
-    if (!TRANSFORMS.includes(spec.dataSource.transform)) return { ok: false, err: 'transform 仅附议 int / float / string' };
+    if (!sourceUrl) return { ok: false, err: 'api/weather/webpage 类型必须提供数据源 url' };
+    if (sourceType === 'api' || sourceType === 'weather') {
+      if (!String(spec.dataSource.field || '').trim()) return { ok: false, err: 'api/weather 类型必须提供取值字段 field' };
+      if (!TRANSFORMS.includes(spec.dataSource.transform)) return { ok: false, err: 'transform 仅附议 int / float / string' };
+    } else if (!TRANSFORMS.includes(spec.dataSource.transform) && spec.dataSource.transform) {
+      return { ok: false, err: 'transform 仅附议 int / float / string' };
+    }
   }
   if (spec.humanReadable) {
     const hr = String(spec.humanReadable);
@@ -145,6 +189,7 @@ async function handle(event) {
     title,
     sourceOfTruth: spec.humanReadable || sourceOfTruth,
     deadline,
+    expectedResultAt: expectedResultAt || 0, // 预期结果揭晓时刻（可选，复核队列排序用）
     yesPool: 0,
     noPool: 0,
     totalPool: 0, // 冗余字段：热门榜按此索引排序（应卦/对弈 时原子维护）

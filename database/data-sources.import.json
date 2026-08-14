@@ -8,3 +8,5 @@
 {"name":"品牌发布会/官网参数页","category":"科技数码","type":"web","access":"free","url":"","notes":"以发布会直播/官网页面为准；事实型事件，抓一次存证即可，也可人工录入+铁证链接","status":"verified","_id":"SRC-LAUNCH-PAGE"}
 {"name":"官方公告/官宣（通用）","category":"全品类","type":"manual","access":"free","url":"","notes":"事实型事件通用通道：运营在截止后录入官方判定 + 官方链接/截图铁证，走 2 小时昭示（跨夜顺延）与仲裁兜底","status":"verified","_id":"SRC-EVENT-FACT"}
 {"name":"托管抓取服务","category":"全品类","type":"scraper","access":"paid","url":"","notes":"ScrapingBee / Apify / 八爪鱼等，解决 IP 池、渲染、反爬；用于判定时的一次性取值+截图存证","status":"pending","_id":"SRC-SCRAPER-MANAGED"}
+{"name":"GitHub Trending（官方 API）","category":"科技数码","type":"api","access":"free","url":"https://api.github.com/search/repositories","notes":"官方公开 API（未认证限 10 次/分钟），近 7 天 star 增长热门仓库；用于定时选题素材与科技类事件判定","status":"verified","_id":"SRC-GITHUB-TRENDING"}
+{"name":"Hacker News（官方 API）","category":"科技数码","type":"api","access":"free","url":"https://hacker-news.firebaseio.com/v0","notes":"官方公开 Firebase API，全球科技热帖实时榜；用于定时选题素材与科技/趣味类事件判定","status":"verified","_id":"SRC-HN-API"}

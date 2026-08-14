@@ -109,7 +109,19 @@ exports.main = async () => {
       }
       await postWebhook(parts.join('\n\n'));
     }
-    return { ok: true, locked: locked.length, flagged: flagged.length };
+    // 时效优化：锁定后立即触发一次自动断卦扫描（云间调用），
+    // 把「结果出现 → 判定」从最长 ~15 分钟（10 分钟周期 + 5 分钟 grace）压缩到 ~1 分钟；
+    // resolver 每 10 分钟的定时触发器保留作兜底（失败重试/补充扫描）
+    let triggered = 0;
+    if (locked.length) {
+      try {
+        const hr = await cloud.callFunction({ name: 'resolver', data: {} });
+        triggered = (hr.result && hr.result.summary && hr.result.summary.scanned) || 0;
+      } catch (e) {
+        console.error('锁定后立即触发断卦失败', e && e.message || e);
+      }
+    }
+    return { ok: true, locked: locked.length, flagged: flagged.length, resolverTriggered: triggered };
   } catch (e) {
     return { ok: false, err: e.message || '锁定失败' };
   }

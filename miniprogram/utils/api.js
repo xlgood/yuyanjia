@@ -54,6 +54,7 @@ module.exports = {
   getDashboardStats: () => call('getDashboardStats'),
   aiDraftSpec: data => call('aiDraftSpec', data),
   aiSuggestTopics: data => call('aiSuggestTopics', data),
+  getTopicCandidates: data => call('getTopicCandidates', data),
   checkIn: () => call('checkIn'),
   claimAdTask: () => call('claimAdTask'),
   checkHonors: () => call('checkHonors'),

@@ -1,0 +1,9 @@
+{
+  "name": "dailyHotTopics",
+  "version": "1.0.0",
+  "description": "定时选题：拉取稳定免费源 + AI 生成候选事件写入 topic_candidates",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

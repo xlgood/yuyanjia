@@ -1,0 +1,1375 @@
+热点二元投票事件结果监控与结算系统实施方案
+版本： V1.0
+适用对象： 小程序产品、后端研发、运维、内容审核团队
+方案目标： 在热点事件产生可验证结果后，尽快发现、确认并更新投票结果，同时避免误判、重复通知和错误结算。
+
+1. 项目背景
+小程序允许用户围绕热点事件进行“支持/反对”二元投票，例如：
+
+某支球队能否获胜；
+某项政策是否会在指定时间前发布；
+某公司财报是否达到指定指标；
+某产品是否会在发布会上公布；
+某奖项是否由指定候选人获得；
+某项宏观经济数据是否高于预期。
+系统需要在事件产生最终结果后，尽快完成：
+
+发现结果；
+获取并保存结果证据；
+判断结果是否满足投票判定条件；
+自动确认或提交人工审核；
+更新小程序事件状态；
+向参与用户发送结果通知；
+支持结果更正、撤回和审计。
+2. 审查结论
+原方案采用 TrendRadar、RSS、网页监控、专业数据 API 和大模型进行事件监控，整体方向正确，但不能直接把热搜或大模型判断结果用于自动结算。
+
+必须对原方案进行以下调整：
+
+2.1 可保留的部分
+以下部分可继续采用：
+
+TrendRadar 用于热点发现和辅助预警；
+RSS 用于发现新闻、公告和官方内容更新；
+changedetection.io 等工具用于监控官方页面；
+体育、电竞、行情类事件接入专业结构化 API；
+多来源交叉验证；
+使用大模型从非结构化文本中提取候选结果；
+使用飞书、企业微信等渠道向管理员发送预警。
+2.2 必须修正的部分
+TrendRadar不能作为最终结果数据库
+TrendRadar聚合的是热榜或热点内容，而不是完整、权威、结构化的结果数据。
+
+它可以回答：
+
+“互联网上可能出现了与这个事件相关的新消息。”
+
+但不能单独回答：
+
+“这个投票事件已经产生最终结果，可以自动结算。”
+
+热搜出现不代表结果成立
+以下标题都可能触发关键词，但不能用于结算：
+
+“结果即将公布”
+“网传最终名单”
+“某队有望获胜”
+“比赛结果引发猜测”
+“官方暂未确认”
+“预测结果出炉”
+LLM不能独立决定最终结果
+大模型适合：
+
+判断内容是否与事件相关；
+提取比分、名称、时间和指标；
+生成摘要；
+给人工审核提供辅助意见。
+大模型不应单独执行：
+
+自动结算；
+自动宣布政治、社会或争议事件结果；
+在证据冲突时选择某一来源；
+根据传闻推断最终结果。
+GitHub Actions不适合准实时结果监控
+GitHub Actions适合低频采集、日报和原型验证，不适合：
+
+秒级体育比分；
+高频财经行情；
+大量事件持续轮询；
+有严格可用性要求的正式业务。
+生产环境建议使用常驻服务器、容器和任务队列。
+
+3. 建设目标与边界
+3.1 建设目标
+系统第一阶段应实现：
+
+支持创建二元投票事件；
+为每个事件配置明确判定规则；
+支持官方 API、专业 API、RSS、网页和热点预警；
+自动生成候选结果；
+支持自动确认和人工审核；
+保存完整证据和操作日志；
+将最终结果同步到小程序；
+发送微信订阅消息和管理员通知；
+支持结果更正、作废和重新通知。
+3.2 非目标
+第一阶段不建议实现：
+
+自建全网搜索引擎；
+大规模抓取所有社交媒体；
+使用大模型直接判定所有事件；
+自建实时体育或金融底层数据；
+未经人工审核自动处理高争议社会事件；
+使用未经授权的财经行情接口开展商业服务。
+4. 核心设计原则
+4.1 热点发现和结果确认分离
+系统应分为两个过程：
+
+发现候选结果
+数据来源可以是：
+
+TrendRadar；
+新闻 RSS；
+页面变化；
+API状态更新；
+管理员录入。
+确认最终结果
+确认依据必须是：
+
+官方结构化 API；
+官方公告；
+赛事主办方页面；
+有授权的数据服务；
+两个或以上独立可靠来源；
+人工审核。
+4.2 事件必须预先定义判定标准
+错误示例：
+
+某品牌的新产品会不会成功？
+
+“成功”无法客观判断，不能结算。
+
+正确示例：
+
+截至2026年12月31日，该品牌是否正式公布此产品累计销量超过100万台？
+
+判定规则包括：
+
+时间范围；
+数据指标；
+官方来源；
+时区；
+延迟和更正规则；
+未公布时如何处理。
+4.3 证据优先于模型结论
+每个结果都必须保存：
+
+来源名称；
+来源地址；
+原始标题和正文；
+原始 JSON 或页面快照；
+来源发布时间；
+系统抓取时间；
+内容哈希；
+使用的解析器版本；
+最终确认人或自动规则。
+4.4 所有写操作必须幂等
+相同结果被多次抓取时：
+
+不能重复结算；
+不能重复发送消息；
+不能重复修改用户状态；
+不能覆盖更高可信度的证据。
+5. 系统总体架构
+6. 事件状态设计
+建议状态如下：
+
+DRAFT             草稿
+VOTING             投票中
+VOTE_CLOSED        已封盘
+MONITORING         监控中
+CANDIDATE_FOUND    已发现候选结果
+REVIEW_REQUIRED    待人工审核
+CONFIRMED          结果已确认
+PUBLISHED          结果已发布
+CORRECTED          结果已更正
+VOIDED             事件已作废
+CANCELLED          事件已取消
+状态流转：
+
+草稿
+  ↓
+投票中
+  ↓
+已封盘
+  ↓
+监控中
+  ↓
+发现候选结果
+  ├── 自动确认
+  └── 人工审核
+          ↓
+       结果确认
+          ↓
+       结果发布
+          ↓
+     更正或作废
+禁止直接从“投票中”跳转到“结果发布”。
+
+在结果确认前，系统必须先完成封盘，避免用户在知道结果后继续投票。
+
+7. 事件判定规则设计
+每个事件应保存一份机器可读的判定规则。
+
+示例：
+
+{
+  "question": "A队是否会战胜B队？",
+  "vote_options": [
+    {
+      "key": "SUPPORT",
+      "text": "支持"
+    },
+    {
+      "key": "OPPOSE",
+      "text": "反对"
+    }
+  ],
+  "outcome_options": ["YES", "NO", "VOID"],
+  "timezone": "Asia/Shanghai",
+  "vote_close_at": "2026-06-01T19:30:00+08:00",
+  "expected_result_at": "2026-06-01T22:00:00+08:00",
+  "resolution": {
+    "criterion": "以赛事官方公布的全场赛果为准，包含加时赛，不包含点球大战",
+    "primary_sources": [
+      {
+        "type": "OFFICIAL_API",
+        "source_id": "official-match-123"
+      }
+    ],
+    "backup_sources": [
+      {
+        "type": "LICENSED_API",
+        "source_id": "provider-match-123"
+      }
+    ],
+    "terminal_statuses": ["FINISHED"],
+    "grace_seconds": 120,
+    "conflict_policy": "MANUAL_REVIEW",
+    "cancel_policy": "VOID",
+    "postponed_policy": "KEEP_MONITORING"
+  }
+}
+7.1 必须明确的内容
+每个事件必须填写：
+
+投票问题；
+支持和反对分别对应什么结果；
+投票截止时间；
+预期结果时间；
+时区；
+判定标准；
+首选来源；
+备用来源；
+延期处理；
+取消处理；
+多来源冲突处理；
+结果更正处理；
+自动确认还是人工确认。
+8. 数据源策略
+8.1 数据源可信度分级
+级别	数据源	建议用途
+S级	官方结构化API、交易所公告、赛事官方结果	可自动确认
+A级	官方网页、政府公告、主办方公告	可自动或延迟确认
+B级	有授权的专业数据服务	可与官方源交叉验证
+C级	权威媒体、财经快讯	生成候选结果
+D级	热榜、社交平台、自媒体	只做预警
+E级	传闻、转载不明内容	不用于结算
+8.2 体育
+推荐来源顺序：
+
+赛事官方 API；
+赛事官方结果页；
+有授权的体育数据 API；
+两家独立体育媒体；
+热搜和社交平台。
+自动确认条件示例：
+
+比赛状态为FINISHED
+并且双方比分完整
+并且比赛标识与事件绑定一致
+并且数据更新时间晚于开赛时间
+并且结果保持120秒不变
+必须处理：
+
+延期；
+腰斩；
+加时赛；
+点球大战；
+技术性判负；
+赛后改判；
+队伍重名；
+联赛和赛季标识错误。
+预期延迟：
+
+专业 API：5～30秒；
+官方网页：1～5分钟；
+新闻和热搜：5～30分钟。
+8.3 电竞
+重点识别：
+
+单局结束；
+地图结束；
+整个BO3或BO5结束；
+重赛；
+退赛；
+赛后判负。
+结算必须以整场比赛状态为准，不能把某一局结果当成最终结果。
+
+8.4 财经
+上市公司公告
+优先来源：
+
+巨潮资讯；
+上交所、深交所、北交所；
+港交所披露易；
+公司投资者关系页面；
+其他市场对应交易所官网。
+宏观数据
+优先来源：
+
+国家统计局；
+中国人民银行；
+财政部；
+海关总署；
+美联储等官方机构；
+获得授权的财经数据服务。
+行情类
+必须预先定义：
+
+交易所；
+证券代码；
+交易日；
+收盘价或盘后价；
+时区；
+是否复权；
+停牌规则；
+数据提供商；
+数据修正规则。
+对于商业用途，应核实实时行情和交易所数据授权，不建议依赖来源不明的“公开接口”。
+
+8.5 娱乐、社会和产品发布
+优先来源：
+
+主办方或品牌官网；
+官方账号；
+官方直播或发布会页面；
+主流媒体；
+热榜辅助预警。
+传闻、爆料和未经确认的热搜不能自动结算。
+
+社会、公共政策及争议事件建议默认进入人工审核。
+
+9. TrendRadar的正确定位与接入
+9.1 使用范围
+TrendRadar用于：
+
+发现事件可能已经产生结果；
+监控事件是否进入热点；
+获取相关标题和来源链接；
+向管理员发送预警；
+触发后端立即检查官方数据源。
+TrendRadar不直接负责：
+
+确认最终结果；
+修改投票事件状态；
+执行自动结算；
+直接向所有用户发布结论。
+9.2 部署建议
+生产环境建议：
+
+使用 Docker 常驻运行；
+固定经过验证的版本或 Git commit；
+不直接使用不受控的 latest；
+保存配置到版本管理系统；
+设置Webhook或由适配器读取输出；
+设置失败告警。
+具体命令应以部署时的官方仓库 README 和 .env.example 为准，不建议直接复制旧文档中的环境变量。
+
+9.3 关键词设计
+候选结果词：
+
+公布
+官宣
+最终
+全场
+获胜
+夺冠
+当选
+通过
+否决
+批准
+发布
+成交
+收盘
+财报
+业绩
+正式确认
+官方通报
+排除词：
+
+预测
+猜测
+网传
+有望
+或将
+即将
+可能
+直播中
+等待公布
+尚未确认
+辟谣
+回顾
+假设
+关键词必须包含事件实体，例如：
+
+“A队” + “B队” + “全场”
+“某公司” + “年度报告”
+“某奖项” + “获奖名单”
+“某产品” + “正式发布”
+TrendRadar不同版本的关键词语法可能不同，部署时应按照所固定版本的配置格式调整。
+
+9.4 后端Webhook接口
+建议统一接收：
+
+POST /api/v1/integrations/trendradar
+Authorization: Bearer <INTEGRATION_TOKEN>
+Content-Type: application/json
+标准化请求示例：
+
+{
+  "source": "trendradar",
+  "platform": "weibo",
+  "title": "A队2比1战胜B队",
+  "url": "https://example.com/news/123",
+  "published_at": "2026-06-01T22:10:00+08:00",
+  "matched_keywords": ["A队", "B队", "战胜"],
+  "raw_payload": {}
+}
+收到Webhook后只执行：
+
+验证签名；
+去重；
+查找匹配事件；
+保存证据；
+创建候选结果；
+触发官方数据源立即复查。
+不得直接结算。
+
+10. 网页变更监控
+推荐自建 changedetection.io。
+
+适合监控：
+
+官方公告列表；
+比赛结果页；
+产品发布页；
+获奖名单；
+公司投资者关系页面；
+政府公开信息页面。
+10.1 不适合直接监控的页面
+登录后页面；
+验证码页面；
+强反爬网站；
+完全由前端动态渲染的复杂页面；
+页面内容频繁变化但结果区域不固定；
+明确禁止自动访问的页面。
+10.2 监控规则
+不要监控整个页面，应只监控结果区域，例如：
+
+#match-result
+.result-container
+.announcement-list
+div[data-section="result"]
+同时配置忽略区域：
+
+时间；
+广告；
+推荐内容；
+阅读量；
+页面随机标识；
+动态导航。
+10.3 Webhook
+页面变化后发送：
+
+POST /api/v1/integrations/page-change
+Authorization: Bearer <INTEGRATION_TOKEN>
+请求示例：
+
+{
+  "watch_id": "watch-123",
+  "event_id": "event-456",
+  "url": "https://official.example.com/result",
+  "changed_at": "2026-06-01T22:01:30+08:00",
+  "old_text": "比赛进行中",
+  "new_text": "比赛结束 A队 2:1 B队"
+}
+后端仍需解析、验证并进入确认流程。
+
+11. 结果确认引擎
+11.1 自动确认规则
+规则A：官方结构化结果
+满足以下条件可自动确认：
+
+来源级别为S；
+事件标识完全匹配；
+返回终态；
+结果字段完整；
+结果时间合理；
+不存在冲突证据；
+等待宽限期后结果未变化。
+规则B：两个独立来源一致
+满足以下条件可自动确认：
+
+至少两个独立来源；
+不是相互转载；
+结果完全一致；
+至少一个来源达到A级或B级；
+不属于强制人工审核类别。
+规则C：非结构化官方公告
+建议流程：
+
+规则表达式提取；
+LLM辅助提取；
+对照事件判定标准；
+进入人工审核；
+审核后确认。
+11.2 强制人工审核情况
+以下情况不得自动确认：
+
+来源冲突；
+官方内容被删除或撤回；
+政治、社会或高争议事件；
+只有热搜和自媒体证据；
+LLM置信度不足；
+判定条件本身有歧义；
+赛事中断、改判或取消；
+财经数据涉及口径差异；
+结果会触发财产、奖励或权益变动。
+11.3 置信度示例
+条件	建议置信度
+官方结构化API终态	0.98
+官方公告明确公布	0.95
+专业API和官方页一致	0.97
+两家独立权威媒体一致	0.90
+单一权威媒体	0.75
+TrendRadar热榜标题	0.40
+社交平台传闻	0.10
+置信度只是辅助指标，不能替代来源级别和业务规则。
+
+12. 大模型使用规范
+12.1 可以使用的场景
+事件和新闻相关性分类；
+从公告中提取数值；
+提取队伍、比分、日期；
+判断文本表达的是“已发生”还是“可能发生”；
+生成审核摘要；
+标出否定、预测和不确定性表达。
+12.2 不允许的场景
+没有证据时推断结果；
+根据训练数据回答实时结果；
+单独执行自动结算；
+忽略来源冲突；
+修改原始证据；
+将模型生成内容伪装成官方内容。
+12.3 建议输出格式
+{
+  "related": true,
+  "is_final_result": true,
+  "outcome": "YES",
+  "entities": {
+    "home_team": "A队",
+    "away_team": "B队",
+    "home_score": 2,
+    "away_score": 1
+  },
+  "uncertainty": [],
+  "quoted_evidence": "全场比赛结束，A队2比1战胜B队",
+  "confidence": 0.91
+}
+即使模型输出高置信度，也必须经过确定性规则和来源检查。
+
+13. 推荐技术栈
+如果现有后端使用其他技术，可以保留现有技术栈，仅实现相同模块。
+
+模块	推荐技术
+后端API	Python FastAPI
+数据库	PostgreSQL
+缓存和任务队列	Redis
+异步任务	Celery
+定时调度	Celery Beat
+页面监控	changedetection.io
+动态页面	Playwright
+热点发现	TrendRadar
+对象存储	云对象存储或MinIO
+反向代理	Caddy或Nginx
+错误追踪	Sentry
+指标监控	Prometheus + Grafana
+管理后台	Vue 3或React
+容器编排	Docker Compose
+14. 数据库设计
+14.1 事件表
+CREATE TABLE events (
+    id UUID PRIMARY KEY,
+    question VARCHAR(500) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Shanghai',
+    vote_close_at TIMESTAMPTZ NOT NULL,
+    expected_result_at TIMESTAMPTZ,
+    resolution_policy JSONB NOT NULL,
+    final_outcome VARCHAR(30),
+    result_version INTEGER NOT NULL DEFAULT 0,
+    confirmed_at TIMESTAMPTZ,
+    published_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+14.2 数据源表
+CREATE TABLE event_sources (
+    id UUID PRIMARY KEY,
+    event_id UUID NOT NULL REFERENCES events(id),
+    source_type VARCHAR(50) NOT NULL,
+    source_name VARCHAR(200) NOT NULL,
+    source_url TEXT,
+    external_id VARCHAR(200),
+    source_level VARCHAR(10) NOT NULL,
+    priority INTEGER NOT NULL DEFAULT 100,
+    poll_interval_seconds INTEGER,
+    parser_type VARCHAR(50),
+    parser_config JSONB,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_event_sources_event
+ON event_sources(event_id);
+14.3 证据表
+CREATE TABLE evidences (
+    id UUID PRIMARY KEY,
+    event_id UUID NOT NULL REFERENCES events(id),
+    source_id UUID REFERENCES event_sources(id),
+    evidence_type VARCHAR(50) NOT NULL,
+    title TEXT,
+    content TEXT,
+    source_url TEXT,
+    source_published_at TIMESTAMPTZ,
+    fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    content_hash VARCHAR(64) NOT NULL,
+    raw_payload JSONB,
+    source_level VARCHAR(10) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(event_id, content_hash)
+);
+14.4 候选结果表
+CREATE TABLE result_candidates (
+    id UUID PRIMARY KEY,
+    event_id UUID NOT NULL REFERENCES events(id),
+    candidate_outcome VARCHAR(30) NOT NULL,
+    confidence NUMERIC(5,4),
+    extraction_method VARCHAR(50) NOT NULL,
+    parser_version VARCHAR(50),
+    evidence_ids JSONB NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    reviewed_at TIMESTAMPTZ,
+    reviewed_by UUID,
+    review_comment TEXT
+);
+14.5 结果版本表
+CREATE TABLE event_results (
+    id UUID PRIMARY KEY,
+    event_id UUID NOT NULL REFERENCES events(id),
+    version INTEGER NOT NULL,
+    outcome VARCHAR(30) NOT NULL,
+    evidence_ids JSONB NOT NULL,
+    confirmation_type VARCHAR(30) NOT NULL,
+    confirmed_by UUID,
+    reason TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(event_id, version)
+);
+14.6 通知Outbox
+CREATE TABLE notification_outbox (
+    id UUID PRIMARY KEY,
+    event_id UUID NOT NULL REFERENCES events(id),
+    user_id UUID,
+    channel VARCHAR(30) NOT NULL,
+    template_code VARCHAR(100),
+    payload JSONB NOT NULL,
+    idempotency_key VARCHAR(200) NOT NULL UNIQUE,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    next_retry_at TIMESTAMPTZ,
+    sent_at TIMESTAMPTZ,
+    last_error TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+14.7 审计日志
+CREATE TABLE audit_logs (
+    id UUID PRIMARY KEY,
+    operator_type VARCHAR(30) NOT NULL,
+    operator_id VARCHAR(100),
+    action VARCHAR(100) NOT NULL,
+    target_type VARCHAR(50) NOT NULL,
+    target_id UUID NOT NULL,
+    before_data JSONB,
+    after_data JSONB,
+    ip_address VARCHAR(100),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+15. 后端API设计
+15.1 创建事件
+POST /api/v1/admin/events
+15.2 为事件添加数据源
+POST /api/v1/admin/events/{event_id}/sources
+15.3 接收热点通知
+POST /api/v1/integrations/trendradar
+15.4 接收网页变化
+POST /api/v1/integrations/page-change
+15.5 接收专业API回调
+POST /api/v1/integrations/providers/{provider_name}
+15.6 查看候选结果
+GET /api/v1/admin/result-candidates
+15.7 审核通过
+POST /api/v1/admin/result-candidates/{candidate_id}/approve
+请求：
+
+{
+  "outcome": "YES",
+  "comment": "官方页面与专业API结果一致"
+}
+15.8 驳回候选结果
+POST /api/v1/admin/result-candidates/{candidate_id}/reject
+15.9 更正结果
+POST /api/v1/admin/events/{event_id}/correct-result
+15.10 小程序查询结果
+GET /api/v1/events/{event_id}
+返回：
+
+{
+  "id": "event-123",
+  "question": "A队是否会战胜B队？",
+  "status": "PUBLISHED",
+  "final_outcome": "YES",
+  "result_version": 1,
+  "confirmed_at": "2026-06-01T22:03:00+08:00",
+  "evidence_summary": [
+    {
+      "source_name": "赛事官方网站",
+      "source_url": "https://official.example.com/match/123"
+    }
+  ]
+}
+16. 调度和监控频率
+根据事件时间动态调整频率。
+
+时间阶段	API轮询	网页监控	热点监控
+距预计结果超过24小时	30～60分钟	30～60分钟	15～30分钟
+距预计结果1～24小时	5～15分钟	5～15分钟	5～15分钟
+预计结果前后1小时	5～30秒	1～3分钟	2～5分钟
+结果出现后未确认	10～30秒	1分钟	2～5分钟
+已确认	停止高频监控	保留低频更正监控	停止或降频
+网页监控频率必须遵守网站服务条款，避免对目标网站造成压力。
+
+17. 小程序通知设计
+微信小程序不能任意向用户发送消息，需要使用微信订阅消息机制，并获得用户授权。
+
+17.1 建议流程
+用户参与投票后：
+
+展示“订阅结果通知”按钮；
+调用微信订阅消息授权接口；
+后端记录授权结果；
+结果发布后创建通知任务；
+后端调用微信接口发送订阅消息；
+保存微信返回结果。
+17.2 消息内容建议
+投票事件：A队是否战胜B队
+最终结果：是
+公布时间：2026-06-01 22:03
+查看详情：点击进入小程序
+避免在通知中使用：
+
+夸大性描述；
+未经确认的敏感结论；
+诱导分享；
+与用户订阅目的无关的营销内容。
+17.3 防止重复通知
+幂等键建议：
+
+event:{event_id}:user:{user_id}:result_version:{version}
+如果结果更正，应使用新的结果版本并明确标注“结果已更正”。
+
+18. 部署方案
+18.1 服务器建议
+测试环境
+2核 CPU；
+4GB内存；
+40GB磁盘；
+Ubuntu 22.04或24.04；
+Docker和Docker Compose。
+正式环境
+初期建议：
+
+应用服务器：2核4GB或4核8GB；
+PostgreSQL：可使用云数据库；
+Redis：可使用云Redis或容器；
+对象存储：云OSS/COS；
+HTTPS域名；
+每日数据库备份。
+如果运行大量动态浏览器任务，建议单独部署浏览器节点。
+
+18.2 目录结构
+event-resolution/
+├── backend/
+│   ├── app/
+│   ├── migrations/
+│   ├── tests/
+│   ├── Dockerfile
+│   └── requirements.txt
+├── deploy/
+│   ├── docker-compose.yml
+│   ├── Caddyfile
+│   └── .env
+├── config/
+│   ├── source-rules/
+│   └── keyword-rules/
+├── scripts/
+│   ├── backup.sh
+│   └── restore.sh
+└── docs/
+18.3 环境变量模板
+保存为 deploy/.env：
+
+APP_ENV=production
+APP_SECRET=replace-with-long-random-secret
+POSTGRES_DB=event_resolution
+POSTGRES_USER=event_app
+POSTGRES_PASSWORD=replace-with-strong-password
+DATABASE_URL=postgresql://event_app:replace-with-strong-password@postgres:5432/event_resolution
+REDIS_URL=redis://redis:6379/0
+INTEGRATION_TOKEN=replace-with-integration-token
+ADMIN_JWT_SECRET=replace-with-admin-jwt-secret
+WECHAT_APP_ID=
+WECHAT_APP_SECRET=
+WECHAT_RESULT_TEMPLATE_ID=
+FEISHU_WEBHOOK_URL=
+WEWORK_WEBHOOK_URL=
+LLM_ENABLED=false
+LLM_API_KEY=
+LLM_MODEL=
+SENTRY_DSN=
+DOMAIN=result-api.example.com
+不要将生产环境 .env 提交到Git仓库。
+
+18.4 Docker Compose模板
+保存为 deploy/docker-compose.yml：
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  api:
+    build:
+      context: ../backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: >
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port 8000
+      --workers 2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  worker:
+    build:
+      context: ../backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: celery -A app.worker.celery worker --loglevel=INFO --concurrency=4
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  scheduler:
+    build:
+      context: ../backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: celery -A app.worker.celery beat --loglevel=INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  changedetection:
+    image: dgtlmoon/changedetection.io:latest
+    restart: unless-stopped
+    volumes:
+      - changedetection_data:/datastore
+    expose:
+      - "5000"
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+volumes:
+  postgres_data:
+  redis_data:
+  changedetection_data:
+  caddy_data:
+  caddy_config:
+说明：
+
+上述 latest 仅适合首次验证；
+正式上线前应将 changedetection.io 固定到测试通过的版本；
+TrendRadar建议独立部署，避免其升级影响核心结算服务。
+18.5 Caddy配置
+保存为 deploy/Caddyfile：
+
+{$DOMAIN} {
+    encode gzip zstd
+    reverse_proxy api:8000
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}
+18.6 启动命令
+cd event-resolution/deploy
+docker compose build
+docker compose up -d
+docker compose ps
+docker compose logs -f api
+执行数据库迁移：
+
+docker compose exec api alembic upgrade head
+健康检查：
+
+curl https://result-api.example.com/health
+建议返回：
+
+{
+  "status": "ok",
+  "database": "ok",
+  "redis": "ok"
+}
+19. TrendRadar部署步骤
+由于TrendRadar仓库版本和配置项可能变化，正式实施时按以下原则操作：
+
+确认官方或可信维护仓库；
+检查最近提交、Issue和Release；
+选择一个稳定版本；
+记录commit hash；
+按该版本README部署；
+配置所需平台；
+配置结果关键词和排除词；
+将输出发送到后端Webhook；
+测试签名、重试和去重；
+完成后再接入正式环境。
+建议独立目录：
+
+/opt/trendradar
+建议保留：
+
+原始配置；
+部署版本；
+日志；
+输出样例；
+回滚版本。
+如果该版本不支持通用Webhook，可选择：
+
+推送到飞书后由管理员处理；
+写入RSS，再由后端读取；
+读取其结构化输出文件；
+编写一个轻量适配器转发到统一Webhook。
+20. 安全设计
+20.1 Webhook安全
+至少实现：
+
+HTTPS；
+Bearer Token或HMAC签名；
+请求时间戳；
+防重放；
+IP限制；
+请求体大小限制；
+频率限制；
+原始请求审计。
+推荐签名：
+
+signature = HMAC_SHA256(secret, timestamp + "." + raw_body)
+服务端拒绝超过5分钟的请求。
+
+20.2 后台权限
+建议角色：
+
+角色	权限
+运营编辑	创建和编辑事件
+审核员	审核候选结果
+高级审核员	更正和作废结果
+管理员	配置数据源和权限
+审计员	只读查看操作记录
+重要结果应支持双人审核。
+
+20.3 数据安全
+数据库不直接暴露公网；
+密钥使用云密钥管理或环境变量；
+每日自动备份；
+备份文件加密；
+管理后台启用多因素认证；
+生产和测试环境隔离；
+日志中不得记录微信密钥和完整Token。
+21. 合规要求
+21.1 数据来源授权
+上线前核实：
+
+是否允许自动抓取；
+是否允许商业使用；
+是否允许缓存和展示；
+体育和财经数据是否需要授权；
+是否允许向第三方用户分发。
+21.2 小程序内容合规
+需要特别关注：
+
+政治及公共事件；
+谣言与未经证实内容；
+金融投资建议；
+赌博或变相竞猜；
+用户奖励和虚拟资产；
+未成年人保护；
+用户个人信息。
+如果投票结果与现金、兑换、分成或其他财产权益挂钩，应额外进行法律和平台规则评估，避免形成竞猜、博彩或违规金融活动。
+
+21.3 个人信息
+仅收集业务必需信息，并提供：
+
+隐私政策；
+用户授权；
+注销渠道；
+数据删除机制；
+数据保存期限；
+第三方共享说明。
+22. 监控与告警
+至少监控：
+
+API可用性；
+数据库连接；
+Redis连接；
+队列积压；
+定时任务是否执行；
+数据源连续失败次数；
+Webhook失败率；
+候选结果积压；
+通知发送失败率；
+结果确认延迟；
+结果更正次数。
+建议告警阈值：
+
+指标	告警条件
+官方API失败	连续3次
+任务队列积压	超过500条或等待超过5分钟
+候选结果未审核	超过10分钟
+微信通知失败率	5分钟内超过10%
+数据库磁盘	使用率超过80%
+结果冲突	立即告警
+自动确认后发生更正	立即告警
+23. 备份与恢复
+23.1 每日备份
+scripts/backup.sh：
+
+#!/usr/bin/env bash
+set -euo pipefail
+BACKUP_DIR="/data/backups/event-resolution"
+DATE="$(date +%Y%m%d_%H%M%S)"
+mkdir -p "${BACKUP_DIR}"
+docker compose exec -T postgres \
+  pg_dump \
+  -U "${POSTGRES_USER}" \
+  -d "${POSTGRES_DB}" \
+  -Fc > "${BACKUP_DIR}/db_${DATE}.dump"
+find "${BACKUP_DIR}" -type f -mtime +30 -delete
+备份应同步到独立对象存储，不能只保存在同一服务器。
+
+23.2 恢复演练
+至少每季度进行一次恢复测试：
+
+pg_restore \
+  --clean \
+  --if-exists \
+  --dbname=event_resolution \
+  db_20260101_020000.dump
+24. 测试方案
+24.1 单元测试
+覆盖：
+
+事件状态流转；
+比分解析；
+公告数值解析；
+关键词否定；
+时间和时区；
+来源可信度；
+结果冲突；
+通知幂等；
+结果版本。
+24.2 集成测试
+覆盖：
+
+TrendRadar模拟Webhook；
+changedetection模拟Webhook；
+体育API模拟终态；
+微信订阅消息沙箱；
+数据库事务；
+Celery任务重试；
+API超时和熔断。
+24.3 必须测试的异常场景
+比赛延期；
+比赛取消；
+单局结束但整场未结束；
+官方页面短暂显示错误比分；
+两个来源结果不同；
+新闻标题包含“最终”，正文却是否认；
+同一Webhook重复发送10次；
+结果确认时数据库断开；
+微信接口超时；
+自动确认后官方更正；
+投票截止与结果出现同时发生；
+用户在封盘瞬间提交投票。
+25. 验收标准
+25.1 功能验收
+可以创建事件并配置判定规则；
+可以绑定多个数据源；
+可以自动采集和保存证据；
+可以生成候选结果；
+可以执行人工审核；
+满足条件时可以自动确认；
+可以更新小程序结果；
+可以发送微信订阅消息；
+支持结果更正和作废；
+所有操作有审计日志。
+25.2 性能验收
+初期建议目标：
+
+API 95%请求响应时间小于500毫秒；
+Webhook接收响应小于1秒；
+单个任务失败不影响其他事件；
+支持至少1万条活动事件；
+支持每分钟1000条数据源消息；
+相同消息重复接收不会重复结算。
+25.3 时效验收
+类型	目标
+专业体育API	结果产生后30秒内发现
+官方结构化公告	1分钟内发现
+官方网页	3分钟内发现
+RSS	5分钟内发现
+热点平台	以平台更新频率为准
+人工审核事件	候选结果出现后10分钟内完成
+以上为系统目标，不代表数据源对外发布时间。系统无法保证早于官方来源获得结果。
+
+26. 实施阶段
+第一阶段：需求和规则设计，3～5个工作日
+完成：
+
+梳理首批事件类型；
+定义判定规则模板；
+确认数据源；
+确认通知方式；
+完成合规评估；
+定义自动和人工审核边界。
+第二阶段：MVP开发，2～3周
+实现：
+
+事件管理；
+数据源管理；
+证据存储；
+统一Webhook；
+定时任务；
+候选结果；
+人工审核；
+小程序结果查询；
+飞书或企业微信通知。
+首期只接入：
+
+一种体育API；
+一种官方网页监控；
+TrendRadar；
+人工录入。
+第三阶段：自动确认和微信通知，1～2周
+实现：
+
+自动确认规则；
+多源交叉验证；
+微信订阅消息；
+通知Outbox；
+结果更正；
+审计记录；
+监控告警。
+第四阶段：财经和多品类扩展，2～4周
+实现：
+
+交易所或公告源；
+宏观数据源；
+更多体育和电竞提供商；
+RSS接入；
+LLM辅助提取；
+动态页面抓取。
+27. 人员配置
+最小团队：
+
+角色	投入
+后端开发	1～2人
+前端/小程序开发	1人
+运维或后端兼任	0.5人
+产品/运营	1人
+内容审核	按事件量配置
+测试	0.5～1人
+MVP通常可在4～6周内完成。
+
+28. 费用估算
+28.1 原型阶段
+项目	月费用
+2核4GB服务器	50～150元
+域名和证书	证书可免费
+PostgreSQL容器	0元
+Redis容器	0元
+TrendRadar	0元
+changedetection.io	0元
+飞书/企业微信机器人	0元
+对象存储	0～20元
+合计	50～200元/月
+28.2 小规模生产
+项目	月费用
+应用服务器	150～500元
+云数据库	100～500元
+Redis	50～200元
+对象存储和流量	20～200元
+日志、监控、备份	0～300元
+LLM调用	50～1000元
+专业体育/电竞API	数百至数千元
+财经数据授权	视供应商报价
+合计	300元至数千元/月
+真正的主要成本通常不是服务器，而是：
+
+专业数据授权；
+财经行情授权；
+体育数据覆盖；
+内容审核人员；
+高可用和运维。
+29. 推荐上线顺序
+第一批事件
+优先选择容易客观判定的事件：
+
+足球和篮球赛果；
+电竞整场比赛结果；
+公开奖项名单；
+产品是否正式发布；
+官方公告是否发布；
+明确数值型宏观数据。
+暂缓自动化的事件
+主观性的“是否成功”；
+明星传闻；
+社会争议；
+政治预测；
+无明确截止时间的问题；
+无权威来源的问题；
+与用户财产权益直接挂钩的竞猜。
+30. 最终推荐方案
+建议采用以下组合：
+
+TrendRadar
+    用于热点发现和辅助预警
+changedetection.io
+    用于监控指定官方结果页
+专业API
+    用于体育、电竞、行情等结构化结果
+官方公告和RSS
+    用于财经、政策、公司公告
+规则引擎
+    用于确定性结果判定
+LLM
+    仅用于文本提取和审核辅助
+人工审核后台
+    用于模糊、冲突和敏感事件
+PostgreSQL + Redis + Celery
+    用于证据、任务、状态和通知管理
+微信订阅消息
+    用于向参与用户发送结果
+系统不应追求“任何事件都全自动第一时间结算”，而应根据事件类型设置不同自动化级别：
+
+事件类型	推荐方式
+体育结构化赛果	自动确认
+电竞结构化赛果	自动确认或双源确认
+官方公告	规则确认或短暂人工审核
+财经数值	官方源自动确认
+娱乐奖项	官方页面加人工审核
+社会事件	人工审核
+热搜和传闻	只预警，不结算
+最终建设目标应定义为：
+
+在官方或可靠来源发布结果后，以可审计、可更正、低误判的方式尽快完成结果确认，而不是单纯追求抓取速度。
+
+附录A：首批上线检查清单
+[ ] 每个事件都有明确截止时间
+[ ] 每个事件都有明确判定条件
+[ ] 每个事件至少配置一个首选来源
+[ ] 每个事件配置延期和取消规则
+[ ] 投票截止和结果发布使用数据库事务
+[ ] 数据源请求支持超时、重试和熔断
+[ ] Webhook支持签名和防重放
+[ ] 证据保存原始内容和内容哈希
+[ ] 自动确认有宽限时间
+[ ] 来源冲突自动进入人工审核
+[ ] 通知使用Outbox和幂等键
+[ ] 结果支持版本和更正
+[ ] 管理员操作有审计日志
+[ ] 微信订阅消息获得用户授权
+[ ] 已核实数据源的商业使用授权
+[ ] 已进行数据库恢复演练
+[ ] 已配置服务和业务告警
+附录B：上线前决策表
+在正式开发前，需要确定以下内容：
+
+现有后端使用什么语言和框架；
+当前服务器、云厂商和所在地区；
+首批需要监控的事件类别；
+每天新增事件数量；
+同时监控的事件数量；
+是否存在积分、奖金或其他权益；
+是否要求体育结果达到秒级；
+是否需要财经实时行情；
+是否已有数据供应商；
+使用飞书、企业微信还是钉钉进行审核告警；
+是否需要双人审核；
+微信订阅消息模板是否已经申请；
+小程序当前是否已有事件状态和结果字段；
+结果更正后如何处理用户展示和奖励。

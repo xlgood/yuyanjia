@@ -94,6 +94,74 @@ function fetchJson(url, timeoutMs) {
   });
 }
 
+// 抓取 HTML 原文（webpage 适配器用；强制 identity 编码避免 gzip 乱码，
+// 带浏览器 UA 提高部分站点可达性）
+function fetchText(url, timeoutMs) {
+  const t = timeoutMs || 15000;
+  return new Promise((resolve, reject) => {
+    const lib = url.indexOf('https') === 0 ? https : http;
+    const req = lib.get(url, {
+      timeout: t,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+        'Accept-Encoding': 'identity',
+        'Accept': 'text/html,application/xhtml+xml,*/*;q=0.8'
+      }
+    }, res => {
+      if (res.statusCode && res.statusCode >= 400) {
+        res.resume();
+        reject(new Error('页面返回 HTTP ' + res.statusCode));
+        return;
+      }
+      let body = '';
+      res.setEncoding('utf8');
+      res.on('data', c => { body += c; });
+      res.on('end', () => resolve(body));
+    });
+    req.on('timeout', () => req.destroy(new Error('请求超时')));
+    req.on('error', reject);
+  });
+}
+
+// 剥离 script/style/标签与常见实体，得到可见文本
+function stripHtml(html) {
+  return String(html)
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#\d+;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// 简单 CSS 选择器提取（仅支持 #id / .class / 标签名，零依赖正则实现；
+// 复杂选择器场景可后续引入 cheerio）
+function extractBySelector(html, selector) {
+  const s = String(selector || '').trim();
+  if (!s) return null;
+  const esc = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  let re;
+  if (s[0] === '#') {
+    const id = esc(s.slice(1));
+    re = new RegExp('<[^>]+id\\s*=\\s*["\']' + id + '["\'][^>]*>([\\s\\S]*?)</', 'i');
+  } else if (s[0] === '.') {
+    const cls = esc(s.slice(1));
+    re = new RegExp('<[^>]+class\\s*=\\s*["\'][^"\']*\\b' + cls + '\\b[^"\']*["\'][^>]*>([\\s\\S]*?)</', 'i');
+  } else {
+    const tag = s.replace(/[^a-zA-Z0-9]/g, '');
+    if (!tag) return null;
+    re = new RegExp('<' + tag + '[^>]*>([\\s\\S]*?)</' + tag + '>', 'i');
+  }
+  const m = String(html).match(re);
+  if (!m) return null;
+  return stripHtml(m[1]);
+}
+
 function getPath(obj, path) {
   return String(path).split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
 }
@@ -142,6 +210,7 @@ async function resolveGenericJson(spec) {
     result: yes ? 'YES' : 'NO',
     value: actual,
     raw: raw.length > 5000 ? raw.slice(0, 5000) : raw,
+    json,
     fetchedAt: Date.now()
   };
 }
@@ -159,10 +228,93 @@ async function resolveWeather(spec) {
   return resolveGenericJson(normalized);
 }
 
+// webpage 适配器：抓取官方页面，按 regex（正则捕获组）/ selector（简单选择器）/
+// 全文三种方式提取结果字段，再走统一 evaluate 规则判定（零依赖）
+async function resolveWebpage(spec) {
+  const ds = spec.dataSource;
+  if (ds.type !== 'webpage') throw new Error('webpage 适配器仅支持 dataSource.type=webpage');
+  if (!ds.url) throw new Error('webpage 适配器缺少数据源 url');
+
+  const html = await fetchText(ds.url, ds.timeoutMs);
+  let actual;
+  if (ds.regex) {
+    const m = String(html).match(new RegExp(ds.regex));
+    if (!m) throw new Error('未匹配到提取表达式: ' + ds.regex);
+    actual = stripHtml(m[1] !== undefined ? m[1] : m[0]);
+  } else if (ds.selector) {
+    actual = extractBySelector(html, ds.selector);
+    if (actual == null) throw new Error('选择器未命中: ' + ds.selector);
+  } else {
+    actual = stripHtml(html);
+  }
+
+  if (ds.transform === 'int' || ds.transform === 'float') {
+    const num = toNumber(actual);
+    if (num == null) throw new Error('字段值无法解析为数字: ' + String(actual).slice(0, 100));
+    actual = ds.transform === 'int' ? Math.round(num) : num;
+  } else if (ds.transform === 'string') {
+    actual = String(actual);
+  }
+  if (actual == null) throw new Error('字段值无法解析: ' + actual);
+
+  const yes = evaluate(actual, spec.condition);
+  return {
+    result: yes ? 'YES' : 'NO',
+    value: String(actual).slice(0, 500),
+    raw: String(html).slice(0, 5000),
+    fetchedAt: Date.now()
+  };
+}
+
 const ADAPTERS = {
   api: resolveGenericJson,
-  weather: resolveWeather
+  weather: resolveWeather,
+  webpage: resolveWebpage
 };
+
+// 多源交叉验证：主源判定后，逐个拉取 backupSources 备用源；
+// 任一备用源成功且结果一致 → 确认；任一不一致 → 冲突转人工；全部失败 → 以主源为准
+async function crossCheck(spec, primaryResult) {
+  const backups = spec.backupSources || [];
+  if (!backups.length) return { status: 'ok', detail: 'no_backup' };
+  let allFailed = true;
+  let checked = 0;
+  for (const bs of backups) {
+    const type = bs && bs.type;
+    const adapter = ADAPTERS[type];
+    if (!adapter || !bs.url) continue;
+    const subSpec = Object.assign({}, spec, { dataSource: bs });
+    try {
+      const r = await adapter(subSpec);
+      allFailed = false;
+      checked += 1;
+      if (r.result !== primaryResult.result) {
+        return { status: 'conflict', detail: bs.url + ' -> ' + r.result + ' vs 主源 ' + primaryResult.result };
+      }
+    } catch (e) {
+      /* 备用源失败，尝试下一个 */
+    }
+  }
+  if (checked === 0) return { status: 'ok', detail: 'backup_not_applicable' };
+  return { status: 'ok', detail: allFailed ? 'backup_all_failed' : 'backup_consistent' };
+}
+
+// 防信息套利：数据源配置了 timestampField 时，校验结果时间 >= 截止时间
+// （结果在收注期间已出现 → 疑似提前揭晓，转人工复核）
+async function checkResultTimestamp(market, spec, r) {
+  const tf = spec && spec.dataSource && spec.dataSource.timestampField;
+  if (!tf) return null;
+  const json = r.json || {};
+  let ts = getPath(json, tf);
+  if (ts == null) return '数据源未返回时间戳字段: ' + tf;
+  ts = toNumber(ts);
+  if (ts == null) return '时间戳无法解析: ' + tf;
+  const deadline = toNumber(market.deadline);
+  if (deadline && ts < deadline) {
+    return '结果时间早于截止时间（疑似提前揭晓）: ' + new Date(ts).toISOString();
+  }
+  return null;
+}
 
 exports.main = async () => {
   // 门禁：仅定时触发器 / 云间调用 / 管理员可触发，防止客户端刷调用
@@ -201,6 +353,28 @@ exports.main = async () => {
 
     try {
       const r = await adapter(spec);
+
+      // 防信息套利：结果时间早于截止时间 → 疑似提前揭晓，转人工复核
+      const tsIssue = await checkResultTimestamp(m, spec, r);
+      if (tsIssue) {
+        await log(m._id, methodOf(spec), { status: 'timestamp_conflict', error: tsIssue, value: r.value });
+        await flagManual(m._id, attempts, tsIssue);
+        await postWebhook(`【预测卦局·断卦告警】卦题「${String(m.title || m._id).slice(0, 30)}」${tsIssue}，已转人工复核`);
+        summary.manual.push(m._id);
+        continue;
+      }
+
+      // 多源交叉验证：冲突 → 转人工复核（不自动结算）
+      const cross = await crossCheck(spec, r);
+      if (cross.status === 'conflict') {
+        await log(m._id, methodOf(spec), { status: 'conflict', error: cross.detail, value: r.value, result: r.result });
+        await flagManual(m._id, attempts, '多源结果冲突: ' + cross.detail);
+        await postWebhook(`【预测卦局·断卦告警】卦题「${String(m.title || m._id).slice(0, 30)}」多源结果冲突（${String(cross.detail).slice(0, 120)}），已转人工复核`);
+        summary.manual.push(m._id);
+        continue;
+      }
+
+      const method = methodOf(spec);
       await db.collection('markets').doc(m._id).update({
         data: {
           status: 'dispute_window',
@@ -209,17 +383,18 @@ exports.main = async () => {
           resolvedAt: Date.now(),
           disputeEndsAt: computeDisputeEndsAt(Date.now()),
           hasDispute: false,
-          resolutionMethod: 'auto_api',
+          resolutionMethod: method,
           resolutionAttempts: attempts,
           needsManualReview: false,
           updatedAt: db.serverDate()
         }
       });
-      await log(m._id, 'auto_api', {
+      await log(m._id, method, {
         status: 'ok',
         value: r.value,
         result: r.result,
         raw: r.raw,
+        cross: cross.detail,
         fetchedAt: r.fetchedAt
       });
       summary.resolved.push(m._id);
@@ -245,6 +420,11 @@ exports.main = async () => {
 
   return { ok: true, summary };
 };
+
+// 判定方法名：webpage → auto_webpage，其余 → auto_api（看板按此统计）
+function methodOf(spec) {
+  return spec && spec.dataSource && spec.dataSource.type === 'webpage' ? 'auto_webpage' : 'auto_api';
+}
 
 async function log(marketId, method, data) {
   try {

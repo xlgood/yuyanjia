@@ -1,0 +1,9 @@
+{
+  "name": "getTopicCandidates",
+  "version": "1.0.0",
+  "description": "获取定时生成的候选事件（管理端定时候选区块）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

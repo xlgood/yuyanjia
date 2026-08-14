@@ -17,7 +17,12 @@ Page({
     candidates: [],
     selected: {},
     selectedCount: 0,
-    selectAll: false
+    selectAll: false,
+    // 定时候选（dailyHotTopics 自动生成）
+    autoDays: [],
+    autoSelected: {},
+    autoBatchCount: 0,
+    autoLoading: true
   },
 
   onLoad() {
@@ -27,6 +32,59 @@ Page({
         this.setData({ loading: false });
         wx.showToast({ title: err.message || '加载数据源失败', icon: 'none' });
       });
+    // 加载每日定时生成的候选（dailyHotTopics 写入 topic_candidates）
+    this.loadAutoCandidates();
+  },
+
+  loadAutoCandidates() {
+    api.getTopicCandidates({ limit: 5 })
+      .then(res => {
+        const days = (res.list || []).map(d => ({
+          date: d.date,
+          status: d.status,
+          aiError: d.aiError || '',
+          items: (d.items || []).map((it, i) => Object.assign({}, it, {
+            autoKey: d.date + '_' + i
+          }))
+        }));
+        this.setData({ autoDays: days, autoLoading: false });
+      })
+      .catch(() => this.setData({ autoLoading: false }));
+  },
+
+  onAutoToggle(e) {
+    const key = e.currentTarget.dataset.key;
+    const autoSelected = Object.assign({}, this.data.autoSelected);
+    autoSelected[key] = !autoSelected[key];
+    const autoBatchCount = Object.keys(autoSelected).filter(k => autoSelected[k]).length;
+    this.setData({ autoSelected, autoBatchCount });
+  },
+
+  onAutoSelectAll() {
+    const all = [];
+    this.data.autoDays.forEach(d => d.items.forEach(it => all.push(it.autoKey)));
+    const allPicked = all.length > 0 && all.every(k => this.data.autoSelected[k]);
+    const autoSelected = {};
+    if (!allPicked) all.forEach(k => { autoSelected[k] = true; });
+    this.setData({
+      autoSelected,
+      autoBatchCount: Object.keys(autoSelected).filter(k => autoSelected[k]).length
+    });
+  },
+
+  // 定时候选 → 批量发题（复用 batch 页）
+  onAutoBatch() {
+    const picked = [];
+    this.data.autoDays.forEach(d => d.items.forEach(it => {
+      if (this.data.autoSelected[it.autoKey]) picked.push({ title: it.title, category: it.category });
+    }));
+    if (!picked.length) {
+      wx.showToast({ title: '请先勾选候选事件', icon: 'none' });
+      return;
+    }
+    const existing = wx.getStorageSync('batch_candidates') || [];
+    wx.setStorageSync('batch_candidates', existing.concat(picked));
+    wx.navigateTo({ url: '/subpackages/admin/batch/batch' });
   },
 
   onTimeRange(e) {

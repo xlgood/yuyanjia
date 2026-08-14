@@ -401,8 +401,9 @@ async function runDeepSeekSearch(category, timeRange, topic) {
 }
 
 exports.main = async (event) => {
-  const { OPENID } = cloud.getWXContext();
-  if (!ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
+  const { OPENID, SOURCE } = cloud.getWXContext();
+  // 门禁：客户端调用需管理员身份；定时器/云间调用（如 dailyHotTopics 自动选题）放行
+  if (SOURCE === 'wx_client' && !ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
 
   const topic = String(event.topic || '').trim() || '热点事件';
   const category = String(event.category || '');

@@ -1716,6 +1716,11 @@ function call(name, data = {}) {
       };
     }
 
+    case 'getTopicCandidates': {
+      // Mock：返回空定时候选（演示用；正式环境由 dailyHotTopics 定时生成）
+      return { ok: true, list: [] };
+    }
+
     case 'aiSuggestTopics': {
       // Mock 模拟：返回固定候选清单（已标注五项约束检查），方便无 API Key 时预览完整流程
       return {
