@@ -16,8 +16,6 @@ const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
 const DEEPSEEK_RESPONSES_MODEL = process.env.DEEPSEEK_RESPONSES_MODEL || 'deepseek-v4-flash';
 const DEEPSEEK_WEB_SEARCH = String(process.env.DEEPSEEK_WEB_SEARCH || 'true') === 'true';
 const DEEPSEEK_TIMEOUT_MS = Number(process.env.DEEPSEEK_TIMEOUT_MS || 110000);
-// 联网检索单次预算：超时即回退离线 chat/completions，剩余时间留给离线生成，保证总耗时压在 55s 上限内
-const SEARCH_TIMEOUT_MS = Math.min(DEEPSEEK_TIMEOUT_MS, 20000);
 // 小程序端 callFunction 无超时参数，连接约 60s 会被平台掐断；
 // 这里在 55s 主动收口，返回明确提示而不是 ESOCKETTIMEDOUT
 const AI_SAFE_TIMEOUT_MS = 55000;
@@ -145,7 +143,10 @@ function chatCompletions(baseUrl, model, messages, apiKey, extra = {}, timeoutMs
 // 需把输出项原样回传，服务端恢复搜索结果后再生成最终答案），这里做多轮续接
 async function callDeepSeekResponses(instructions, userPrompt, apiKey, temperature) {
   let input = [{ role: 'user', content: userPrompt }];
+  const t0 = Date.now();
   for (let round = 0; round < 4; round++) {
+    // 首轮给足搜索时间；后续轮按剩余预算分配（至少 15s），总耗时由外层 55s 上限兜底
+    const budget = round === 0 ? 30000 : Math.max(15000, 50000 - (Date.now() - t0));
     const resp = await postJson(
       DEEPSEEK_BASE_URL.replace(/\/$/, '') + '/responses',
       {
@@ -160,7 +161,7 @@ async function callDeepSeekResponses(instructions, userPrompt, apiKey, temperatu
         max_output_tokens: 8000
       },
       apiKey,
-      SEARCH_TIMEOUT_MS
+      budget
     );
     const output = Array.isArray(resp.output) ? resp.output : [];
     // 输出被 token 上限截断 → 立即报错（走离线回退），不拿半截内容当结果

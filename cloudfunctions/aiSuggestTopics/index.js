@@ -62,9 +62,7 @@ function categoryMatch(cat, selected) {
   if (!cat) return true; // 缺分类时允许，展示阶段归入所选分类
   return cat === selected || cat.indexOf(selected) >= 0 || selected.indexOf(cat) >= 0;
 }
-const MAX_ITEMS = 12;
-// 联网检索单次预算：超时即回退离线 chat/completions，剩余时间留给离线生成，保证总耗时压在 55s 上限内
-const SEARCH_TIMEOUT_MS = Math.min(DEEPSEEK_TIMEOUT_MS, 20000);
+const MAX_ITEMS = 10;
 // 本地兜底词表：msgSecCheck 不可用（云调用未开通/异常）时降级使用，避免 fail-open
 const LOCAL_SENSITIVE_WORDS = [
   '选举', '大选', '总统', '议会', '国会', '审判', '开庭', '判决', '起诉', '立案', '庭审',
@@ -228,7 +226,10 @@ function chatCompletions(baseUrl, model, messages, apiKey, extra = {}, timeoutMs
 // 需把输出项原样回传，服务端恢复搜索结果后再生成最终答案），这里做多轮续接
 async function callDeepSeekResponses(instructions, userPrompt, apiKey, temperature) {
   let input = [{ role: 'user', content: userPrompt }];
+  const t0 = Date.now();
   for (let round = 0; round < 4; round++) {
+    // 首轮给足搜索时间；后续轮按剩余预算分配（至少 15s），总耗时由外层 55s 上限兜底
+    const budget = round === 0 ? 30000 : Math.max(15000, 50000 - (Date.now() - t0));
     const resp = await postJson(
       DEEPSEEK_BASE_URL.replace(/\/$/, '') + '/responses',
       {
@@ -243,7 +244,7 @@ async function callDeepSeekResponses(instructions, userPrompt, apiKey, temperatu
         max_output_tokens: 8000
       },
       apiKey,
-      SEARCH_TIMEOUT_MS
+      budget
     );
     const output = Array.isArray(resp.output) ? resp.output : [];
     // 输出被 token 上限截断 → 立即报错（走离线回退），不拿半截内容当结果
