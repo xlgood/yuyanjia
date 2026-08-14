@@ -59,26 +59,22 @@ function fetchJson(url, timeoutMs) {
 async function fetchGithubTrending() {
   const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString().slice(0, 10);
   const url = 'https://api.github.com/search/repositories?q=created:%3E' + since + '&sort=stars&order=desc&per_page=' + MAX_ITEMS;
-  const { json } = await fetchJson(url, 20000);
+  const { json } = await fetchJson(url, 12000);
   return (json.items || []).map(r =>
     `【GitHub】${r.full_name}：${(r.description || '（无描述）').slice(0, 120)} 语言:${r.language || '未知'} star:${r.stargazers_count} 链接:${r.html_url}`
   );
 }
 
-// Hacker News（官方 Firebase API）
+// Hacker News（官方 Firebase API）：只取前 5 条、并行拉取、单条 5s 超时，控制整体预算
 async function fetchHackerNews() {
-  const { json: ids } = await fetchJson('https://hacker-news.firebaseio.com/v0/topstories.json', 15000);
-  const top = (Array.isArray(ids) ? ids : []).slice(0, MAX_ITEMS);
-  const out = [];
-  for (const id of top) {
-    try {
-      const { json: item } = await fetchJson('https://hacker-news.firebaseio.com/v0/item/' + id + '.json', 10000);
-      if (item && item.title) {
-        out.push(`【HackerNews】${item.title} 得分:${item.score || 0} 链接:${item.url || 'https://news.ycombinator.com/item?id=' + id}`);
-      }
-    } catch (e) { /* 单条失败跳过 */ }
-  }
-  return out;
+  const { json: ids } = await fetchJson('https://hacker-news.firebaseio.com/v0/topstories.json', 8000);
+  const top = (Array.isArray(ids) ? ids : []).slice(0, 5);
+  const results = await Promise.allSettled(top.map(id =>
+    fetchJson('https://hacker-news.firebaseio.com/v0/item/' + id + '.json', 5000)
+      .then(r => r.json)
+      .then(item => (item && item.title) ? `【HackerNews】${item.title} 得分:${item.score || 0} 链接:${item.url || 'https://news.ycombinator.com/item?id=' + id}` : null)
+  ));
+  return results.map(r => (r.status === 'fulfilled' && r.value) ? r.value : '').filter(Boolean);
 }
 
 function postWebhook(content) {
@@ -130,32 +126,29 @@ exports.main = async () => {
     if (dup.total > 0) return { ok: true, skipped: true, date };
   } catch (e) { /* 集合不存在等异常：继续生成 */ }
 
-  // 1) 拉取稳定免费源（逐源 try/catch，单源失败不影响整体）
-  const materials = [];
-  try {
-    materials.push(...await fetchGithubTrending());
-  } catch (e) {
-    console.error('GitHub Trending 拉取失败', e && e.message || e);
-  }
-  try {
-    materials.push(...await fetchHackerNews());
-  } catch (e) {
-    console.error('Hacker News 拉取失败', e && e.message || e);
-  }
+  // 1) 拉取稳定免费源（并行 + 逐源 try/catch；整体预算：GitHub 12s / HN 8s）
+  const [ghRes, hnRes] = await Promise.all([
+    fetchGithubTrending().then(r => ({ r, e: '' }), e => ({ r: [], e: String((e && e.message) || e) })),
+    fetchHackerNews().then(r => ({ r, e: '' }), e => ({ r: [], e: String((e && e.message) || e) }))
+  ]);
+  if (ghRes.e) console.error('GitHub Trending 拉取失败', ghRes.e);
+  if (hnRes.e) console.error('Hacker News 拉取失败', hnRes.e);
+  const materials = ghRes.r.concat(hnRes.r);
   if (!materials.length) {
     await postWebhook('【预测卦局·选题告警】定时选题：全部数据源拉取失败，本轮跳过');
-    return { ok: false, err: '数据源拉取全部失败' };
+    return { ok: false, err: '数据源拉取全部失败: ' + (ghRes.e || hnRes.e) };
   }
   const summary = materials.join('\n').slice(0, SUMMARY_MAX);
 
-  // 2) 调用 AI 选题（注入素材作为 searchSummary，跳过独立联网检索）
+  // 2) 调用 AI 选题（注入素材作为 searchSummary，跳过独立联网检索；
+  //    限时 38s：整体预算 GitHub12s+HN8s+AI38s ≈ 58s < 云函数 60s 上限）
   let candidates = [];
   let aiMode = '';
   let aiError = '';
   try {
     const hr = await cloud.callFunction({
       name: 'aiSuggestTopics',
-      data: { topic: '科技数码、财经宏观热点事件', category: '', timeRange: '一周内', searchSummary: summary }
+      data: { topic: '科技数码、财经宏观热点事件', category: '', timeRange: '一周内', searchSummary: summary, timeoutMs: 38000 }
     });
     const r = hr.result || {};
     if (r.ok) {

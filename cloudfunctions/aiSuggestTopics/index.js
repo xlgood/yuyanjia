@@ -543,9 +543,11 @@ category 必须从「${CATEGORIES.join(' / ')}」中精确取值；当指定了�
       } else if (DEEPSEEK_WEB_SEARCH) {
         if (searchSummary) {
           // 阶段二：基于联网摘要生成候选（不再联网，稳定快速）
+          // timeoutMs 允许调用方（如 dailyHotTopics）收紧预算，保证整链路不超云函数上限
+          const genTimeout = Math.min(50000, Math.max(20000, Number(event.timeoutMs) || 50000));
           resp = await chatCompletions(DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, messages, DEEPSEEK_API_KEY, {
             response_format: { type: 'json_object' }
-          }, 50000);
+          }, genTimeout);
           mode = 'deepseek_search';
         } else {
           // 兼容单次调用：联网检索 + 续接生成；失败直接报错，不回退离线
