@@ -141,6 +141,37 @@ function chatCompletions(baseUrl, model, messages, apiKey, extra = {}, timeoutMs
   );
 }
 
+// DeepSeek Responses API：服务端 web_search 分两段返回（先 web_search_call，
+// 需把输出项原样回传，服务端恢复搜索结果后再生成最终答案），这里做多轮续接
+async function callDeepSeekResponses(instructions, userPrompt, apiKey, temperature) {
+  let input = [{ role: 'user', content: userPrompt }];
+  for (let round = 0; round < 4; round++) {
+    const resp = await postJson(
+      DEEPSEEK_BASE_URL.replace(/\/$/, '') + '/responses',
+      {
+        model: DEEPSEEK_RESPONSES_MODEL,
+        instructions,
+        input,
+        tools: [{ type: 'web_search' }],
+        temperature,
+        reasoning: { effort: 'low' }
+      },
+      apiKey,
+      SEARCH_TIMEOUT_MS
+    );
+    const output = Array.isArray(resp.output) ? resp.output : [];
+    const last = output[output.length - 1];
+    const hasFinal = last && last.type === 'message' && Array.isArray(last.content) &&
+      last.content.some(c => c && typeof c.text === 'string' && c.text.trim());
+    if (hasFinal) return resp;
+    const hasPending = output.some(item => item && (item.type === 'web_search_call' || item.type === 'function_call'));
+    if (!hasPending) return resp;
+    // 续接：把上一轮输出（含 web_search_call）原样追加到 input
+    input = input.concat(output);
+  }
+  throw new Error('联网检索轮次过多，请重试');
+}
+
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
   if (!ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
@@ -209,19 +240,7 @@ ${JSON.stringify(sourceList)}
     const work = (async () => {
       if (DEEPSEEK_WEB_SEARCH) {
         try {
-          resp = await postJson(
-            DEEPSEEK_BASE_URL.replace(/\/$/, '') + '/responses',
-            {
-              model: DEEPSEEK_RESPONSES_MODEL,
-              instructions: systemPrompt,
-              input: [{ role: 'user', content: userPrompt }],
-              tools: [{ type: 'web_search' }],
-              temperature: 0.2,
-              reasoning: { effort: 'low' }
-            },
-            DEEPSEEK_API_KEY,
-            SEARCH_TIMEOUT_MS
-          );
+          resp = await callDeepSeekResponses(systemPrompt, userPrompt, DEEPSEEK_API_KEY, 0.2);
           mode = 'deepseek_search';
         } catch (e) {
           fallbackReason = String(e.message || e).slice(0, 300);

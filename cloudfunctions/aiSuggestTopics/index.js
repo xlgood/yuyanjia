@@ -163,6 +163,37 @@ function chatCompletions(baseUrl, model, messages, apiKey, extra = {}, timeoutMs
   );
 }
 
+// DeepSeek Responses API：服务端 web_search 分两段返回（先 web_search_call，
+// 需把输出项原样回传，服务端恢复搜索结果后再生成最终答案），这里做多轮续接
+async function callDeepSeekResponses(instructions, userPrompt, apiKey, temperature) {
+  let input = [{ role: 'user', content: userPrompt }];
+  for (let round = 0; round < 4; round++) {
+    const resp = await postJson(
+      DEEPSEEK_BASE_URL.replace(/\/$/, '') + '/responses',
+      {
+        model: DEEPSEEK_RESPONSES_MODEL,
+        instructions,
+        input,
+        tools: [{ type: 'web_search' }],
+        temperature,
+        reasoning: { effort: 'low' }
+      },
+      apiKey,
+      SEARCH_TIMEOUT_MS
+    );
+    const output = Array.isArray(resp.output) ? resp.output : [];
+    const last = output[output.length - 1];
+    const hasFinal = last && last.type === 'message' && Array.isArray(last.content) &&
+      last.content.some(c => c && typeof c.text === 'string' && c.text.trim());
+    if (hasFinal) return resp;
+    const hasPending = output.some(item => item && (item.type === 'web_search_call' || item.type === 'function_call'));
+    if (!hasPending) return resp;
+    // 续接：把上一轮输出（含 web_search_call）原样追加到 input
+    input = input.concat(output);
+  }
+  throw new Error('联网检索轮次过多，请重试');
+}
+
 // Kimi 联网搜索：$web_search 是平台内置工具，模型要求时原样回传 arguments 即可
 async function callKimiWithSearch(systemPrompt, userPrompt, apiKey) {
   const messages = [
@@ -300,21 +331,9 @@ ${JSON.stringify(sourceList)}
         );
         mode = CUSTOM_SEARCH ? 'custom_search' : 'custom';
       } else if (DEEPSEEK_WEB_SEARCH) {
-        // DeepSeek：Responses API + 服务端 web_search；账号反对则回退离线
+        // DeepSeek：Responses API + 服务端 web_search；部分账号/模型不支持时会自动回退离线
         try {
-          resp = await postJson(
-            DEEPSEEK_BASE_URL.replace(/\/$/, '') + '/responses',
-            {
-              model: DEEPSEEK_RESPONSES_MODEL,
-              instructions: systemPrompt,
-              input: [{ role: 'user', content: userPrompt }],
-              tools: [{ type: 'web_search' }],
-              temperature: 0.7,
-              reasoning: { effort: 'low' }
-            },
-            DEEPSEEK_API_KEY,
-            SEARCH_TIMEOUT_MS
-          );
+          resp = await callDeepSeekResponses(systemPrompt, userPrompt, DEEPSEEK_API_KEY, 0.7);
           mode = 'deepseek_search';
         } catch (e) {
           fallbackReason = String(e.message || e).slice(0, 300);
