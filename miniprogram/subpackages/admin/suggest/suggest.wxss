@@ -286,3 +286,121 @@
   line-height: 1.6;
   word-break: break-all;
 }
+
+/* ===== 定时候选区块 ===== */
+.auto-card {
+  margin-top: 24rpx;
+}
+
+.auto-tip {
+  font-size: 24rpx;
+  color: #8a7f6b;
+  line-height: 1.6;
+  margin: 8rpx 0 16rpx;
+}
+
+.auto-empty {
+  font-size: 24rpx;
+  color: #a39a8b;
+  padding: 24rpx 0;
+  text-align: center;
+}
+
+.auto-day {
+  border-top: 1rpx dashed #e7dcc4;
+  padding: 16rpx 0 8rpx;
+}
+
+.auto-day:first-of-type {
+  border-top: none;
+}
+
+.auto-day-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+  font-size: 24rpx;
+}
+
+.auto-day-date {
+  font-weight: 700;
+  color: #4a3f2f;
+}
+
+.auto-day-status {
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  background: #faf0d7;
+  color: #9c2f22;
+}
+
+.auto-day-status.accepted {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.auto-day-status.rejected {
+  background: #fdecea;
+  color: #c62828;
+}
+
+.auto-day-count {
+  color: #6f6552;
+}
+
+.auto-day-src {
+  color: #a39a8b;
+  font-size: 22rpx;
+  flex-basis: 100%;
+}
+
+.auto-day-err {
+  color: #c62828;
+  font-size: 22rpx;
+  flex-basis: 100%;
+}
+
+.auto-summary {
+  font-size: 22rpx;
+  color: #a39a8b;
+  margin-top: 8rpx;
+  word-break: break-all;
+  max-height: 240rpx;
+  overflow: hidden;
+}
+
+.auto-ops {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #e7dcc4;
+}
+
+.auto-select,
+.auto-batch {
+  flex: 1;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  line-height: 2.2;
+}
+
+.auto-select {
+  background: #faf0d7;
+  color: #9c2f22;
+}
+
+.auto-batch {
+  background: #9c2f22;
+  color: #ffffff;
+}
+
+.auto-select[disabled],
+.auto-batch[disabled] {
+  background: #c3cbe0;
+  color: #ffffff;
+}

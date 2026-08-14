@@ -21,6 +21,7 @@ Page({
     // 定时候选（dailyHotTopics 自动生成）
     autoDays: [],
     autoSelected: {},
+    autoSelectAll: false,
     autoBatchCount: 0,
     autoLoading: true
   },
@@ -68,6 +69,7 @@ Page({
     if (!allPicked) all.forEach(k => { autoSelected[k] = true; });
     this.setData({
       autoSelected,
+      autoSelectAll: allPicked,
       autoBatchCount: Object.keys(autoSelected).filter(k => autoSelected[k]).length
     });
   },

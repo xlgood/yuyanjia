@@ -25,8 +25,69 @@ const WEBHOOK_TYPE = String(process.env.LOCK_WEBHOOK_TYPE || 'wecom').toLowerCas
 const MAX_ITEMS = 10;
 const SUMMARY_MAX = 6000;
 
+// RSS 源配置（均实测可用；覆盖科技/商业/民生多分类，弥补单一 GitHub/HN 的科技偏向）
+const RSS_SOURCES = [
+  { name: 'IT之家', url: 'https://www.ithome.com/rss/', tag: '科技数码' },
+  { name: '36氪', url: 'https://36kr.com/feed', tag: '科技数码/财经宏观' },
+  { name: '少数派', url: 'https://sspai.com/feed', tag: '科技数码' },
+  { name: '新浪滚动', url: 'https://rss.sina.com.cn/news/marquee/ddt.xml', tag: '趣味民生' }
+];
+
 function todayKey() {
   return new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+// 抓取文本（RSS/XML 用；identity 编码防 gzip 乱码，带浏览器 UA）
+function fetchText(url, timeoutMs) {
+  const t = timeoutMs || 8000;
+  return new Promise((resolve, reject) => {
+    const lib = url.indexOf('https') === 0 ? https : http;
+    const req = lib.get(url, {
+      timeout: t,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36',
+        'Accept-Encoding': 'identity'
+      }
+    }, res => {
+      if (res.statusCode && res.statusCode >= 400) {
+        res.resume();
+        reject(new Error('HTTP ' + res.statusCode));
+        return;
+      }
+      let body = '';
+      res.setEncoding('utf8');
+      res.on('data', c => { body += c; });
+      res.on('end', () => resolve(body));
+    });
+    req.on('timeout', () => req.destroy(new Error('请求超时')));
+    req.on('error', reject);
+  });
+}
+
+// 轻量 RSS 解析（零依赖正则）：提取每个 <item> 的 <title>
+function parseRssTitles(xml, max) {
+  const out = [];
+  const itemRe = /<item>([\s\S]*?)<\/item>/gi;
+  const titleRe = /<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/i;
+  let m;
+  while ((m = itemRe.exec(String(xml))) && out.length < max) {
+    const tm = String(m[1]).match(titleRe);
+    if (tm) {
+      const t = tm[1]
+        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#\d+;/g, '')
+        .trim();
+      if (t) out.push(t);
+    }
+  }
+  return out;
+}
+
+async function fetchRss(rss) {
+  const xml = await fetchText(rss.url, 8000);
+  const titles = parseRssTitles(xml, 5);
+  if (!titles.length) throw new Error('RSS 无有效条目: ' + rss.name);
+  return titles.map(t => `【${rss.name}】${t.slice(0, 100)}（来源:${rss.tag}）`);
 }
 
 function fetchJson(url, timeoutMs) {
@@ -126,29 +187,40 @@ exports.main = async () => {
     if (dup.total > 0) return { ok: true, skipped: true, date };
   } catch (e) { /* 集合不存在等异常：继续生成 */ }
 
-  // 1) 拉取稳定免费源（并行 + 逐源 try/catch；整体预算：GitHub 12s / HN 8s）
-  const [ghRes, hnRes] = await Promise.all([
-    fetchGithubTrending().then(r => ({ r, e: '' }), e => ({ r: [], e: String((e && e.message) || e) })),
-    fetchHackerNews().then(r => ({ r, e: '' }), e => ({ r: [], e: String((e && e.message) || e) }))
-  ]);
-  if (ghRes.e) console.error('GitHub Trending 拉取失败', ghRes.e);
-  if (hnRes.e) console.error('Hacker News 拉取失败', hnRes.e);
-  const materials = ghRes.r.concat(hnRes.r);
+  // 1) 拉取稳定免费源（GitHub + HN + 4 个中文 RSS 并行；
+  //    预算：拉取最大 ~12s + AI 38s ≈ 50s < 云函数 60s 上限）
+  const sources = [
+    fetchGithubTrending().then(r => r, e => { throw new Error('GitHub: ' + ((e && e.message) || e)); }),
+    fetchHackerNews().then(r => r, e => { throw new Error('HN: ' + ((e && e.message) || e)); })
+  ].concat(RSS_SOURCES.map(s =>
+    fetchRss(s).then(r => r, e => { throw new Error(s.name + ': ' + ((e && e.message) || e)); })
+  ));
+  const settled = await Promise.allSettled(sources);
+  const materials = [];
+  const fails = [];
+  settled.forEach((s, i) => {
+    if (s.status === 'fulfilled') {
+      (Array.isArray(s.value) ? s.value : [s.value]).forEach(v => { if (v) materials.push(v); });
+    } else {
+      fails.push(String(s.reason && s.reason.message || s.reason));
+    }
+  });
+  fails.forEach(f => console.error('素材源失败', f));
   if (!materials.length) {
-    await postWebhook('【预测卦局·选题告警】定时选题：全部数据源拉取失败，本轮跳过');
-    return { ok: false, err: '数据源拉取全部失败: ' + (ghRes.e || hnRes.e) };
+    await postWebhook('【预测卦局·选题告警】定时选题：全部数据源拉取失败，本轮跳过\n' + fails.join('\n').slice(0, 500));
+    return { ok: false, err: '数据源拉取全部失败: ' + fails.join('; ').slice(0, 300) };
   }
   const summary = materials.join('\n').slice(0, SUMMARY_MAX);
 
   // 2) 调用 AI 选题（注入素材作为 searchSummary，跳过独立联网检索；
-  //    限时 38s：整体预算 GitHub12s+HN8s+AI38s ≈ 58s < 云函数 60s 上限）
+  //    限时 38s：整体预算 拉取12s+AI38s ≈ 50s < 云函数 60s 上限）
   let candidates = [];
   let aiMode = '';
   let aiError = '';
   try {
     const hr = await cloud.callFunction({
       name: 'aiSuggestTopics',
-      data: { topic: '科技数码、财经宏观热点事件', category: '', timeRange: '一周内', searchSummary: summary, timeoutMs: 38000 }
+      data: { topic: '本周热点事件', category: '', timeRange: '一周内', searchSummary: summary, timeoutMs: 38000 }
     });
     const r = hr.result || {};
     if (r.ok) {
@@ -161,12 +233,16 @@ exports.main = async () => {
     aiError = String((e && e.message) || e);
   }
 
+  // 素材来源构成（管理端展示用）
+  const materialSources = ['GitHub Trending', 'Hacker News'].concat(RSS_SOURCES.map(s => s.name));
+
   // 3) 落库（即使 AI 失败也保留素材，供管理端人工参考）
   const doc = {
     date,
     source: 'auto',
     status: 'pending', // pending / accepted / rejected（管理端处理后更新）
     summary: summary.slice(0, SUMMARY_MAX),
+    materialSources,
     items: candidates,
     aiMode,
     aiError: candidates.length ? '' : (aiError || 'AI 未返回候选'),
@@ -183,5 +259,5 @@ exports.main = async () => {
     await postWebhook(`【预测卦局·选题】今日自动生成 ${candidates.length} 条候选事件，请到运营后台「定时候选」确认发题`);
   }
 
-  return { ok: true, date, materials: materials.length, candidates: candidates.length, aiError: aiError || undefined };
+  return { ok: true, date, materials: materials.length, sources: materialSources, candidates: candidates.length, aiError: aiError || undefined };
 };

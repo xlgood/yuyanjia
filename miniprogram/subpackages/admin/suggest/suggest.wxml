@@ -24,7 +24,7 @@
   <!-- 定时候选：dailyHotTopics 每天 08:00/20:00 自动生成 -->
   <view class="card auto-card">
     <view class="input-title">📥 定时候选（每日自动生成）</view>
-    <view class="auto-tip">系统每天自动拉取 GitHub Trending / Hacker News 热点并生成候选，勾选后可一键进入批量发题。素材同时保留，便于人工选题。</view>
+    <view class="auto-tip">系统每天自动聚合 GitHub / Hacker News / IT之家 / 36氪 / 少数派 / 新浪滚动热点，AI 生成候选后勾选一键批量发题。素材同时保留，便于人工选题。</view>
     <view wx:if="{{autoLoading}}" class="auto-empty">加载中...</view>
     <view wx:elif="{{autoDays.length === 0}}" class="auto-empty">暂无定时候选（定时任务首次运行后出现，或见运行日志）</view>
 
@@ -34,6 +34,7 @@
           <text class="auto-day-date">📅 {{day.date}}</text>
           <text class="auto-day-status {{day.status}}">{{day.status === 'pending' ? '待确认' : day.status}}</text>
           <text class="auto-day-count" wx:if="{{day.items.length}}">{{day.items.length}} 条候选</text>
+          <text class="auto-day-src" wx:if="{{day.materialSources.length}}">素材源：{{day.materialSources}}</text>
           <text class="auto-day-err" wx:if="{{day.aiError}}">{{day.aiError}}</text>
         </view>
         <view wx:if="{{day.items.length === 0}}" class="auto-empty">
@@ -59,8 +60,8 @@
     </block>
 
     <view class="auto-ops" wx:if="{{autoDays.length}}">
-      <view class="select-all" bindtap="onAutoSelectAll">全选/取消</view>
-      <button class="batch-btn" bindtap="onAutoBatch">加入批量发题（{{autoBatchCount}}）</button>
+      <button class="auto-select" bindtap="onAutoSelectAll">{{autoSelectAll ? '☑ 取消全选' : '☐ 全选'}}</button>
+      <button class="auto-batch" bindtap="onAutoBatch">批量发题（{{autoBatchCount}}）</button>
     </view>
   </view>
 
