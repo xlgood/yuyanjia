@@ -41,7 +41,7 @@ const CUSTOM_SEARCH = String(process.env.CUSTOM_SEARCH || 'false') === 'true';
 const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
 
 const CATEGORIES = ['影视娱乐', '科技数码', '游戏电竞', '体育竞技', '趣味民生', '财经宏观'];
-const MAX_ITEMS = 10;
+const MAX_ITEMS = 12;
 // 联网检索单次预算：超时即回退离线 chat/completions，剩余时间留给离线生成，保证总耗时压在 55s 上限内
 const SEARCH_TIMEOUT_MS = Math.min(DEEPSEEK_TIMEOUT_MS, 20000);
 // 本地兜底词表：msgSecCheck 不可用（云调用未开通/异常）时降级使用，避免 fail-open
@@ -380,14 +380,15 @@ ${JSON.stringify(sourceList)}
 硬性规则：
 1. 只选「在某个时间点能用官方数据/官方公告验证」的硬事实，避免主观话题和无法验证的传闻；
 2. 标题必须二值化（是否/能否/是否达到），禁用“下注/赔率/庄家”等博彩词；
-3. 最多 ${MAX_ITEMS} 条，按可验证性和热度排序；
+3. 至少输出 10 条、最多 ${MAX_ITEMS} 条，按可验证性和热度排序；
 4. 【绝对二元性】结果必须非此即彼，不存在平局、取消、改期之外的第三种可判读结果；若卦题可能“取消/延期导致无法断卦”，仍可接受，但必须在 reason 中说明断卦兜底（数据缺失原路退回）；
 5. 【单一权威结卦源】每个候选只允许绑定一个第三方权威公开结卦源（官方数据/官方公告/权威天榜），禁止多个来源混用、禁止平台自设来源；dataSource 只能从给定列表选择；
 6. 【物理截止时间】每个候选必须有明确截止日期与时刻；截止后出现的任何信息不得作为断卦证据，suggestedDeadline 必须具体到日或时刻；
 7. 【敏感红线】严禁输出任何国内外政治选举（含美国大选）、国内社会争议民生卦题、法院正在审理的司法案件、公共卫生突发卦题等敏感话题；无法判断是否敏感时一律不选；
 8. 【悬念区间】只选结果概率大致落在 20%-80% 之间的卦题；99% 确定（如太阳升起）或实力悬殊到无悬念的卦题必须排除；
 9. 【时效性】你有 web_search 联网检索工具：整个任务只允许发起一次检索（覆盖所有候选），检索完成后直接基于结果生成候选清单，禁止逐条/反复检索；禁止把记忆里的旧卦题当作“当前热点”，禁止编造检索不到的卦题。所有候选截止时间必须在 ${todayCN} 之后仍可验证。优先输出周期性/持续性可验证的硬事实（未来天气、周票房、汇率/指数、官方天榜、已官宣日程），并把标题与 suggestedDeadline 写成面向 ${todayCN} 之后的可断卦版本；
-10. 每个候选的 constraintCheck 五项必须全部为 true，否则不要输出该候选。`;
+10. 每个候选的 constraintCheck 五项必须全部为 true，否则不要输出该候选；
+11. 【截止即可验证】裁决数据必须在截止时刻就已公开可用：优先赛事结束、发布会结束、官方统计发布时刻等有确定时间的形态；禁止选用“开分、开奖、榜单首更、预售/销量揭晓”等发布时间不确定、可能晚于截止的数据形态。若确需使用此类数据，suggestedDeadline 必须设在数据预期最晚发布之后，并在 reason 中写明数据发布时间依据与缺失兜底（数据缺失时爻原路退回）。`;
 
   let resp;
   let mode = 'offline';
@@ -469,7 +470,7 @@ ${JSON.stringify(sourceList)}
     .filter(c => {
       const title = String(c.title || '').trim();
       const catOk = category
-        ? String(c.category || '') === category
+        ? (!c.category || c.category === category)
         : (!c.category || CATEGORIES.includes(c.category));
       return title.length >= 10 && catOk;
     })
