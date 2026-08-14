@@ -32,14 +32,13 @@
       <view class="auto-day">
         <view class="auto-day-head">
           <text class="auto-day-date">📅 {{day.date}}</text>
-          <text class="auto-day-status {{day.status}}">{{day.status === 'pending' ? '待确认' : day.status}}</text>
+          <text class="auto-day-status {{day.items.length ? day.status : 'fail'}}">
+            {{day.items.length ? (day.status === 'pending' ? '待确认' : day.status) : (day.aiError ? '生成失败' : '无候选')}}
+          </text>
           <text class="auto-day-count" wx:if="{{day.items.length}}">{{day.items.length}} 条候选</text>
           <text class="auto-day-src" wx:if="{{day.aiMaterialSources.length}}">AI 素材源：{{day.aiMaterialSources}}</text>
-          <text class="auto-day-err" wx:if="{{day.aiError}}">{{day.aiError}}</text>
         </view>
-        <view wx:if="{{day.items.length === 0}}" class="auto-empty">
-          <view>AI 未生成候选（新闻素材已保留，见下方素材库）</view>
-        </view>
+        <view wx:if="{{day.items.length === 0 && !day.aiError}}" class="auto-empty">AI 未生成候选</view>
         <view class="cand {{autoSelected[item.autoKey] ? 'picked' : ''}}"
           wx:for="{{day.items}}" wx:for-item="item" wx:key="autoKey"
           data-key="{{item.autoKey}}" bindtap="onAutoToggle">
@@ -55,11 +54,14 @@
             <view class="cand-deadline" wx:if="{{item.suggestedDeadline}}">建议截止：{{item.suggestedDeadline}}</view>
           </view>
         </view>
-        <!-- 素材库（新闻类素材供人工选题参考） -->
-        <view class="auto-news" wx:if="{{day.newsSummary}}" data-date="{{day.date}}" bindtap="onAutoToggleNews">
-          <text>{{day.expanded ? '▾ 收起素材库（新闻类，人工选题参考）' : '▸ 素材库（新闻类，人工选题参考）'}}</text>
+        <!-- 详情/素材库折叠区：失败原因 + 新闻素材（人工选题参考） -->
+        <view class="auto-news" wx:if="{{day.aiError || day.newsSummary}}" data-date="{{day.date}}" bindtap="onAutoToggleNews">
+          <text>{{day.expanded ? '▾ 收起详情' : '▸ 查看详情'}}</text>
         </view>
-        <view class="auto-summary" wx:if="{{day.expanded && day.newsSummary}}">{{day.newsSummary}}</view>
+        <view class="auto-detail" wx:if="{{day.expanded}}">
+          <view class="auto-day-err" wx:if="{{day.aiError}}">⚠️ {{day.aiError}}</view>
+          <view class="auto-summary" wx:if="{{day.newsSummary}}">📰 新闻素材库：{{day.newsSummary}}</view>
+        </view>
       </view>
     </block>
 
