@@ -522,10 +522,14 @@ ${JSON.stringify(sourceList)}
     }));
 
   if (!list.length) {
-    console.error('[aiSuggestTopics] 候选过滤后为 0，原始返回：', JSON.stringify(parsed).slice(0, 800));
+    const rawSnippet = JSON.stringify(parsed).slice(0, 300);
+    const droppedSample = normalizedParsed.slice(0, 5).map(c =>
+      `《${String(c.title || '').slice(0, 24)}》[分类:${c.category || '无'},标题长度:${String(c.title || '').trim().length}]`
+    ).join('；');
+    console.error('[aiSuggestTopics] 候选过滤后为 0，原始返回：', rawSnippet);
     return {
       ok: false,
-      err: 'AI 返回的候选与所选分类不匹配或缺少有效标题（0 条通过过滤）。建议选择「全部」分类或更换时间范围重试；持续出现时查看云函数日志中的“原始返回”。'
+      err: `AI 返回的候选全部未通过过滤（0 条）。被过滤样本：${droppedSample || '无（原始返回为空）'}。原始返回开头：${rawSnippet}...`
     };
   }
 
