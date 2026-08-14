@@ -175,6 +175,15 @@ function getJson(url, apiKey, timeoutMs) {
 function extractJsonArray(text) {
   let t = String(text || '').trim();
   t = t.replace(/```json/gi, '').replace(/```/g, '').trim();
+  // 优先提取 {"candidates": [...]} 结构（与 json_object 响应格式对齐）
+  const objMatch = t.match(/"candidates"\s*:\s*(\[[\s\S]*\])/);
+  if (objMatch) {
+    try {
+      const arr = JSON.parse(objMatch[1]);
+      if (Array.isArray(arr)) return arr;
+    } catch (e) { /* 走兜底解析 */ }
+  }
+  // 兜底：顶层数组
   const start = t.indexOf('[');
   const end = t.lastIndexOf(']');
   if (start < 0 || end <= start) return null;
@@ -467,7 +476,11 @@ exports.main = async (event) => {
 可选数据源（只能从其中选择 dataSource，禁止编造；无合适来源时 dataSource 填空字符串并把 verifiable 设为 false）：
 ${JSON.stringify(sourceList)}
 
-只输出一个 JSON 数组（不要 markdown 代码块、不要多余文字），每个元素：
+只输出一个 JSON 对象（不要 markdown 代码块、不要多余文字），格式固定为：
+{
+  "candidates": [ ...以下元素... ]
+}
+candidates 数组的每个元素：
 category 必须从「${CATEGORIES.join(' / ')}」中精确取值；当指定了分类偏好时必须等于所选分类，且候选内容必须真实属于该分类，禁止把其他分类的事件标成所选分类凑数。
 {
   "title": "严格 YES/NO 二值化的预测问题（中文，20-60 字）",
@@ -486,6 +499,7 @@ category 必须从「${CATEGORIES.join(' / ')}」中精确取值；当指定了�
     "hasSuspense": true
   }
 }
+【输出格式硬约束】必须输出 {"candidates": [...]} 对象；candidates 为数组，其中至少包含 1 个元素（见「素材使用引导」的保底要求），最多 ${MAX_ITEMS} 个。
 
 硬性规则：
 1. 只选「在某个时间点能用官方数据/官方公告验证」的硬事实，避免主观话题和无法验证的传闻；
