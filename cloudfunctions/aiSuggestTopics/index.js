@@ -175,19 +175,34 @@ async function callDeepSeekResponses(instructions, userPrompt, apiKey, temperatu
         instructions,
         input,
         tools: [{ type: 'web_search' }],
+        // 首轮强制发起联网检索，避免模型只写计划不执行
+        tool_choice: round === 0 ? { type: 'web_search' } : 'auto',
         temperature,
-        reasoning: { effort: 'low' }
+        reasoning: { effort: 'low' },
+        max_output_tokens: 8000
       },
       apiKey,
       SEARCH_TIMEOUT_MS
     );
     const output = Array.isArray(resp.output) ? resp.output : [];
+    // 输出被 token 上限截断 → 立即报错（走离线回退），不拿半截内容当结果
+    if (resp.status === 'incomplete' && resp.incomplete_details && resp.incomplete_details.reason === 'max_output_tokens') {
+      throw new Error('AI 输出被截断（max_output_tokens），请重试');
+    }
     const last = output[output.length - 1];
     const hasFinal = last && last.type === 'message' && Array.isArray(last.content) &&
       last.content.some(c => c && typeof c.text === 'string' && c.text.trim());
     if (hasFinal) return resp;
     const hasPending = output.some(item => item && (item.type === 'web_search_call' || item.type === 'function_call'));
-    if (!hasPending) return resp;
+    if (!hasPending) {
+      // 没有待执行调用也没有最终答案：再给一轮，要求直接输出 JSON，不带任何解释
+      if (round === 0) {
+        input = input.concat(output);
+        input.push({ role: 'user', content: '请直接输出最终 JSON，不要输出任何解释或计划文字。' });
+        continue;
+      }
+      return resp;
+    }
     // 续接：把上一轮输出（含 web_search_call）原样追加到 input
     input = input.concat(output);
   }
