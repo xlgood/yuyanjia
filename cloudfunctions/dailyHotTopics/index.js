@@ -220,7 +220,7 @@ exports.main = async () => {
   try {
     const hr = await cloud.callFunction({
       name: 'aiSuggestTopics',
-      data: { topic: '本周热点事件', category: '', timeRange: '一周内', searchSummary: summary, timeoutMs: 38000 }
+      data: { topic: '从素材中挖掘未来 7 天可验证的热点预测事件', category: '', timeRange: '一周内', searchSummary: summary, timeoutMs: 38000 }
     });
     const r = hr.result || {};
     if (r.ok) {
