@@ -50,6 +50,15 @@ const CATEGORY_ALIASES = {
   '民生': '趣味民生', '社会': '趣味民生', '生活': '趣味民生', '趣闻': '趣味民生',
   '财经': '财经宏观', '金融': '财经宏观', '经济': '财经宏观', '宏观': '财经宏观'
 };
+// 跨分类安全网：选题与所选分类强相关，标题命中其他分类典型词时直接丢弃
+const CATEGORY_BAN_WORDS = {
+  '科技数码': ['汇率', '气温', '天气', '降雨', '票房', '上证', '沪深', '恒生', '央行', '统计局', 'CPI', 'PMI', 'GDP', '电影', '电视剧'],
+  '影视娱乐': ['汇率', '气温', '天气', '上证', '沪深', '恒生', '央行', '统计局', 'CPI', 'PMI', 'GDP'],
+  '游戏电竞': ['汇率', '气温', '票房', '上证', '沪深', '央行', 'CPI', 'PMI', 'GDP'],
+  '体育竞技': ['汇率', '气温', '票房', '上证', '沪深', '央行', 'CPI', 'PMI', 'GDP'],
+  '趣味民生': ['票房', '上证', '沪深', 'CPI', 'PMI', '汇率', '电影', '电视剧'],
+  '财经宏观': ['票房', '电影', '电视剧', '气温', '天气']
+};
 
 function normalizeCategory(cat) {
   const s = String(cat || '').trim();
@@ -58,10 +67,6 @@ function normalizeCategory(cat) {
   return CATEGORY_ALIASES[s] || '';
 }
 
-function categoryMatch(cat, selected) {
-  if (!cat) return true; // 缺分类时允许，展示阶段归入所选分类
-  return cat === selected || cat.indexOf(selected) >= 0 || selected.indexOf(cat) >= 0;
-}
 const MAX_ITEMS = 10;
 // 本地兜底词表：msgSecCheck 不可用（云调用未开通/异常）时降级使用，避免 fail-open
 const LOCAL_SENSITIVE_WORDS = [
@@ -353,6 +358,7 @@ async function execKimiFormula(name, args, apiKey) {
 async function runDeepSeekSearch(category, timeRange, topic) {
   const todayCN = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
   const searchPrompt = `今天是北京时间 ${todayCN}。请针对以下范围做一次联网检索：分类：${category || '全品类'}；时间范围：${timeRange || '一周内'}；需求：${topic}。
+只关注与「${category || '所选分类'}」直接相关的事件，排除汇率/气温/指数/电影票房等其他分类的内容；若该分类最新可验证热点不足，宁可输出较少内容，也不要混入无关分类。
 检索最近可验证的热点事件（赛事/发布会/票房/官方统计发布/官宣定档等），然后输出不超过 500 字的中文要点摘要：列出候选方向、关键事实与数据来源名称。不要输出 JSON，不要长篇大论。`;
   const instructions = '你是热点检索助手。整个任务只允许调用一次 web_search 工具；检索完成后直接输出中文要点摘要，不要解释过程。';
   let input = [{ role: 'user', content: searchPrompt }];
@@ -457,6 +463,7 @@ exports.main = async (event) => {
 ${JSON.stringify(sourceList)}
 
 只输出一个 JSON 数组（不要 markdown 代码块、不要多余文字），每个元素：
+category 必须从「${CATEGORIES.join(' / ')}」中精确取值；当指定了分类偏好时必须等于所选分类，且候选内容必须真实属于该分类，禁止把其他分类的事件标成所选分类凑数。
 {
   "title": "严格 YES/NO 二值化的预测问题（中文，20-60 字）",
   "category": "${CATEGORIES.join('|')}",
@@ -486,7 +493,9 @@ ${JSON.stringify(sourceList)}
 9. 【时效性】你有 web_search 联网检索工具：整个任务只允许发起一次检索（覆盖所有候选），检索完成后直接基于结果生成候选清单，禁止逐条/反复检索；禁止把记忆里的旧卦题当作“当前热点”，禁止编造检索不到的卦题。所有候选截止时间必须在 ${todayCN} 之后仍可验证。优先输出周期性/持续性可验证的硬事实（未来天气、周票房、汇率/指数、官方天榜、已官宣日程），并把标题与 suggestedDeadline 写成面向 ${todayCN} 之后的可断卦版本；
 10. 每个候选的 constraintCheck 五项必须全部为 true，否则不要输出该候选；
 11. 【结果时点确定】区分“停止收注截止”与“结果可得时点”：比赛结束、发布会结束、官方统计发布时刻这类结果时点确定的事件可以选用，停止收注截止应设在结果时点之前（如开赛前），suggestedDeadline 需写明截止时间，reason 中注明结果时点（判定在结果时点后自动进行）；禁止“开分、榜单首更、开奖、销量揭晓”等结果时点不确定的数据形态（无法安排判定）；若确需使用，必须给出数据发布的最晚预期时点，并写明缺失兜底（数据缺失时爻原路退回）；
-12. 【截止前不可揭晓】结果必须在停止收注截止之前不可提前知晓/锁定：禁止“状态可能提前成立”的题（如某产品是否已售罄、是否已发布、是否已破 X 亿、是否已突破某数值）——一旦提前发生，市场就失去悬念；此类题材只能做成“有固定官方揭晓时刻”的形态（发布会宣布时刻、官方数据发布时刻、比赛终场、开奖时刻），且截止时间紧邻该揭晓时刻之前。科技数码类优先覆盖：发布会、财报/业绩预告、跑分/销量等榜单更新、官方公告/政策、展会官宣等有固定时刻的形态。`;
+12. 【截止前不可揭晓】结果必须在停止收注截止之前不可提前知晓/锁定：禁止“状态可能提前成立”的题（如某产品是否已售罄、是否已发布、是否已破 X 亿、是否已突破某数值）——一旦提前发生，市场就失去悬念；此类题材只能做成“有固定官方揭晓时刻”的形态（发布会宣布时刻、官方数据发布时刻、比赛终场、开奖时刻），且截止时间紧邻该揭晓时刻之前。科技数码类优先覆盖：发布会、财报/业绩预告、跑分/销量等榜单更新、官方公告/政策、展会官宣等有固定时刻的形态；
+13. 【严格分类】每个候选必须真实属于所选分类，category 字段必须与所选分类完全一致；若检索结果没有足够该分类的可验证事件，宁缺毋滥（可少于 10 条），绝不混入汇率/气温/指数/电影票房等其他分类；
+14. 【严格依据检索结果】只能基于【联网检索结果】中的事实生成候选，禁止使用你训练记忆中的旧事件（旧日期的票房、指数、气象等）；检索结果未提及的事实不得编造。`;
 
   let resp;
   let mode = 'offline';
@@ -567,10 +576,14 @@ ${JSON.stringify(sourceList)}
   const list = normalizedParsed
     .filter(c => {
       const title = String(c.title || '').trim();
+      // 指定分类时严格匹配；全部分类时只保留合法分类或缺失（展示层归入默认）
       const catOk = category
-        ? categoryMatch(c.category, category)
+        ? c.category === category
         : (!c.category || CATEGORIES.includes(c.category));
-      return title.length >= 10 && catOk;
+      if (!catOk) return false;
+      const banWords = CATEGORY_BAN_WORDS[category] || [];
+      if (banWords.some(w => title.indexOf(w) >= 0)) return false;
+      return title.length >= 10;
     })
     .slice(0, MAX_ITEMS)
     .map((c, i) => ({
