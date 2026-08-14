@@ -30,6 +30,8 @@ const _ = db.command;
 // 运营告警：复用 lockMarkets 的 LOCK_WEBHOOK_URL / LOCK_WEBHOOK_TYPE，零新增配置
 const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL || process.env.LOCK_WEBHOOK_URL || '';
 const ALERT_WEBHOOK_TYPE = String(process.env.LOCK_WEBHOOK_TYPE || 'wecom').toLowerCase();
+// 管理员 openid：允许运营在控制台/后台手动触发断卦扫描
+const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
 
 function postWebhook(content) {
   if (!ALERT_WEBHOOK_URL) return Promise.resolve(false);
@@ -163,6 +165,12 @@ const ADAPTERS = {
 };
 
 exports.main = async () => {
+  // 门禁：仅定时触发器 / 云间调用 / 管理员可触发，防止客户端刷调用
+  // （扫描会真实改写市场状态、写判定日志、发 webhook）
+  const { OPENID, SOURCE } = cloud.getWXContext();
+  if (SOURCE === 'wx_client' && !ADMIN_OPENIDS.includes(OPENID)) {
+    return { ok: false, err: '无权限操作' };
+  }
   const now = Date.now();
   const res = await db.collection('markets')
     .where({

@@ -56,10 +56,10 @@ exports.main = async () => {
     const urgency = m.reviewType === 'dispute'
       ? 'normal'
       : (remainingMs < 0 ? 'urgent' : (remainingMs <= SOON_MS ? 'soon' : 'normal'));
-    return Object.assign({}, m, { remainingMs, urgency });
+    return Object.assign({}, m, { remainingMs, urgency, anchorTs });
   });
-  // 紧急度优先：urgent > soon > normal，同级按截止时间升序
+  // 紧急度优先：urgent > soon > normal，同级按实际锚点时间（截止/昭示结束）升序
   const order = { urgent: 0, soon: 1, normal: 2 };
-  list.sort((a, b) => (order[a.urgency] - order[b.urgency]) || ((a.deadline || 0) - (b.deadline || 0)));
+  list.sort((a, b) => (order[a.urgency] - order[b.urgency]) || ((a.anchorTs || 0) - (b.anchorTs || 0)));
   return { ok: true, list };
 };

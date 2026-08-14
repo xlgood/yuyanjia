@@ -12,6 +12,53 @@ const INVITER_POINTS = Number(process.env.INVITE_INVITER_POINTS) || INVITE_INVIT
 // 卦勋墙页保留手动「检测」入口（checkHonors 直调）作为即时解锁兜底。
 const HONORS_CHECK_INTERVAL_MS = (Number(process.env.HONORS_CHECK_INTERVAL_MINUTES) || 10) * 60 * 1000;
 
+// 不透明邀友码：8 位随机（排除易混淆字符 0/O/1/I/l），分享时对外使用，
+// 避免把 openid 直接暴露在分享链接/聊天记录/服务器日志中
+const INVITE_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+const INVITE_CODE_LEN = 8;
+
+function genInviteCode() {
+  let s = '';
+  for (let i = 0; i < INVITE_CODE_LEN; i++) {
+    s += INVITE_CODE_CHARS[Math.floor(Math.random() * INVITE_CODE_CHARS.length)];
+  }
+  return s;
+}
+
+// 生成全局唯一邀友码（查重，碰撞则重试，最多 5 次）
+async function ensureUniqueInviteCode(users) {
+  for (let i = 0; i < 5; i++) {
+    const code = genInviteCode();
+    try {
+      const dup = await users.where({ inviteCode: code }).count();
+      if (!dup.total) return code;
+      // 碰撞：继续下一轮重试
+    } catch (e) {
+      // 集合/索引异常：直接返回，容忍小概率碰撞（登录时还有惰性补齐兜底）
+      return code;
+    }
+  }
+  return genInviteCode();
+}
+
+// 解析邀友参数：优先按 inviteCode 反查邀请人；反查不到时兼容旧链接
+// （旧版本分享参数直接携带 openid），按 openid 直查。
+// 在事务外执行（纯读操作），避免事务内做 where 查询。
+async function resolveInviter(users, rawInvite, OPENID) {
+  const code = String(rawInvite || '').slice(0, 64);
+  if (!code || code === OPENID) return '';
+  try {
+    const byCode = await users.where({ inviteCode: code }).limit(1).get();
+    if (byCode.data.length && byCode.data[0]._id !== OPENID) return byCode.data[0]._id;
+  } catch (e) { /* 查询异常走回退 */ }
+  // 兼容旧链接：参数即 openid
+  try {
+    const byOpenid = (await users.doc(code).get()).data;
+    if (byOpenid && byOpenid._id !== OPENID) return byOpenid._id;
+  } catch (e) { /* 不存在：静默忽略 */ }
+  return '';
+}
+
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
@@ -25,6 +72,12 @@ exports.main = async (event) => {
   try {
     const res = await users.doc(OPENID).get();
     let unlockedHonors = [];
+    // 存量用户惰性补发邀友码（无迁移脚本，首次登录/分享自动补齐）
+    if (res.data && !res.data.inviteCode) {
+      const code = await ensureUniqueInviteCode(users);
+      await users.doc(OPENID).update({ data: { inviteCode: code, updatedAt: db.serverDate() } });
+      res.data.inviteCode = code;
+    }
     if (Date.now() - ((res.data && res.data.honorsCheckedAt) || 0) >= HONORS_CHECK_INTERVAL_MS) {
       try {
         const hr = await cloud.callFunction({ name: 'checkHonors', data: {} });
@@ -56,6 +109,7 @@ exports.main = async (event) => {
       badges: [],
       honors: [],
       // 邀友裂变字段
+      inviteCode: '',
       invitedBy: '',
       inviteRewarded: false,
       inviteCount: 0,
@@ -65,12 +119,18 @@ exports.main = async (event) => {
       pkOpen: true,
       pkWins: 0,
       pkLosses: 0,
+      // 公断发起冷却（事务内 CAS，防并发双创建）
+      lastArbAt: 0,
       createdAt: db.serverDate(),
       updatedAt: db.serverDate()
     };
 
     let inviteBonus = 0;
     let inviteFrom = '';
+
+    // 邀友归属解析与邀友码生成放事务外（纯读 + 随机，避免事务内 where 查询）
+    inviteFrom = await resolveInviter(users, inviteCode, OPENID);
+    const myCode = await ensureUniqueInviteCode(users);
 
     try {
       await db.runTransaction(async t => {
@@ -81,26 +141,15 @@ exports.main = async (event) => {
         } catch (e2) { /* 不存在 */ }
         if (existing) return;
 
-        // 邀友归属：仅当邀友码合法、且不是自己邀友自己时生效。
-        // 注意：注册时只记录归属，不占用邀友人当日奖励名额——
-        // 名额在被邀友人完成首次应卦、实际发奖时才占用（见 placeBet）。
-        if (inviteCode && inviteCode !== OPENID) {
-          let inviter = null;
-          try {
-            inviter = (await t.collection('users').doc(inviteCode).get()).data;
-          } catch (e2) { /* 邀友码不存在：静默忽略 */ }
-          if (inviter && inviter._id !== OPENID) {
-            inviteFrom = inviter._id;
-          }
-        }
-
-        // 被邀友人初入道加成随档案一并落库（不再只在返回对象里加，避免重登丢失）
+        // 被邀友人初入道加成随档案一并落库（points 与周/月榜同步加成，
+        // 避免「响应 110 / 落库 100」不一致导致重登后余额跳变、按 110 下注被拒）
         await t.collection('users').doc(OPENID).set({
           data: Object.assign({}, user, {
+            inviteCode: myCode,
             invitedBy: inviteFrom,
+            points: INIT_POINTS + (inviteFrom ? INVITEE_POINTS : 0),
             weekPoints: INIT_POINTS + (inviteFrom ? INVITEE_POINTS : 0),
-            monthPoints: INIT_POINTS + (inviteFrom ? INVITEE_POINTS : 0),
-            
+            monthPoints: INIT_POINTS + (inviteFrom ? INVITEE_POINTS : 0)
           })
         });
 
@@ -125,10 +174,10 @@ exports.main = async (event) => {
       return { ok: false, err: '注册失败，请稍后重试' };
     }
 
-    // 事务已把初入道加成落库，这里同步返回对象的展示口径
+    // 事务已把初入道加成落库（含 points），这里同步返回对象的展示口径
     if (inviteFrom) {
       user.invitedBy = inviteFrom;
-      user.points += INVITEE_POINTS;
+      user.points = INIT_POINTS + INVITEE_POINTS;
       inviteBonus = INVITEE_POINTS;
     }
 

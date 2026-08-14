@@ -21,7 +21,8 @@ exports.main = async () => {
       lastReliefAt: _.lte(nowTs - COOLDOWN_MS)
     })
     .update({
-      data: { points: _.inc(RELIEF_POINTS), weekPoints: _.inc(RELIEF_POINTS), monthPoints: _.inc(RELIEF_POINTS), lastReliefAt: nowTs, updatedAt: db.serverDate() }
+      // 补助计入余额，但不计入周/月榜（周/月榜为净收益口径，防止补助刷榜）
+      data: { points: _.inc(RELIEF_POINTS), lastReliefAt: nowTs, updatedAt: db.serverDate() }
     });
   if (claim.stats && claim.stats.updated) {
     const user = (await ref.get()).data;

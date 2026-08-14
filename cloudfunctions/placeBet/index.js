@@ -35,7 +35,7 @@ exports.main = async (event) => {
       .limit(1)
       .get();
     if (myPkRes.data.length) {
-      return { ok: false, err: '您已参与该卦题的 对弈 邀弈，不能重复应卦' };
+      return { ok: false, err: '您已参与该卦题的对弈邀弈，不能重复应卦' };
     }
 
     const result = await db.runTransaction(async t => {
@@ -95,6 +95,12 @@ exports.main = async (event) => {
               data: { inviterRewarded: true, rewardedAt: db.serverDate(), updatedAt: db.serverDate() }
             });
             inviteRewardGranted = INVITER_POINTS;
+          } else {
+            // 当日已达上限：仍记有效邀友（inviteCount 照常 +1，荣誉可解锁），
+            // 但标记 rewardSkipped，避免邀友记录永远显示「待发奖」误导统计
+            await t.collection('invites').doc(`${user.invitedBy}_${OPENID}`).update({
+              data: { rewardSkipped: true, skippedAt: db.serverDate(), updatedAt: db.serverDate() }
+            });
           }
           await inviterRef.update({ data: inviterData });
           await userRef.update({ data: { inviteRewarded: true, updatedAt: db.serverDate() } });

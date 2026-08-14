@@ -13,7 +13,9 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
-const INVITER_POINTS = Number(process.env.INVITE_INVITER_POINTS) || 50;
+// 邀友奖励：默认与 _shared/config.js 的 INVITE_INVITER_POINTS(5) 保持一致
+// （曾误写为 50，会导致迁移时把邀友榜分虚增 10 倍）
+const INVITER_POINTS = Number(process.env.INVITE_INVITER_POINTS) || 5;
 const PAGE = 100;
 
 function toNumber(ts) {
@@ -93,15 +95,18 @@ exports.main = async () => {
       }
     }
 
-    // 3) 邀友奖励：每次有效邀友 +50（计入周/月/总），inviteCount 回填
-    const rewardedInvites = await fetchAll('invites', { inviterRewarded: true });
-    for (const inv of rewardedInvites) {
-      const ts = toNumber(inv.rewardedAt);
+    // 3) 邀友奖励：inviteCount 按全部邀友记录回填（与 placeBet 的 inviteCount 恒递增口径一致），
+    //    天榜分只计实际发奖（inviterRewarded）的记录；未发奖（达日上限 rewardSkipped）只计次数
+    const allInvites = await fetchAll('invites', {});
+    for (const inv of allInvites) {
       const a = getAcc(inv.inviterId);
       a.inviteCount += 1;
-      a.total += INVITER_POINTS;
-      if (ts >= weekStart) a.week += INVITER_POINTS;
-      if (ts >= monthStart) a.month += INVITER_POINTS;
+      if (inv.inviterRewarded) {
+        const ts = toNumber(inv.rewardedAt);
+        a.total += INVITER_POINTS;
+        if (ts >= weekStart) a.week += INVITER_POINTS;
+        if (ts >= monthStart) a.month += INVITER_POINTS;
+      }
     }
 
     // 4) 写回（只更新有数据的用户）
@@ -138,7 +143,7 @@ exports.main = async () => {
         updated,
         bets: settledBets.length,
         arbitrations: settledArbs.length,
-        invites: rewardedInvites.length,
+        invites: allInvites.length,
         marketTotalPoolBackfilled: marketUpdated,
         weekStart,
         monthStart

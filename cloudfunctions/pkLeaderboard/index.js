@@ -1,7 +1,7 @@
 const cloud = require('wx-server-sdk');
 
 // =========================================================
-// 对弈 胜率榜（物化缓存版）
+// 对弈胜率榜（物化缓存版）
 // 与 getLeaderboard 共享 leaderboards/pk 物化文档：胜率聚合成本高
 // （每次要全量扫已结卦 对弈），由 getLeaderboard 在缓存过期时惰性重建，
 // 本函数只读缓存并补充“我的排名/追赶/趋势”，单次调用零聚合开销。
@@ -133,7 +133,10 @@ exports.main = async () => {
       } else if (Object.keys(prevRankMap).length) {
         trend = 'new';
       }
-      return Object.assign({}, item, { trend });
+      const o = Object.assign({}, item, { trend });
+      // 数据最小化：不向客户端下发 openid
+      delete o.openid;
+      return o;
     });
 
     return { ok: true, list };

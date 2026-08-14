@@ -52,6 +52,10 @@ exports.main = async (event) => {
       if (pk.challengerId === OPENID) throw new Error('不可应弈自己发起的邀弈');
 
       // 接受：锁定反向立场
+      // 「是否接受被邀弈」开关生效：关闭后不可应弈他人邀弈（仍可主动发起）
+      if (user.pkOpen === false) {
+        throw new Error('您已关闭被邀弈开关，可在「我的」页重新开启');
+      }
       const oppChoice = pk.challenger.choice === 'YES' ? 'NO' : 'YES';
       const amount = pk.challenger.amount;
       if (user.points < amount) throw new Error('爻不足，无法应弈');

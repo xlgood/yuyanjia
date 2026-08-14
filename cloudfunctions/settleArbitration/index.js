@@ -109,6 +109,47 @@ async function claimArbitrationLock(arbId) {
   return !!(res.stats && res.stats.updated);
 }
 
+// 单票幂等发放：把发放与「已发放」标记放进同一事务。
+// 结算在给用户发钱/退款后才会把公断置为 settled；若中途崩溃，
+// 下个周期凭 stale 锁接管重跑时，已 paid 的票会被跳过，杜绝二次派奖/退款。
+async function payVote(voteId, openid, principal, share, kind) {
+  try {
+    await db.runTransaction(async t => {
+      const voteRef = t.collection('arbitration_votes').doc(voteId);
+      let cur = null;
+      try {
+        cur = (await voteRef.get()).data;
+      } catch (e) { /* 票不存在 */ }
+      if (!cur || cur.paid) return; // 已发放过，幂等跳过
+
+      const userRef = t.collection('users').doc(openid);
+      let user = null;
+      try {
+        user = (await userRef.get()).data;
+      } catch (e) { /* 用户可能已注销 */ }
+      if (user) {
+        const data = {
+          points: _.inc(principal + share),
+          updatedAt: db.serverDate()
+        };
+        // 分卦所得（净收益）计入周/月/总榜；纯退款不计榜分
+        if (share > 0) {
+          data.weekPoints = _.inc(share);
+          data.monthPoints = _.inc(share);
+          data.totalPoints = _.inc(share);
+        }
+        await userRef.update({ data });
+      }
+      await voteRef.update({
+        data: { paid: true, paidAt: Date.now(), paidKind: kind, share, updatedAt: db.serverDate() }
+      });
+    });
+  } catch (e) {
+    console.error('公断票发放失败', voteId, openid, e.message || e);
+    throw e; // 上抛：本次结算整体失败，靠接管重试
+  }
+}
+
 async function settleArbitrationId(arbId) {
   const arbRef = db.collection('arbitrations').doc(arbId);
   let arb;
@@ -158,9 +199,8 @@ async function settleArbitrationId(arbId) {
   const noBet = winners.length === 0 || losers.length === 0;
   if (noBet) {
     for (const v of votes) {
-      await db.collection('users').doc(v.openid).update({
-        data: { points: _.inc(v.bond || 0), updatedAt: db.serverDate() }
-      });
+      // 幂等发放：每张票带 paid 标记 + 事务，崩溃接管重跑不会重复退款
+      await payVote(v._id, v.openid, v.bond || 0, 0, 'refund');
       await sendArbitrationNotify(v.openid, arb.marketTitle, '公断无有效对赌，保证金已退回');
     }
     await arbRef.update({
@@ -186,27 +226,16 @@ async function settleArbitrationId(arbId) {
     return { settled: true, wins: false, noBet: true, refunded: true };
   }
 
-  // 赢家：退回本金 + 按投入比例分卦输家池
+  // 赢家：退回本金 + 按投入比例分卦输家池（幂等发放，崩溃接管不会二次派奖）
   for (const v of winners) {
     const share = winnerBondTotal > 0
       ? Math.floor(((v.bond || 0) / winnerBondTotal) * loserPool)
       : 0;
-    await db.collection('users').doc(v.openid).update({
-      data: {
-        points: _.inc((v.bond || 0) + share),
-        weekPoints: _.inc(share),
-        monthPoints: _.inc(share),
-        totalPoints: _.inc(share),
-        updatedAt: db.serverDate()
-      }
-    });
+    await payVote(v._id, v.openid, v.bond || 0, share, 'win');
     await sendArbitrationNotify(v.openid, arb.marketTitle, wins ? '公断成立，断卦已翻转' : '公断未成立，维持原断卦');
   }
-  // 输家：本金进入卦池，不再退回
+  // 输家：本金进入卦池，不再退回（无需发放，仅通知）
   for (const v of losers) {
-    await db.collection('users').doc(v.openid).update({
-      data: { updatedAt: db.serverDate() }
-    });
     await sendArbitrationNotify(v.openid, arb.marketTitle, wins ? '公断成立，你的保证金已归附议方' : '公断未成立，你的保证金已归反对方');
   }
 

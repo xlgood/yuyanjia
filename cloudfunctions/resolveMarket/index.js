@@ -53,7 +53,8 @@ exports.main = async (event) => {
       hasDispute: false,
       // 人工录入后清除「待人工复核」标记，否则会重复出现在复核队列
       needsManualReview: false,
-      resolutionMethod: market.resolutionMethod || 'manual',
+      // 人工录入/复核改判统一记为 manual，避免看板把人工复核算作 auto_api 成功
+      resolutionMethod: 'manual',
       resolvedAt: nowTs,
       disputeEndsAt: computeDisputeEndsAt(nowTs),
       updatedAt: db.serverDate()

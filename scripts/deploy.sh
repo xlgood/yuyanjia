@@ -26,33 +26,29 @@ fi
 
 ENV_ID="${CLOUDBASE_ENV_ID:-cloud1-d0gyxil2hba0873d3}"
 
-# 已改动过、需要（重新）上传的云函数（随迭代追加）
-FUNCS=(
-  login
-  checkHonors
-  adRewardCallback
-  settleMarket
-  settleArbitration
-  resolver
-  getLeaderboard
-  pkLeaderboard
-  rankSnapshot
-  getMarkets
-  createMarket
-  placeBet
-  createPk
-  respondPk
-  myPks
-  migratePoints
-  checkIn
-  claimAdTask
-  claimRelief
-  createArbitration
-  voteArbitration
-)
+# 部署函数清单：从 cloudfunctions/ 目录动态生成（排除 _shared 公共目录），
+# 避免手工维护白名单导致新增/既有函数漏传（曾漏掉 lockMarkets/updateProfile 等 15 个函数）
+FUNCS=()
+for d in cloudfunctions/*/; do
+  f="$(basename "$d")"
+  [ "$f" = "_shared" ] && continue
+  FUNCS+=("$f")
+done
 
 echo "==> 同步公共配置（sync:common）..."
 node scripts/sync-common.js
+
+deploy_one() {
+  local f="$1"
+  echo "==> 上传 $f ..."
+  if "$CLI" functions:deploy "$f" -e "$ENV_ID"; then
+    echo "   ✓ $f 上传成功"
+    return 0
+  else
+    echo "   ✗ $f 上传失败"
+    return 1
+  fi
+}
 
 case "${1:-deploy}" in
   login)
@@ -60,21 +56,27 @@ case "${1:-deploy}" in
     exec "$CLI" login
     ;;
   deploy)
+    failed=0
     for f in "${FUNCS[@]}"; do
-      echo "==> 上传 $f ..."
-      "$CLI" functions:deploy "$f" -e "$ENV_ID" || echo "!! $f 上传失败，继续"
+      deploy_one "$f" || failed=$((failed + 1))
     done
-    echo "==> 完成。注意：触发器需在控制台手工配置（见 docs/部署检查清单.md）。"
+    if [ "$failed" -gt 0 ]; then
+      echo "==> 有 $failed 个函数上传失败，请检查后重试。"
+      exit 1
+    fi
+    echo "==> 全部 ${#FUNCS[@]} 个函数上传完成。注意：触发器需在控制台手工配置（见 docs/部署检查清单.md）。"
     ;;
   all)
     echo "==> 全量上传 cloudfunctions/ 下所有函数（跳过 _shared 公共目录）..."
-    for d in cloudfunctions/*/; do
-      f="$(basename "$d")"
-      [ "$f" = "_shared" ] && continue
-      echo "==> 上传 $f ..."
-      "$CLI" functions:deploy "$f" -e "$ENV_ID" || echo "!! $f 上传失败，继续"
+    failed=0
+    for f in "${FUNCS[@]}"; do
+      deploy_one "$f" || failed=$((failed + 1))
     done
-    echo "==> 完成。注意：触发器需在控制台手工配置（见 docs/部署检查清单.md）。"
+    if [ "$failed" -gt 0 ]; then
+      echo "==> 有 $failed 个函数上传失败，请检查后重试。"
+      exit 1
+    fi
+    echo "==> 全部 ${#FUNCS[@]} 个函数上传完成。注意：触发器需在控制台手工配置（见 docs/部署检查清单.md）。"
     ;;
   *)
     echo "用法: $0 [login|deploy|all]" >&2

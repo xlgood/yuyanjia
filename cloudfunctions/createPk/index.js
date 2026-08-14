@@ -7,7 +7,7 @@ const _ = db.command;
 // 业务常量单一来源（cloudfunctions/_shared/config.js，npm run sync:common 同步）
 const { MIN_BET_AMOUNT } = require('./common-config');
 
-const 对弈_EXPIRE_MS = 24 * 3600 * 1000; // 24 小时未应弈自动失效
+const PK_EXPIRE_MS = 24 * 3600 * 1000; // 24 小时未应弈自动失效
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
@@ -47,14 +47,14 @@ exports.main = async (event) => {
       try {
         existingBet = (await t.collection('bets').doc(betId).get()).data;
       } catch (e) { /* 不存在 */ }
-      if (existingBet) throw new Error('您已参与过该卦题，不能重复发起 对弈');
+      if (existingBet) throw new Error('您已参与过该卦题，不能重复发起对弈');
 
       // 同一用户对同一卦题最多一个待应弈 对弈
       const pendingRes = await t.collection('pks')
         .where({ marketId, challengerId: OPENID, status: 'pending' })
         .limit(1)
         .get();
-      if (pendingRes.data.length) throw new Error('您对该卦题已有未完成的 对弈 邀弈');
+      if (pendingRes.data.length) throw new Error('您对该卦题已有未完成的对弈邀弈');
 
       const pkId = '对弈' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
       const nowTs = Date.now();
@@ -78,7 +78,7 @@ exports.main = async (event) => {
         challengerBetId: betId,
         opponentBetId: '',
         createdAt: nowTs,
-        expiresAt: nowTs + 对弈_EXPIRE_MS,
+        expiresAt: nowTs + PK_EXPIRE_MS,
         updatedAt: db.serverDate()
       };
       await t.collection('pks').doc(pkId).set({ data: pk });
@@ -108,7 +108,7 @@ exports.main = async (event) => {
       });
 
       return {
-        pk: Object.assign({}, pk, { _id: pkId, createdAt: nowTs, expiresAt: nowTs + 对弈_EXPIRE_MS }),
+        pk: Object.assign({}, pk, { _id: pkId, createdAt: nowTs, expiresAt: nowTs + PK_EXPIRE_MS }),
         user: (await userRef.get()).data
       };
     });

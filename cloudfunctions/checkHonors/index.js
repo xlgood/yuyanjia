@@ -49,8 +49,9 @@ async function bestRankInSnapshots(type, openid) {
 }
 
 // 天榜卦勋：连胜/总榜实时断卦；周/月/对弈 按历史排名快照断卦“曾进入前十”
+// 注意：总榜与 getLeaderboard/rankSnapshot 一致按「当前爻余额 points」排名
 async function rankChecks(OPENID, user) {
-  const FIELD_MAP = { streak: 'streak', total: 'totalPoints' };
+  const FIELD_MAP = { streak: 'streak', total: 'points' };
   const out = {};
   for (const type of ['streak', 'total']) {
     const field = FIELD_MAP[type];

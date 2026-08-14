@@ -20,8 +20,17 @@ exports.main = async (event) => {
     // 资格/同时参与检查放事务外（官方文档：事务仅附议单记录操作）
     const settledBets = (await db.collection('bets').where({ openid: OPENID, status: _.in(['won', 'lost', 'refunded']) }).count()).total;
     const settledPks = (await db.collection('pks').where({ status: 'settled', participantIds: OPENID }).count()).total;
-    const myVoteRes = await db.collection('arbitration_votes').where({ openid: OPENID }).get();
-    const myArbIds = [...new Set(myVoteRes.data.map(v => v.arbitrationId))].filter(id => id && id !== arbitrationId);
+    // 我的全部投票记录（分页拉全，避免 get() 默认 100 条上限导致漏算“同时参与”）
+    const myVotes = [];
+    let voteSkip = 0;
+    const VOTE_PAGE = 100;
+    while (true) {
+      const res = await db.collection('arbitration_votes').where({ openid: OPENID }).skip(voteSkip).limit(VOTE_PAGE).get();
+      myVotes.push(...res.data);
+      if (res.data.length < VOTE_PAGE) break;
+      voteSkip += VOTE_PAGE;
+    }
+    const myArbIds = [...new Set(myVotes.map(v => v.arbitrationId))].filter(id => id && id !== arbitrationId);
     let activeCount = 0;
     if (myArbIds.length) {
       const activeRes = await db.collection('arbitrations')
@@ -40,6 +49,8 @@ exports.main = async (event) => {
       }
       if (arb.status !== 'pending') throw new Error('公断已结束');
       if (Date.now() > (arb.endsAt || 0)) throw new Error('公断昭示期已结束');
+      // 结算已开始（锁已抢）：拒绝新投票，避免保证金被扣却不参与分卦
+      if (arb.settling) throw new Error('公断正在结卦，暂不能附议');
 
       const userRef = t.collection('users').doc(OPENID);
       const user = (await userRef.get()).data;

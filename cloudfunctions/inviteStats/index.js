@@ -43,10 +43,15 @@ exports.main = async () => {
     const list = allInvites.slice(0, 50);
 
     // 统计基于全量记录，避免截断导致的数字失真
-    const weekStart = Date.now() - 7 * 24 * 3600 * 1000;
+    // 「本周」按自然周（周一 00:00 北京时间）口径，与周榜清零节奏一致
+    const bj = new Date(Date.now() + 8 * 3600 * 1000);
+    const day = bj.getUTCDay(); // 0 = 周日
+    const offsetToMonday = (day + 6) % 7;
+    const weekStart = Date.UTC(bj.getUTCFullYear(), bj.getUTCMonth(), bj.getUTCDate() - offsetToMonday) - 8 * 3600 * 1000;
     const rewardedCount = allInvites.filter(i => i.inviterRewarded).length;
     const weekRewarded = allInvites.filter(i => i.inviterRewarded && toNumber(i.rewardedAt) >= weekStart).length;
-    const pendingCount = allInvites.filter(i => !i.inviterRewarded).length;
+    // 待发奖：未发奖且未因达上限跳过（达上限的已标记 rewardSkipped，不会再补发）
+    const pendingCount = allInvites.filter(i => !i.inviterRewarded && !i.rewardSkipped).length;
 
     // 补上邀友人雅号（用于展示“我邀友了谁”）
     const inviteeIds = list.map(i => i.inviteeId);

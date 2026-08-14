@@ -19,7 +19,7 @@ const FIELD_MAP = {
   month: 'monthPoints',
   total: 'points'
 };
-const TYPES = Object.keys(FIELD_MAP);
+const TYPES = Object.keys(FIELD_MAP).concat(['pk']);
 // 对弈 榜最少场次门槛：与 rankSnapshot / pkLeaderboard 保持一致
 const MIN_GAMES = 5;
 const TOP_SIZE = 200;                       // 缓存最多存 200 名
@@ -29,7 +29,8 @@ function todayKey() {
   return new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
 }
 
-// 计算普通榜 top（users 按字段降序取前 TOP_SIZE）
+// 计算普通榜 top（users 按字段降序取前 TOP_SIZE）；
+// total 为全量上榜人数（该字段 > 0 的用户数），与「我的排名」的全量 count 口径一致
 async function computeRegularTop(field) {
   const res = await db.collection('users')
     .field({ nickname: true, avatarUrl: true, [field]: true })
@@ -44,10 +45,14 @@ async function computeRegularTop(field) {
       avatarUrl: u.avatarUrl || '',
       value: u[field] || 0
     }));
-  return { type: null, list, total: list.length, updatedAt: Date.now() };
+  let total = list.length;
+  try {
+    total = (await db.collection('users').where({ [field]: _.gt(0) }).count()).total;
+  } catch (e) { /* 索引未建时兜底为 top 数量 */ }
+  return { type: null, list, total, updatedAt: Date.now() };
 }
 
-// 计算 对弈 榜 top（聚合已结卦 对弈 胜率，与 rankSnapshot 口径一致）
+// 计算 对弈 榜 top（聚合已结卦 对弈胜率，与 rankSnapshot 口径一致）
 async function computePkTop() {
   const pkStats = {};
   let skip = 0;
@@ -233,6 +238,13 @@ async function handle(event) {
   if (prevSnap.data.length) {
     prevSnap.data[0].rankings.forEach(r => { prevRankMap[r.openid] = r.rank; });
   }
+  // 数据最小化：不向客户端下发 openid（服务端已算好 isMe/排名），
+  // 避免全榜 openid 落入客户端（改包可批量收集）
+  const stripOpenid = item => {
+    const o = Object.assign({}, item);
+    delete o.openid;
+    return o;
+  };
   const withTrend = list.map(item => {
     const prev = prevRankMap[item.openid];
     let trend = '';
@@ -241,7 +253,7 @@ async function handle(event) {
     } else if (Object.keys(prevRankMap).length) {
       trend = 'new';
     }
-    return Object.assign({}, item, { trend });
+    return stripOpenid(Object.assign({}, item, { trend }));
   });
 
   return { ok: true, list: withTrend, myRank, limit, totalCount: cached.total || withTrend.length };

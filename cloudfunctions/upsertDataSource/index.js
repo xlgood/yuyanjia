@@ -29,6 +29,16 @@ async function securityCheck(content) {
 }
 
 exports.main = async (event) => {
+  try {
+    return await handle(event);
+  } catch (e) {
+    // 任何异常转为可见错误返回，避免云函数崩溃（-504002 / 145 code exit unexpected）
+    console.error('[upsertDataSource] 异常', e && e.message || e);
+    return { ok: false, err: String((e && e.message) || e).slice(0, 200) };
+  }
+};
+
+async function handle(event) {
   const { OPENID } = cloud.getWXContext();
   if (!ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
 

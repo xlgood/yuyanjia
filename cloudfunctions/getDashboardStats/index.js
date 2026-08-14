@@ -20,17 +20,18 @@ function pad(n) {
 }
 
 function dayKey(ts) {
-  const d = new Date(ts);
-  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  // 与全项目一致按北京时间（UTC+8）取日期，避免跨日边界偏移
+  const d = new Date((ts || 0) + 8 * 3600 * 1000);
+  return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
 }
 
 function last7Days() {
   const out = [];
   for (let i = 6; i >= 0; i--) {
-    const d = new Date(Date.now() - i * 86400000);
+    const d = new Date(Date.now() + 8 * 3600 * 1000 - i * 86400000);
     out.push({
-      key: dayKey(d.getTime()),
-      label: (d.getMonth() + 1) + '月' + d.getDate() + '日',
+      key: d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()),
+      label: (d.getUTCMonth() + 1) + '月' + d.getUTCDate() + '日',
       count: 0
     });
   }
@@ -41,18 +42,28 @@ exports.main = async () => {
   const { OPENID } = cloud.getWXContext();
   if (!ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
 
-  // 集合缺失时降级为空数组，避免看板白屏
-  const safeGet = async name => {
-    try {
-      return (await db.collection(name).limit(1000).get()).data;
-    } catch (e) {
-      return [];
+  // 集合缺失时降级为空数组，避免看板白屏；分页拉全量，避免 limit(1000) 截断导致统计失真
+  const safeGetAll = async name => {
+    const out = [];
+    let skip = 0;
+    const PAGE = 1000;
+    while (true) {
+      let res;
+      try {
+        res = await db.collection(name).skip(skip).limit(PAGE).get();
+      } catch (e) {
+        return out;
+      }
+      out.push(...res.data);
+      if (res.data.length < PAGE) break;
+      skip += PAGE;
     }
+    return out;
   };
 
   const [markets, arbitrations] = await Promise.all([
-    safeGet('markets'),
-    safeGet('arbitrations')
+    safeGetAll('markets'),
+    safeGetAll('arbitrations')
   ]);
 
   const stats = {
@@ -64,7 +75,7 @@ exports.main = async () => {
     dailyCreated: last7Days(),
     methodDist: { auto_api: 0, manual: 0, none: 0 },
     autoStats: {},
-    pending: { manual: 0, dispute: 0, disputes: arbitrations.length }
+    pending: { manual: 0, dispute: 0, disputes: arbitrations.filter(a => a.status === 'pending').length }
   };
 
   const dayIndex = {};
@@ -84,15 +95,16 @@ exports.main = async () => {
     const provider = (spec.dataSource && spec.dataSource.provider) || '未配置数据源';
     if (!stats.autoStats[provider]) stats.autoStats[provider] = { ok: 0, fail: 0 };
 
-    if (m.status === 'resolved' && m.resolutionMethod) {
-      stats.methodDist[m.resolutionMethod] = (stats.methodDist[m.resolutionMethod] || 0) + 1;
+    if (m.status === 'resolved' && m.resolutionMethod === 'auto_api') {
+      // 仅自动断卦成功计入 autoStats.ok（人工录入/复核改判已记 resolutionMethod='manual'）
+      stats.methodDist.auto_api = (stats.methodDist.auto_api || 0) + 1;
       stats.autoStats[provider].ok++;
-    } else if (m.needsManualReview) {
-      stats.methodDist.manual = (stats.methodDist.manual || 0) + 1;
-      stats.autoStats[provider].fail++;
     } else if (m.status === 'resolved') {
       // 已结卦但没有自动断卦记录 → 视为人工录入断卦
       stats.methodDist.manual = (stats.methodDist.manual || 0) + 1;
+    } else if (m.needsManualReview) {
+      stats.methodDist.manual = (stats.methodDist.manual || 0) + 1;
+      stats.autoStats[provider].fail++;
     } else {
       stats.methodDist.none = (stats.methodDist.none || 0) + 1;
     }

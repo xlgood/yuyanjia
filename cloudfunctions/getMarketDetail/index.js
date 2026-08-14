@@ -14,6 +14,11 @@ exports.main = async (event) => {
   } catch (e) {
     return { ok: false, err: '卦题不存在' };
   }
+  if (market) {
+    // 数据最小化：不向用户端下发机读判定规范（含数据源 URL，可能携带内部参数）。
+    // 用户可见的判定标准在 sourceOfTruth / humanReadable 中；管理端走 getPendingReviews 全量读取。
+    delete market.resolutionSpec;
+  }
 
   let myBet = null;
   try {

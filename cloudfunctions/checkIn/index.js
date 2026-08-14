@@ -31,13 +31,12 @@ exports.main = async () => {
   const granted = CHECKIN_BASE_POINTS + bonus;
 
   // 原子抢占「今日问签名额」：并发重复请求只有一个能命中，防止双领
+  // 注：签到爻计入余额 points，但不计入周/月榜（周/月榜为净收益口径，见 _shared/config.js）
   const claim = await users
     .where({ _id: OPENID, lastCheckInDate: _.neq(today) })
     .update({
       data: {
         points: _.inc(granted),
-        weekPoints: _.inc(granted),
-        monthPoints: _.inc(granted),
         lastCheckInDate: today,
         checkInStreak: streak,
         checkInTotal: _.inc(1),

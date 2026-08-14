@@ -72,6 +72,21 @@ function decryptEncrypt(encrypt) {
   }
 }
 
+// 解密 payload 内层防篡改校验（纵深防御）：
+// 解密后的 JSON 含 sign 字段，是对 token 与业务字段
+// （user_id/transaction_id/reward_amount/reward_item/custom_data）的签名——
+// 与外层 URL 校验同款「字典序排序拼接 + sha256」风格，依据微信官方
+// 《激励广告服务端验证接入指引》。由 AD_SSV_VERIFY_SIGN 控制（默认 true）；
+// 若与官方最新文档有出入，可置 false 关闭并按官方文档校准。
+function verifyInnerSign(info) {
+  if (String(process.env.AD_SSV_VERIFY_SIGN || 'true') !== 'true') return true;
+  if (!info || !info.sign) return false;
+  const parts = [TOKEN, info.user_id, info.transaction_id, info.reward_amount, info.reward_item, info.custom_data]
+    .map(v => (v === undefined || v === null ? '' : String(v)));
+  parts.sort();
+  return sha256Hex(parts.join('')) === String(info.sign);
+}
+
 // 原子发放观演修行奖励：transaction_id 去重 + 每日限次 + 发放爻在同一事务内完成，
 // 并发或重试时只有一次生效；事务冲突时 wx-server-sdk 自动重试（默认 3 次）
 async function grantAdReward(userId, transactionId, amount) {
@@ -144,6 +159,12 @@ exports.main = async (event) => {
 
   const info = decryptEncrypt(params.encrypt);
   if (!info) return { is_valid: false };
+
+  // 内层签名校验（外层验签保证回调来自微信，内层防解密后字段被篡改）
+  if (!verifyInnerSign(info)) {
+    console.warn('[adRewardCallback] 内层签名校验失败', String(info.user_id || '').slice(0, 40), String(info.transaction_id || '').slice(0, 40));
+    return { is_valid: false };
+  }
 
   const userId = String(info.user_id || '');
   const transactionId = String(info.transaction_id || '');

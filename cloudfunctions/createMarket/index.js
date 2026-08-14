@@ -37,6 +37,16 @@ async function securityCheck(content) {
 }
 
 exports.main = async (event) => {
+  try {
+    return await handle(event);
+  } catch (e) {
+    // 任何异常转为可见错误返回，避免云函数崩溃（-504002 / 145 code exit unexpected）
+    console.error('[createMarket] 异常', e && e.message || e);
+    return { ok: false, err: String((e && e.message) || e).slice(0, 200) };
+  }
+};
+
+async function handle(event) {
   const { OPENID } = cloud.getWXContext();
   if (!ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
 
@@ -67,8 +77,10 @@ exports.main = async (event) => {
   // 机读断卦规范校验
   //   - type=manual：事实型卦题，无需数值条件，运营在截止后人工录入官方断卦 + 铁证链接
   //   - type=api/weather：数值型卦题，必须带可执行的 condition
-  if (!spec || !spec.dataSource || !spec.dataSource.type) {
-    return { ok: false, err: '缺少 resolutionSpec（至少需要 dataSource.type）' };
+  // type 白名单：仅接受 resolver 适配器支持的 manual/api/weather，杜绝 web/scraper 等死类型
+  const SOURCE_TYPES = ['manual', 'api', 'weather'];
+  if (!spec || !spec.dataSource || !SOURCE_TYPES.includes(spec.dataSource.type)) {
+    return { ok: false, err: '缺少 resolutionSpec（dataSource.type 仅支持 manual/api/weather）' };
   }
   if (spec.dataSource.type === 'manual') {
     if (!spec.humanReadable) return { ok: false, err: 'manual 类型必须提供 humanReadable 断卦说明' };
@@ -76,6 +88,16 @@ exports.main = async (event) => {
     if (!spec.condition) return { ok: false, err: '缺少断卦条件 condition' };
     if (!OPERATORS.includes(spec.condition.operator)) return { ok: false, err: '断卦运算符反对' };
     if (spec.condition.value === undefined || spec.condition.value === null) return { ok: false, err: '断卦阈值缺失' };
+    // 阈值类型白名单：数字或字符串；拒绝数组/对象/布尔（避免 evaluate 语义错乱导致恒 YES/NO）
+    const cv = spec.condition.value;
+    if (typeof cv !== 'number' && typeof cv !== 'string') {
+      return { ok: false, err: '断卦阈值必须为数字或字符串' };
+    }
+    if (typeof cv === 'number' && !isFinite(cv)) return { ok: false, err: '断卦阈值必须是有限数字' };
+    const field = String(spec.dataSource.field || '').trim();
+    if (!field || field.length > 100 || !/^[A-Za-z0-9_.\[\]']+$/.test(field)) {
+      return { ok: false, err: '取值字段不合法（仅允许字母数字点号下划线方括号单引号，长度 ≤ 100）' };
+    }
   }
 
   // 硬性约束 2：先注册、后发题——api/weather 类型必须引用注册表中的数据源，

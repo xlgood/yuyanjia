@@ -138,9 +138,10 @@ async function settleOneBet(market, bet, refundAll, totalPool, winningPool) {
           points: _.inc(payout),
           streak: newStreak,
           bestStreak,
-          weekPoints: _.inc(payout),
-          monthPoints: _.inc(payout),
-          totalPoints: _.inc(payout),
+          // 天榜口径：只累计净收益（不含本金返还）；退款（refundAll）不计入榜分
+          weekPoints: _.inc(profit),
+          monthPoints: _.inc(profit),
+          totalPoints: _.inc(profit),
           updatedAt: db.serverDate()
         }
       });
@@ -176,15 +177,16 @@ async function settleOne(marketId) {
 
   const PAGE = 100;
   let processed = 0;
-  const settledPks = {};
   const notifies = [];
 
   // 注意：循环体内会把 bet.status 从 active 改为 won/lost/refunded，
   // 结果集实时缩小，因此每轮必须从头取（skip 固定为 0），
   // 否则翻页漂移会导致部分注单永远漏结卦。
-  // rounds 兜底防止单条更新失败时死循环。
+  // rounds 兜底防止单条更新失败时死循环；耗尽后不置 resolved，
+  // 保持 dispute_window + settling 由下个周期接管继续（绝不丢注单）。
   let rounds = 0;
-  const MAX_ROUNDS = 500;
+  const MAX_ROUNDS = 2000;
+  let exhausted = false;
   while (rounds++ < MAX_ROUNDS) {
     const res = await db.collection('bets')
       .where({ marketId, status: 'active' })
@@ -208,12 +210,6 @@ async function settleOne(marketId) {
       if (r.skipped) continue;
       processed += 1;
 
-      // 对弈 胜负记录：同一 对弈 的两条 bet 都结卦后更新一次
-      if (bet.pkId) {
-        const entry = settledPks[bet.pkId] || (settledPks[bet.pkId] = { wonOpenids: [], allOpenids: [] });
-        entry.allOpenids.push(bet.openid);
-        if (r.won) entry.wonOpenids.push(bet.openid);
-      }
       notifies.push({
         openid: bet.openid,
         title: market.title,
@@ -227,58 +223,103 @@ async function settleOne(marketId) {
     if (bets.length < PAGE) break;
   }
 
-  // 订阅消息在事务提交后再发送，避免外部调用混入事务
-  for (const n of notifies) {
-    await sendJudgeNotify(
-      n.openid,
-      n.title,
-      n.won ? '应验' : (n.refundAll ? '数据异常，已退回' : '未应验'),
-      n.status === 'won' ? `获得 ${n.payout} 爻` : ''
-    );
-  }
-
-  // 结卦 对弈：断卦胜负、更新双方 对弈 统计
-  for (const pkId of Object.keys(settledPks)) {
-    const entry = settledPks[pkId];
-    let pk;
-    try {
-      pk = (await db.collection('pks').doc(pkId).get()).data;
-    } catch (e) { continue; }
-    if (!pk || pk.status === 'settled') continue;
-
-    // 未应弈（pending）的 对弈：邀弈方注单已按普通应卦结卦完毕，
-    // 直接作废，避免“邀弈了不存在的人”污染 对弈 胜率榜，也防止后续清理双倍退款
-    if (pk.status !== 'accepted') {
-      await db.collection('pks').doc(pkId).update({
-        data: { status: 'expired', expiredAt: Date.now(), updatedAt: db.serverDate() }
-      });
-      continue;
-    }
-
-    const winnerId = entry.wonOpenids.length === 1 ? entry.wonOpenids[0] : '';
-    await db.collection('pks').doc(pkId).update({
-      data: {
-        status: 'settled',
-        winnerId,
-        settledAt: Date.now(),
-        updatedAt: db.serverDate()
-      }
-    });
-    for (const uid of entry.allOpenids) {
-      const win = !!winnerId && winnerId === uid;
-      await db.collection('users').doc(uid).update({
-        data: {
-          [win ? 'pkWins' : 'pkLosses']: _.inc(1),
-          updatedAt: db.serverDate()
-        }
-      });
+  // 轮次耗尽仍未结完（注单量级过大）：保持 dispute_window + settling，
+  // 交由下个定时周期接管继续结，绝不把剩余注单留在 active
+  if (rounds >= MAX_ROUNDS) {
+    const remain = await db.collection('bets').where({ marketId, status: 'active' }).count();
+    if (remain.total > 0) {
+      exhausted = true;
+      await postWebhook(`【预测卦局·结卦告警】市场 ${marketId}（${market.title}）注单过多（剩余 ${remain.total} 条），本周期未结完，下周期接管继续`);
     }
   }
+  if (exhausted) {
+    return { settled: false, reason: 'bet_settle_incomplete', marketId };
+  }
+
+  // 结卦 对弈：直接按 DB 状态推导（幂等），
+  // 崩溃接管重跑时即使本轮没结过任何注单，也能把对弈正确收尾，
+  // 避免「上次运行已结完注单、PK 却永远停在 accepted」导致胜负与 PK 榜缺失。
+  await settlePksForMarket(marketId);
 
   await db.collection('markets').doc(marketId).update({
     data: { status: 'resolved', settledAt: Date.now(), settling: false, updatedAt: db.serverDate() }
   });
+
+  // 订阅消息最后发送（外部网络调用）：失败不影响核心状态；
+  // 若在此处超时崩溃，市场已 resolved、对弈已收尾，接管重跑会直接跳过
+  for (const n of notifies) {
+    try {
+      await sendJudgeNotify(
+        n.openid,
+        n.title,
+        n.won ? '应验' : (n.refundAll ? '数据异常，已退回' : '未应验'),
+        n.status === 'won' ? `获得 ${n.payout} 爻` : ''
+      );
+    } catch (e) {
+      console.error('发送断卦订阅消息失败', n.openid, e && e.message);
+    }
+  }
+
   return { settled: true, processed };
+}
+
+// 结卦本市场全部未收尾的对弈（幂等，可重复执行）：
+//  - pending（未应战）：挑战者注单已按普通注单结卦完毕，直接作废邀弈，
+//    避免污染 对弈胜率榜，也防止后续 myPks 清理时二次退款；
+//  - accepted：按双方注单的结卦状态推导胜负，无胜者（退款/数据异常）不计胜负。
+async function settlePksForMarket(marketId) {
+  const PAGE = 100;
+  let skip = 0;
+  while (true) {
+    const res = await db.collection('pks')
+      .where({ marketId, status: _.in(['pending', 'accepted']) })
+      .skip(skip)
+      .limit(PAGE)
+      .get();
+    const pks = res.data;
+    if (!pks.length) break;
+
+    for (const pk of pks) {
+      // 拉取该对弈的注单（含 pkId 标记）
+      const betRes = await db.collection('bets').where({ pkId: pk._id }).limit(10).get();
+      const pkBets = betRes.data;
+      // 注单还没结完（本轮循环未覆盖）：跳过，交给下个周期/接管轮
+      if (pkBets.some(b => b.status === 'active')) continue;
+
+      if (pk.status !== 'accepted') {
+        await db.collection('pks').doc(pk._id).update({
+          data: { status: 'expired', expiredAt: Date.now(), updatedAt: db.serverDate() }
+        });
+        continue;
+      }
+
+      const wonBets = pkBets.filter(b => b.status === 'won');
+      // 反向立场对弈，胜者必然唯一；退款/异常（如 refundAll）时无胜者
+      const winnerId = wonBets.length === 1 ? wonBets[0].openid : '';
+      await db.collection('pks').doc(pk._id).update({
+        data: {
+          status: 'settled',
+          winnerId,
+          settledAt: Date.now(),
+          updatedAt: db.serverDate()
+        }
+      });
+      // 有明确胜者才计胜负；无胜者（数据异常退款）不计，避免双方都记负
+      if (winnerId) {
+        for (const b of pkBets) {
+          await db.collection('users').doc(b.openid).update({
+            data: {
+              [winnerId === b.openid ? 'pkWins' : 'pkLosses']: _.inc(1),
+              updatedAt: db.serverDate()
+            }
+          });
+        }
+      }
+    }
+
+    if (pks.length < PAGE) break;
+    skip += PAGE;
+  }
 }
 
 exports.main = async (event) => {

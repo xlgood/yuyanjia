@@ -364,6 +364,8 @@ async function main() {
   console.log('✓ 仲裁流程：发起 → 门槛 → 投票 → 成立翻转');
 
   // 27. 仲裁无对赌兜底：只有发起人支持、无人否决 → 保证金全额退回
+  // （与云端一致：24 小时发起冷却对任意最近一次发起生效，先把冷却拨回再发起）
+  await mock.call('mockResetArbitrationCooldown');
   await mock.call('resolveMarket', { marketId: 'M003', result: 'YES' });
   await mock.call('mockSeedArbitration', { marketId: 'M003' });
   const pointsBeforeArb = (await mock.call('login')).user.points;

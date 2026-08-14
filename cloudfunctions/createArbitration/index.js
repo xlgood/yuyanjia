@@ -82,6 +82,10 @@ exports.main = async (event) => {
       .orderBy('createdAt', 'desc')
       .limit(1)
       .get();
+    // 快速失败：距上次发起不足 24 小时直接拒绝（并发精确校验在事务内 CAS，见下）
+    if (lastArbRes.data.length && Date.now() - (lastArbRes.data[0].createdAt || 0) < COOLDOWN_MS) {
+      return { ok: false, err: '24 小时内只能发起 1 次公断' };
+    }
 
     const result = await db.runTransaction(async t => {
       const marketRef = t.collection('markets').doc(marketId);
@@ -121,14 +125,15 @@ exports.main = async (event) => {
 
       // 同时参与上限 + 发起冷却
       if (myActiveRes.total >= ACTIVE_LIMIT) throw new Error('您同时只能参与 1 个公断');
-      // 发起冷却：距上次发起（无论是否已结卦）不足 24 小时则拒绝，
-      // 不再依赖 pending 状态（原判断与“同时只能参与 1 个公断”重复，实际永不触发）
-      if (lastArbRes.data.length && Date.now() - (lastArbRes.data[0].createdAt || 0) < COOLDOWN_MS) {
+      // 发起冷却（事务内 CAS）：距上次发起（无论是否已结卦）不足 24 小时则拒绝。
+      // 事务内读改写 lastArbAt，并发双创建时事务冲突重试后读到新值而拒绝，彻底封死绕过
+      const nowTs = Date.now();
+      if (nowTs - (user.lastArbAt || 0) < COOLDOWN_MS) {
         throw new Error('24 小时内只能发起 1 次公断');
       }
+      // 事务外预检查（lastArbRes）保留为快速失败，减少事务冲突
 
       const arbId = 'ARB' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
-      const nowTs = Date.now();
       const arb = {
         _id: arbId,
         marketId,
@@ -166,7 +171,8 @@ exports.main = async (event) => {
           createdAt: db.serverDate()
         }
       });
-      await userRef.update({ data: { points: _.inc(-bond), updatedAt: db.serverDate() } });
+      // 事务内写 lastArbAt：并发双创建时，后到事务重试后读到新值而拒绝冷却校验
+      await userRef.update({ data: { points: _.inc(-bond), lastArbAt: nowTs, updatedAt: db.serverDate() } });
       await marketRef.update({ data: { status: 'arbitration_window', arbitrationId: arbId, updatedAt: db.serverDate() } });
 
       return { ok: true, arbitration: Object.assign({}, arb, { _id: arbId, createdAt: nowTs, endsAt: nowTs + ARBITRATION_WINDOW_MS }) };
