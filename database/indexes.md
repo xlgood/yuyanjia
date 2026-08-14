@@ -77,6 +77,12 @@
 | `idx_openid` | openid 升序 | 我的投票/同时参与判定 | 🟢 |
 | `idx_arbitrationId_openid` | arbitrationId 升序 + openid 升序 | 详情页「我的投票」`where arbitrationId+openid`（getArbitration） | 🟢 |
 
+## topic_candidates（定时选题候选）—— 1 个
+
+| 索引名称 | 字段（方向） | 服务查询 | 优先级 |
+|----------|--------------|----------|--------|
+| `idx_source_date` | source 升序 + date **降序** | 幂等检查 `where date+source`、管理端读取 `where source orderBy date desc` | 🟢 |
+
 ## 无需建索引的集合
 
 | 集合 | 原因 |

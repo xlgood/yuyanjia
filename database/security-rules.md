@@ -22,6 +22,7 @@
 | 10 | `data_sources` | **所有用户不可读写** | 数据源注册表，仅管理员经云函数操作 |
 | 11 | `resolution_logs` | **所有用户不可读写** | 判定审计证据 |
 | 12 | `ad_rewards` | **所有用户不可读写** | 广告回调去重账（未启用广告也先建好） |
+| 13 | `topic_candidates` | **所有用户不可读写** | 定时选题候选（dailyHotTopics 写入 / getTopicCandidates 读取，2026-08-14 新增） |
 
 > 全部统一为「所有用户不可读写」后，客户端即使被改包也无法绕过云函数直接篡改任何数据。
 > 云函数运行在服务端上下文，不受该规则限制。
@@ -73,5 +74,6 @@ wx.cloud.database().collection('users').limit(1).get()
 | `rank_snapshots` | `type+date` |
 | `arbitrations` | `marketId+status`、`status+endsAt`、`challenger.openid` |
 | `arbitration_votes` | `arbitrationId`、`openid`、**`arbitrationId+openid`** |
+| `topic_candidates` | **`source+date`**（date 降序） |
 
 > `markets` 的 `status+deadline` 与 `bets` 的 `marketId+status` 直接影响首页列表与结算扫描的读成本，缺失会在数据量上来后拖慢云函数。
