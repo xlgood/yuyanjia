@@ -39,20 +39,33 @@ Page({
   onGenerate() {
     const timeRange = this.data.timeRanges[this.data.timeRangeIndex];
     const category = this.data.categories[this.data.categoryIndex];
+    const sourcePayload = this.data.sources.map(s => ({
+      name: s.name,
+      type: s.type,
+      url: s.url,
+      category: s.category,
+      notes: s.notes
+    }));
     this.setData({ generating: true });
-    wx.showLoading({ title: 'AI 生成中...' });
+    wx.showLoading({ title: 'AI 联网检索中...' });
     api.aiSuggestTopics({
+      searchOnly: true,
       topic: '热点事件',
       timeRange,
-      category: category === '全部' ? '' : category,
-      sources: this.data.sources.map(s => ({
-        name: s.name,
-        type: s.type,
-        url: s.url,
-        category: s.category,
-        notes: s.notes
-      }))
+      category: category === '全部' ? '' : category
     })
+      .then(res => {
+        const summary = res.searchSummary || '';
+        if (!summary) throw new Error('联网检索未返回摘要');
+        wx.showLoading({ title: 'AI 生成候选清单...' });
+        return api.aiSuggestTopics({
+          topic: '热点事件',
+          timeRange,
+          category: category === '全部' ? '' : category,
+          searchSummary: summary,
+          sources: sourcePayload
+        });
+      })
       .then(res => {
         this.setData({
           candidates: res.list || [],

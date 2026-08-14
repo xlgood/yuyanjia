@@ -349,6 +349,51 @@ async function execKimiFormula(name, args, apiKey) {
   return JSON.stringify({ error: res.error || ctx.error || '搜索执行失败' });
 }
 
+// 阶段一：DeepSeek 仅联网检索，返回中文要点摘要（不生成候选）
+async function runDeepSeekSearch(category, timeRange, topic) {
+  const todayCN = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+  const searchPrompt = `今天是北京时间 ${todayCN}。请针对以下范围做一次联网检索：分类：${category || '全品类'}；时间范围：${timeRange || '一周内'}；需求：${topic}。
+检索最近可验证的热点事件（赛事/发布会/票房/官方统计发布/官宣定档等），然后输出不超过 500 字的中文要点摘要：列出候选方向、关键事实与数据来源名称。不要输出 JSON，不要长篇大论。`;
+  const instructions = '你是热点检索助手。整个任务只允许调用一次 web_search 工具；检索完成后直接输出中文要点摘要，不要解释过程。';
+  let input = [{ role: 'user', content: searchPrompt }];
+  const t0 = Date.now();
+  for (let round = 0; round < 4; round++) {
+    // 首轮给足检索时间；续接轮用剩余预算
+    const budget = round === 0 ? 50000 : Math.max(10000, 55000 - (Date.now() - t0));
+    let resp;
+    try {
+      resp = await postJson(
+        DEEPSEEK_BASE_URL.replace(/\/$/, '') + '/responses',
+        {
+          model: DEEPSEEK_RESPONSES_MODEL,
+          instructions,
+          input,
+          tools: [{ type: 'web_search' }],
+          tool_choice: { type: 'web_search' },
+          reasoning: { effort: 'low' },
+          max_output_tokens: 2000
+        },
+        DEEPSEEK_API_KEY,
+        budget
+      );
+    } catch (e) {
+      throw new Error(`联网检索请求失败（第 ${round + 1} 轮，预算 ${Math.round(budget / 1000)}s）：${e.message}`);
+    }
+    const output = Array.isArray(resp.output) ? resp.output : [];
+    if (resp.status === 'incomplete' && resp.incomplete_details && resp.incomplete_details.reason === 'max_output_tokens') {
+      throw new Error('联网检索输出被截断，请重试');
+    }
+    const last = output[output.length - 1];
+    const text = extractContent(resp);
+    const hasFinal = last && last.type === 'message' && Array.isArray(last.content) &&
+      last.content.some(c => c && typeof c.text === 'string' && c.text.trim());
+    const hasPending = output.some(item => item && (item.type === 'web_search_call' || item.type === 'function_call'));
+    if (hasFinal || !hasPending) return text;
+    input = input.concat(output);
+  }
+  throw new Error('联网检索轮次过多，请重试');
+}
+
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
   if (!ADMIN_OPENIDS.includes(OPENID)) return { ok: false, err: '无权限操作' };
@@ -378,6 +423,23 @@ exports.main = async (event) => {
   }
   if (AI_PROVIDER === 'custom' && (!CUSTOM_BASE_URL || !CUSTOM_MODEL)) {
     return { ok: false, err: 'custom 模式需同时配置 CUSTOM_BASE_URL 与 CUSTOM_MODEL' };
+  }
+
+  const searchSummary = String(event.searchSummary || '').trim();
+  const searchOnly = !!event.searchOnly;
+
+  // 阶段一：仅联网检索（前端先调用，拿到摘要后再调用生成）
+  if (searchOnly) {
+    if (AI_PROVIDER !== 'deepseek' || !DEEPSEEK_WEB_SEARCH) {
+      return { ok: false, err: '分步联网检索仅支持 DeepSeek（AI_PROVIDER=deepseek）' };
+    }
+    try {
+      const summary = await runDeepSeekSearch(category, timeRange, topic);
+      if (!summary || !summary.trim()) return { ok: false, err: '联网检索未返回有效摘要，请重试' };
+      return { ok: true, searchSummary: summary.slice(0, 3000), mode: 'deepseek_search' };
+    } catch (e) {
+      return { ok: false, err: 'AI 联网检索失败：' + (e.message || e) };
+    }
   }
 
   const sourceList = sources.map(s => ({
@@ -427,11 +489,12 @@ ${JSON.stringify(sourceList)}
 
   let resp;
   let mode = 'offline';
-  let fallbackReason = '';
-  const t0 = Date.now();
+  const userPromptFinal = searchSummary
+    ? userPrompt + '\n\n【联网检索结果（仅作事实参考；数据源名称必须来自上面列表，禁止编造）】\n' + searchSummary
+    : userPrompt;
   const messages = [
     { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt }
+    { role: 'user', content: userPromptFinal }
   ];
   try {
     const work = (async () => {
@@ -460,22 +523,16 @@ ${JSON.stringify(sourceList)}
         );
         mode = CUSTOM_SEARCH ? 'custom_search' : 'custom';
       } else if (DEEPSEEK_WEB_SEARCH) {
-        // DeepSeek：Responses API + 服务端 web_search；部分账号/模型不支持时会自动回退离线
-        try {
+        if (searchSummary) {
+          // 阶段二：基于联网摘要生成候选（不再联网，稳定快速）
+          resp = await chatCompletions(DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, messages, DEEPSEEK_API_KEY, {
+            response_format: { type: 'json_object' }
+          }, 50000);
+          mode = 'deepseek_search';
+        } else {
+          // 兼容单次调用：联网检索 + 续接生成；失败直接报错，不回退离线
           resp = await callDeepSeekResponses(systemPrompt, userPrompt, DEEPSEEK_API_KEY, 0.7);
           mode = 'deepseek_search';
-        } catch (e) {
-          fallbackReason = String(e.message || e).slice(0, 300);
-          console.error('DeepSeek Responses/web_search 调用失败，回退离线 chat/completions：', e.message || e);
-          // 联网环节已耗时，剩余预算留给离线生成（至少 12s）；离线生成降量为最多 5 条，保证预算内出结果
-          const remaining = Math.max(12000, 50000 - (Date.now() - t0));
-          const offlineUser = userPrompt + '\n（联网检索暂不可用：请直接基于你已有的知识，最多输出 5 条近期可验证候选，必须输出 JSON 数组，不要解释。）';
-          resp = await chatCompletions(DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: offlineUser }
-          ], DEEPSEEK_API_KEY, {
-            response_format: { type: 'json_object' }
-          }, remaining);
         }
       } else {
         resp = await chatCompletions(DEEPSEEK_BASE_URL, DEEPSEEK_MODEL, messages, DEEPSEEK_API_KEY, {
@@ -486,11 +543,7 @@ ${JSON.stringify(sourceList)}
     await Promise.race([
       work,
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error(
-          `AI 生成超时（联网+离线共超 ${AI_SAFE_TIMEOUT_MS / 1000}s 上限）` +
-          (fallbackReason ? `；联网环节失败原因：${fallbackReason}` : '；联网环节耗时过长') +
-          '；离线回退也未在预算内完成，请稍后重试或更换更快模型'
-        )), AI_SAFE_TIMEOUT_MS)
+        setTimeout(() => reject(new Error('AI 生成超时（超过 55s 上限）：联网检索或生成未在预算内完成，请稍后重试')), AI_SAFE_TIMEOUT_MS)
       )
     ]);
   } catch (e) {

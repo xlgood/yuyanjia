@@ -18,7 +18,7 @@
     <button class="gen-btn" bindtap="onGenerate" disabled="{{generating}}">
       {{generating ? '生成中...' : '🤖 AI 生成候选事件'}}
     </button>
-    <view class="gen-tip">AI 只做选题建议，请勾选“可验证”的候选并核对数据源后再发题。</view>
+    <view class="gen-tip">AI 只做选题建议，请勾选“可验证”的候选并核对数据源后再发题。联网检索 + 生成约需 30–90 秒，请耐心等待。</view>
   </view>
 
   <view class="err-box" wx:if="{{errorMsg}}">
