@@ -66,7 +66,13 @@ async function securityCheck(content) {
     return suggest === 'pass' || !suggest;
   } catch (e) {
     const lower = String(content).toLowerCase();
-    return !LOCAL_SENSITIVE_WORDS.some(w => lower.indexOf(w.toLowerCase()) >= 0);
+    const hit = LOCAL_SENSITIVE_WORDS.find(w => lower.indexOf(w.toLowerCase()) >= 0);
+    if (hit) {
+      console.warn('[aiSuggestTopics] 本地词表命中：', hit, '| 内容：', String(content).slice(0, 60));
+    } else {
+      console.warn('[aiSuggestTopics] msgSecCheck 不可用且本地词表未命中，判定为通过：', String(content).slice(0, 60));
+    }
+    return !hit;
   }
 }
 
@@ -491,12 +497,24 @@ ${JSON.stringify(sourceList)}
 
   // 逐条过微信内容安全，命中敏感内容的不进入候选清单
   const safeList = [];
+  const rejected = [];
   for (const c of list) {
     const titleOk = await securityCheck(c.title);
     const reasonOk = await securityCheck(c.reason);
-    if (titleOk && reasonOk) safeList.push(c);
+    if (titleOk && reasonOk) {
+      safeList.push(c);
+    } else {
+      rejected.push({ title: c.title, reason: c.reason, titleOk, reasonOk });
+    }
   }
 
-  if (!safeList.length) return { ok: false, err: 'AI 生成的候选均未通过内容安全检测，请调整需求后重试' };
+  if (!safeList.length) {
+    console.error('[aiSuggestTopics] 候选全部未通过安全检测：', JSON.stringify(rejected).slice(0, 1200));
+    const sample = rejected.slice(0, 3).map(r => `「${r.title}」`).join('、');
+    return {
+      ok: false,
+      err: `AI 生成的 ${list.length} 条候选均未通过内容安全检测（示例：${sample}）。请更换时间范围/分类后重试；若反复出现，可能是 AI 生成了政治/赌博等敏感题材，请人工检查选题。`
+    };
+  }
   return { ok: true, list: safeList, mode, fallbackReason };
 };
