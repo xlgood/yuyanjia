@@ -430,3 +430,22 @@
   color: #c62828;
   margin-bottom: 8rpx;
 }
+
+.auto-ops .auto-accept,
+.auto-ops .auto-reject {
+  flex: 1;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  line-height: 2.2;
+}
+
+.auto-accept {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.auto-reject {
+  background: #fdecea;
+  color: #c62828;
+}

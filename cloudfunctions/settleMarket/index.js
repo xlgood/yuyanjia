@@ -53,22 +53,93 @@ function postWebhook(content) {
   });
 }
 
+// 发送断卦订阅消息（带 Outbox：先落 notification_outbox 再发送，
+// 失败留待 settleMarket 定时器重试，避免用户收不到判定结果）
 async function sendJudgeNotify(openid, marketTitle, resultText, payoutText) {
   if (!SUBSCRIBE_JUDGE_TMPL || !openid) return;
+  const data = {
+    thing1: { value: String(marketTitle || '').slice(0, 20) },
+    thing2: { value: String(resultText || '').slice(0, 20) },
+    thing3: { value: String(payoutText || '').slice(0, 20) }
+  };
+  let outboxId = '';
+  try {
+    const r = await db.collection('notification_outbox').add({
+      data: {
+        openid,
+        channel: 'wechat',
+        template: 'judge',
+        payload: { templateId: SUBSCRIBE_JUDGE_TMPL, page: 'pages/index/index', data },
+        status: 'pending',
+        retryCount: 0,
+        nextRetryAt: 0,
+        createdAt: db.serverDate(),
+        updatedAt: db.serverDate()
+      }
+    });
+    outboxId = r._id;
+  } catch (e) {
+    console.error('写入通知 Outbox 失败', openid, e.message || e);
+  }
   try {
     await cloud.openapi.subscribeMessage.send({
       touser: openid,
       templateId: SUBSCRIBE_JUDGE_TMPL,
       page: 'pages/index/index',
-      data: {
-        thing1: { value: String(marketTitle || '').slice(0, 20) },
-        thing2: { value: String(resultText || '').slice(0, 20) },
-        thing3: { value: String(payoutText || '').slice(0, 20) }
-      }
+      data
     });
+    if (outboxId) {
+      await db.collection('notification_outbox').doc(outboxId).update({
+        data: { status: 'sent', sentAt: Date.now(), updatedAt: db.serverDate() }
+      });
+    }
   } catch (e) {
-    console.error('发送断卦订阅消息失败', openid, e.message);
+    console.error('发送断卦订阅消息失败', openid, e.message || e);
+    if (outboxId) {
+      await db.collection('notification_outbox').doc(outboxId).update({
+        data: {
+          status: 'failed',
+          lastError: String(e.message || e).slice(0, 200),
+          retryCount: _.inc(1),
+          nextRetryAt: Date.now() + 5 * 60 * 1000,
+          updatedAt: db.serverDate()
+        }
+      });
+    }
   }
+}
+
+// 重试失败的 Outbox（每轮定时结卦前跑一次；指数退避 5→10 分钟）
+async function recoverOutbox(limit) {
+  const res = await db.collection('notification_outbox')
+    .where({ status: 'failed', nextRetryAt: _.lte(Date.now()) })
+    .limit(limit || 20)
+    .get();
+  for (const o of res.data) {
+    const p = o.payload || {};
+    try {
+      await cloud.openapi.subscribeMessage.send({
+        touser: o.openid,
+        templateId: p.templateId,
+        page: p.page || 'pages/index/index',
+        data: p.data || {}
+      });
+      await db.collection('notification_outbox').doc(o._id).update({
+        data: { status: 'sent', sentAt: Date.now(), updatedAt: db.serverDate() }
+      });
+    } catch (e) {
+      await db.collection('notification_outbox').doc(o._id).update({
+        data: {
+          status: 'failed',
+          lastError: String(e.message || e).slice(0, 200),
+          retryCount: _.inc(1),
+          nextRetryAt: Date.now() + 10 * 60 * 1000,
+          updatedAt: db.serverDate()
+        }
+      });
+    }
+  }
+  return res.data.length;
 }
 
 // 市场级结卦锁：cron 与手动结卦并发时只有一个能拿到锁，
@@ -346,6 +417,13 @@ exports.main = async (event) => {
   // 无参批量：仅限定时触发器 / 云间调用 / 管理员，防止客户端刷调用消耗配额
   if (SOURCE === 'wx_client' && !ADMIN_OPENIDS.includes(OPENID)) {
     return { ok: false, err: '无权限操作' };
+  }
+  // 先重试上次失败的订阅消息（Outbox）
+  let retried = 0;
+  try {
+    retried = await recoverOutbox(20);
+  } catch (e) {
+    console.error('Outbox 重试异常', e.message || e);
   }
   const nowTs = Date.now();
   const res = await db.collection('markets')

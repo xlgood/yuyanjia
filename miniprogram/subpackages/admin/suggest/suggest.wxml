@@ -54,6 +54,11 @@
             <view class="cand-deadline" wx:if="{{item.suggestedDeadline}}">建议截止：{{item.suggestedDeadline}}</view>
           </view>
         </view>
+        <!-- 状态操作：仅待确认可标记采用/忽略 -->
+        <view class="auto-ops" wx:if="{{day.status === 'pending'}}">
+          <button class="auto-accept" data-id="{{day.id}}" bindtap="onAutoAccept">✓ 采用</button>
+          <button class="auto-reject" data-id="{{day.id}}" bindtap="onAutoReject">✗ 忽略</button>
+        </view>
         <!-- 详情/素材库折叠区：失败原因 + 新闻素材（人工选题参考） -->
         <view class="auto-news" wx:if="{{day.aiError || day.newsSummary}}" data-date="{{day.date}}" bindtap="onAutoToggleNews">
           <text>{{day.expanded ? '▾ 收起详情' : '▸ 查看详情'}}</text>

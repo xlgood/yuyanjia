@@ -13,7 +13,7 @@
         <text class="r-type {{item.reviewTypeCls}}">{{item.reviewTypeText}}</text>
       </view>
       <view class="r-title">{{item.title}}</view>
-      <view class="r-meta">截止 {{item.deadlineText}} · {{item.timeText}}</view>
+      <view class="r-meta">截止 {{item.deadlineText}}<text wx:if="{{item.expectedResultAtText}}"> · 预期结果 {{item.expectedResultAtText}}</text> · {{item.timeText}}</view>
       <view class="r-urgency {{item.urgencyCls}}" wx:if="{{item.urgencyText}}">{{item.urgencyText}}</view>
       <view class="r-result" wx:if="{{item.reviewType === 'dispute'}}">
         当前断卦：{{item.result === 'YES' ? '☰ 正' : '☷ 反'}}

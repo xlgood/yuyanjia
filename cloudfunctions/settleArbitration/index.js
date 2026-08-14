@@ -49,20 +49,58 @@ function postWebhook(content) {
   });
 }
 
+// 发送公断订阅消息（带 Outbox：先落 notification_outbox 再发送，
+// 失败由 settleMarket 定时器统一重试，避免用户收不到仲裁结果）
 async function sendArbitrationNotify(openid, marketTitle, resultText) {
   if (!SUBSCRIBE_ARBITRATION_TMPL || !openid) return;
+  const data = {
+    thing1: { value: String(marketTitle || '').slice(0, 20) },
+    thing2: { value: String(resultText || '').slice(0, 20) }
+  };
+  let outboxId = '';
+  try {
+    const r = await db.collection('notification_outbox').add({
+      data: {
+        openid,
+        channel: 'wechat',
+        template: 'arbitration',
+        payload: { templateId: SUBSCRIBE_ARBITRATION_TMPL, page: 'pages/index/index', data },
+        status: 'pending',
+        retryCount: 0,
+        nextRetryAt: 0,
+        createdAt: db.serverDate(),
+        updatedAt: db.serverDate()
+      }
+    });
+    outboxId = r._id;
+  } catch (e) {
+    console.error('写入通知 Outbox 失败', openid, e.message || e);
+  }
   try {
     await cloud.openapi.subscribeMessage.send({
       touser: openid,
       templateId: SUBSCRIBE_ARBITRATION_TMPL,
       page: 'pages/index/index',
-      data: {
-        thing1: { value: String(marketTitle || '').slice(0, 20) },
-        thing2: { value: String(resultText || '').slice(0, 20) }
-      }
+      data
     });
+    if (outboxId) {
+      await db.collection('notification_outbox').doc(outboxId).update({
+        data: { status: 'sent', sentAt: Date.now(), updatedAt: db.serverDate() }
+      });
+    }
   } catch (e) {
-    console.error('发送公断订阅消息失败', openid, e.message);
+    console.error('发送公断订阅消息失败', openid, e.message || e);
+    if (outboxId) {
+      await db.collection('notification_outbox').doc(outboxId).update({
+        data: {
+          status: 'failed',
+          lastError: String(e.message || e).slice(0, 200),
+          retryCount: _.inc(1),
+          nextRetryAt: Date.now() + 5 * 60 * 1000,
+          updatedAt: db.serverDate()
+        }
+      });
+    }
   }
 }
 

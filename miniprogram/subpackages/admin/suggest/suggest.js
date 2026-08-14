@@ -41,6 +41,7 @@ Page({
     api.getTopicCandidates({ limit: 5 })
       .then(res => {
         const days = (res.list || []).map(d => ({
+          id: d._id,
           date: d.date,
           status: d.status,
           aiError: d.aiError || '',
@@ -55,6 +56,37 @@ Page({
         this.setData({ autoDays: days, autoLoading: false });
       })
       .catch(() => this.setData({ autoLoading: false }));
+  },
+
+  // 定时候选：采用 / 忽略（状态流转 pending→accepted/rejected）
+  onAutoAccept(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.showModal({
+      title: '采用该日候选',
+      content: '标记为已采用（可在下方批量发题中使用候选）。确认？',
+      success: res => {
+        if (res.confirm) {
+          api.updateTopicCandidate({ id, status: 'accepted' })
+            .then(() => { wx.showToast({ title: '已标记采用', icon: 'success' }); this.loadAutoCandidates(); })
+            .catch(err => wx.showToast({ title: err.message || '操作失败', icon: 'none' }));
+        }
+      }
+    });
+  },
+
+  onAutoReject(e) {
+    const id = e.currentTarget.dataset.id;
+    wx.showModal({
+      title: '忽略该日候选',
+      content: '标记为已忽略（不再出现在待确认列表）。确认？',
+      success: res => {
+        if (res.confirm) {
+          api.updateTopicCandidate({ id, status: 'rejected' })
+            .then(() => { wx.showToast({ title: '已忽略', icon: 'success' }); this.loadAutoCandidates(); })
+            .catch(err => wx.showToast({ title: err.message || '操作失败', icon: 'none' }));
+        }
+      }
+    });
   },
 
   // 展开/收起素材库

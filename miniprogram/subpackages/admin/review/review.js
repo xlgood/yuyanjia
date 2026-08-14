@@ -53,6 +53,7 @@ Page({
     const urgencyText = (m.reviewType === 'dispute' && remainingMs < 0) ? '' : u.text;
     return Object.assign({}, m, {
       deadlineText: fmt.formatDeadline(m.deadline),
+      expectedResultAtText: m.expectedResultAt ? fmt.formatDate(m.expectedResultAt) : '',
       statusText: MARKET_STATUS[m.status] || m.status,
       reviewTypeText: t.text,
       reviewTypeCls: t.cls,

@@ -2,7 +2,7 @@ const cloud = require('wx-server-sdk');
 
 // 管理员 openid（部署时在云函数环境变量配置 ADMIN_OPENIDS，逗号分隔；空 = 仅 Mock 可进后台）
 const ADMIN_OPENIDS = (process.env.ADMIN_OPENIDS || '').split(',').map(s => s.trim()).filter(Boolean);
-const TYPES = ['api', 'web', 'manual', 'scraper'];
+const TYPES = ['api', 'web', 'manual', 'scraper', 'webpage'];
 const STATUS = ['verified', 'trial', 'pending', 'frozen'];
 // 本地兜底词表：msgSecCheck 不可用（云调用未开通/异常）时降级使用，避免 fail-open
 const LOCAL_SENSITIVE_WORDS = [

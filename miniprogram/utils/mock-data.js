@@ -223,16 +223,16 @@ function seedState() {
   });
 
   const users = [
-    { _id: 'u1', nickname: '诸葛·卦友', avatarUrl: '', streak: 12, bestStreak: 15, weekPoints: 3200, monthPoints: 12800, totalPoints: 45600, points: 3200, inviteCode: 'UA1', inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u2', nickname: '数码极客阿杰', avatarUrl: '', streak: 9, bestStreak: 11, weekPoints: 2850, monthPoints: 10400, totalPoints: 38900, points: 2850, inviteCode: 'UA2', inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u3', nickname: '猫眼老影迷', avatarUrl: '', streak: 8, bestStreak: 9, weekPoints: 2400, monthPoints: 9600, totalPoints: 33200, points: 2400, inviteCode: 'UA3', inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u4', nickname: '篮球先知老王', avatarUrl: '', streak: 7, bestStreak: 8, weekPoints: 2100, monthPoints: 8800, totalPoints: 30100, points: 2100, inviteCode: 'UA4', inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u5', nickname: 'LPL 观察员', avatarUrl: '', streak: 6, bestStreak: 7, weekPoints: 1900, monthPoints: 7200, totalPoints: 26800, points: 1900, inviteCode: 'UA5', inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u6', nickname: '气象小达人', avatarUrl: '', streak: 5, bestStreak: 6, weekPoints: 1600, monthPoints: 6500, totalPoints: 22400, points: 1600, inviteCode: 'UA6', inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u7', nickname: '吃瓜群众甲', avatarUrl: '', streak: 4, bestStreak: 5, weekPoints: 1200, monthPoints: 5100, totalPoints: 18700, points: 1200, inviteCode: 'UA7', inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u8', nickname: '理性分析菌', avatarUrl: '', streak: 3, bestStreak: 5, weekPoints: 900, monthPoints: 4300, totalPoints: 15600, points: 900, inviteCode: 'UA8', inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u9', nickname: '都市夜猫子', avatarUrl: '', streak: 2, bestStreak: 4, weekPoints: 600, monthPoints: 3200, totalPoints: 12100, points: 600, inviteCode: 'UA9', inviteRewardDate: '', inviteRewardToday: 0 },
-    { _id: 'u10', nickname: '新手上路', avatarUrl: '', streak: 1, bestStreak: 2, weekPoints: 300, monthPoints: 1800, totalPoints: 7600, points: 300, inviteCode: 'UA10', inviteRewardDate: '', inviteRewardToday: 0 }
+    { _id: 'u1', nickname: '诸葛·卦友', avatarUrl: '', streak: 12, bestStreak: 15, weekPoints: 320, monthPoints: 1280, totalPoints: 4560, points: 320, inviteCode: 'UA1', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u2', nickname: '数码极客阿杰', avatarUrl: '', streak: 9, bestStreak: 11, weekPoints: 285, monthPoints: 1040, totalPoints: 3890, points: 285, inviteCode: 'UA2', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u3', nickname: '猫眼老影迷', avatarUrl: '', streak: 8, bestStreak: 9, weekPoints: 240, monthPoints: 960, totalPoints: 3320, points: 240, inviteCode: 'UA3', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u4', nickname: '篮球先知老王', avatarUrl: '', streak: 7, bestStreak: 8, weekPoints: 210, monthPoints: 880, totalPoints: 3010, points: 210, inviteCode: 'UA4', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u5', nickname: 'LPL 观察员', avatarUrl: '', streak: 6, bestStreak: 7, weekPoints: 190, monthPoints: 720, totalPoints: 2680, points: 190, inviteCode: 'UA5', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u6', nickname: '气象小达人', avatarUrl: '', streak: 5, bestStreak: 6, weekPoints: 160, monthPoints: 650, totalPoints: 2240, points: 160, inviteCode: 'UA6', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u7', nickname: '吃瓜群众甲', avatarUrl: '', streak: 4, bestStreak: 5, weekPoints: 120, monthPoints: 510, totalPoints: 1870, points: 120, inviteCode: 'UA7', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u8', nickname: '理性分析菌', avatarUrl: '', streak: 3, bestStreak: 5, weekPoints: 90, monthPoints: 430, totalPoints: 1560, points: 90, inviteCode: 'UA8', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u9', nickname: '都市夜猫子', avatarUrl: '', streak: 2, bestStreak: 4, weekPoints: 60, monthPoints: 320, totalPoints: 1210, points: 60, inviteCode: 'UA9', inviteRewardDate: '', inviteRewardToday: 0 },
+    { _id: 'u10', nickname: '新手上路', avatarUrl: '', streak: 1, bestStreak: 2, weekPoints: 30, monthPoints: 180, totalPoints: 760, points: 30, inviteCode: 'UA10', inviteRewardDate: '', inviteRewardToday: 0 }
   ];
 
   const dataSources = [

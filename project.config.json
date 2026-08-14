@@ -36,7 +36,9 @@
   "condition": {},
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "file", "value": "miniprogram/utils/mock-data.js" }
+    ],
     "include": []
   },
   "editorSetting": {}

@@ -20,7 +20,7 @@ Page({
     title: '',
     deadlineDate: defaultDate(),
     deadlineTime: '20:00',
-    modes: ['数值型（API 自动判定）', '事实型（人工录入 + 铁证）'],
+    modes: ['数值型（API 自动判定）', '事实型（人工录入 + 铁证）', '网页型（官方页面自动判定）'],
     modeIndex: 0,
     sources: [],
     sourceIndex: 0,
@@ -32,6 +32,10 @@ Page({
     value: '',
     unit: '',
     provider: '',
+    pageName: '',
+    pageUrl: '',
+    regex: '',
+    selector: '',
     humanReadable: '',
     specText: '',
     humanText: '',
@@ -65,6 +69,10 @@ Page({
   onTime(e) { this.setData({ deadlineTime: e.detail.value }); },
   onSource(e) { this.setData({ sourceIndex: Number(e.detail.value) }); },
   onField(e) { this.setData({ field: e.detail.value }); },
+  onPageName(e) { this.setData({ pageName: e.detail.value }); },
+  onPageUrl(e) { this.setData({ pageUrl: e.detail.value }); },
+  onRegex(e) { this.setData({ regex: e.detail.value }); },
+  onSelector(e) { this.setData({ selector: e.detail.value }); },
   onTransform(e) { this.setData({ transformIndex: Number(e.detail.value) }); },
   onOperator(e) { this.setData({ operatorIndex: Number(e.detail.value) }); },
   onValue(e) { this.setData({ value: e.detail.value }); },
@@ -152,6 +160,31 @@ Page({
       return {
         version: 1,
         dataSource: { type: 'api', provider: src.name, url: src.url, field: this.data.field.trim(), transform },
+        condition: { operator, value, unit: this.data.unit },
+        binaryRule: { missingData: 'refund', tie: 'NO' },
+        evidence: { saveRawResponse: true, saveScreenshot: false },
+        humanReadable
+      };
+    }
+    if (this.data.modeIndex === 2) {
+      // 网页型：官方页面 + regex/selector 提取结果字段 → 规则判定
+      const operator = OPERATORS[this.data.operatorIndex];
+      const transform = TRANSFORMS[this.data.transformIndex];
+      const value = transform === 'string' ? this.data.value : Number(this.data.value);
+      const pageUrl = this.data.pageUrl.trim();
+      const regex = this.data.regex.trim();
+      const selector = this.data.selector.trim();
+      if (!pageUrl || (!regex && !selector) || this.data.value === '' || isNaN(value)) return null;
+      const ds = { type: 'webpage', provider: this.data.pageName.trim() || '官方页面', url: pageUrl, transform };
+      if (regex) ds.regex = regex;
+      if (selector) ds.selector = selector;
+      const humanReadable =
+        `根据「${this.data.pageName.trim() || '官方页面'}」页面内容，判定时点 ${this.data.deadlineDate} ${this.data.deadlineTime}，` +
+        `页面结果 ${operator} ${value}${this.data.unit} 则“应验”，否则“未应验”；` +
+        `页面无法访问或数据缺失时爻原路退回。`;
+      return {
+        version: 1,
+        dataSource: ds,
         condition: { operator, value, unit: this.data.unit },
         binaryRule: { missingData: 'refund', tie: 'NO' },
         evidence: { saveRawResponse: true, saveScreenshot: false },

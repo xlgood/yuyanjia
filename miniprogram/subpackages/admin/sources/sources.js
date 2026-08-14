@@ -5,7 +5,8 @@ const TYPES = [
   { key: 'api', label: 'API 接口' },
   { key: 'web', label: '网页抓取' },
   { key: 'manual', label: '人工录入' },
-  { key: 'scraper', label: '托管抓取' }
+  { key: 'scraper', label: '托管抓取' },
+  { key: 'webpage', label: '网页判定' }
 ];
 const ACCESS = [
   { key: 'free', label: '免费' },

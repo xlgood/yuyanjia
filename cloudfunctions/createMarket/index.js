@@ -23,6 +23,32 @@ const LOCAL_SENSITIVE_WORDS = SENSITIVE_WORDS.concat([
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
+// SSRF 防护：禁止登记内网/回环/链路本地/保留地址的数据源 URL
+// （resolver 会按此 URL 发起抓取，防探测云函数内网）
+function isPrivateUrl(raw) {
+  let u;
+  try {
+    u = new URL(String(raw));
+  } catch (e) {
+    return true;
+  }
+  const host = u.hostname.toLowerCase();
+  if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local')) return true;
+  const m = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (m) {
+    const a = Number(m[1]);
+    const b = Number(m[2]);
+    if (a === 0 || a === 10 || a === 127) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 100 && b >= 64 && b <= 127) return true;
+    if (a >= 224) return true;
+  }
+  if (host === '::1' || host.startsWith('fe80:') || host.startsWith('fc') || host.startsWith('fd')) return true;
+  return false;
+}
+
 // 微信官方内容安全检测（标题/断卦说明全链路）；未开通云调用时回退本地词表
 async function securityCheck(content) {
   if (!content) return true;
@@ -127,6 +153,9 @@ async function handle(event) {
     if (String(bs.url || '') === String(spec.dataSource.url || '')) {
       return { ok: false, err: 'backupSources 不得与主源使用同一 url' };
     }
+    if (isPrivateUrl(bs.url)) {
+      return { ok: false, err: 'backupSources URL 不允许访问内网/回环地址' };
+    }
     if (bs.type === 'api' && !String(bs.field || '').trim()) return { ok: false, err: 'backupSources(api) 必须提供 field' };
     if (bs.type === 'webpage' && !bs.regex && !bs.selector) return { ok: false, err: 'backupSources(webpage) 必须提供 regex 或 selector' };
   }
@@ -161,6 +190,9 @@ async function handle(event) {
       return { ok: false, err: `数据源未注册：请先在数据源注册表登记「${sourceName || sourceUrl || sourceType}」` };
     }
     if (!sourceUrl) return { ok: false, err: 'api/weather/webpage 类型必须提供数据源 url' };
+    if (isPrivateUrl(sourceUrl)) {
+      return { ok: false, err: '数据源 URL 不允许访问内网/回环地址' };
+    }
     if (sourceType === 'api' || sourceType === 'weather') {
       if (!String(spec.dataSource.field || '').trim()) return { ok: false, err: 'api/weather 类型必须提供取值字段 field' };
       if (!TRANSFORMS.includes(spec.dataSource.transform)) return { ok: false, err: 'transform 仅附议 int / float / string' };
@@ -201,6 +233,7 @@ async function handle(event) {
     resolutionSpec: spec,
     resolutionMethod: '',
     resolutionAttempts: 0,
+    resultVersion: 0, // 结果版本：每次录入/覆写判定 +1（更正审计/通知用）
     needsManualReview: false,
     createdAt: db.serverDate(),
     updatedAt: db.serverDate()

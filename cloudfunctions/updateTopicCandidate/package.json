@@ -1,0 +1,9 @@
+{
+  "name": "updateTopicCandidate",
+  "version": "1.0.0",
+  "description": "定时候选状态流转（采用/忽略）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "4.0.2"
+  }
+}

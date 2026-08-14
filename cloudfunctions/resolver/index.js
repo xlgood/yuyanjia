@@ -73,7 +73,44 @@ function postWebhook(content) {
 const http = require('http');
 const https = require('https');
 
+// SSRF 防护：禁止抓取内网/回环/链路本地/保留地址，防止恶意 spec 探测云函数内网
+function isPrivateUrl(raw) {
+  let u;
+  try {
+    u = new URL(String(raw));
+  } catch (e) {
+    return true; // 非法 URL 视为不安全
+  }
+  const host = u.hostname.toLowerCase();
+  if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local')) return true;
+  const m = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (m) {
+    const a = Number(m[1]);
+    const b = Number(m[2]);
+    if (a === 0 || a === 10 || a === 127) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT
+    if (a >= 224) return true; // 组播/保留
+  }
+  if (host === '::1' || host.startsWith('fe80:') || host.startsWith('fc') || host.startsWith('fd')) return true;
+  if (host.startsWith('::ffff:')) {
+    const v4 = host.slice(7);
+    const m4 = v4.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+    if (m4 && (Number(m4[1]) === 127 || Number(m4[1]) === 10 || Number(m4[1]) === 192)) return true;
+  }
+  return false;
+}
+
+function assertPublicUrl(url, label) {
+  if (isPrivateUrl(url)) {
+    throw new Error((label || '数据源') + ' URL 不允许访问内网/回环地址: ' + String(url).slice(0, 80));
+  }
+}
+
 function fetchJson(url, timeoutMs) {
+  assertPublicUrl(url, '数据源');
   const t = timeoutMs || 10000;
   return new Promise((resolve, reject) => {
     const lib = url.indexOf('https') === 0 ? https : http;
@@ -97,6 +134,7 @@ function fetchJson(url, timeoutMs) {
 // 抓取 HTML 原文（webpage 适配器用；强制 identity 编码避免 gzip 乱码，
 // 带浏览器 UA 提高部分站点可达性）
 function fetchText(url, timeoutMs) {
+  assertPublicUrl(url, '网页数据源');
   const t = timeoutMs || 15000;
   return new Promise((resolve, reject) => {
     const lib = url.indexOf('https') === 0 ? https : http;

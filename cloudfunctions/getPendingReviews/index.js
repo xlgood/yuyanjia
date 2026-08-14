@@ -49,14 +49,17 @@ exports.main = async () => {
     ...failList.map(m => Object.assign({}, m, { reviewType: 'manual_fail' })),
     ...disputeList.map(m => Object.assign({}, m, { reviewType: 'dispute' }))
   ].map(m => {
-    // 待判定项按原始截止时间算剩余；昭示期项按 disputeEndsAt 算剩余，
+    // 待判定项按「预期结果时刻（有则优先，否则原始截止）」算剩余；
+    // 昭示期项按 disputeEndsAt 算剩余，
     // 且不参与「紧急」提醒（昭示期到期由 settleMarket 定时自动结卦，无需人工抢处理）
-    const anchorTs = m.reviewType === 'dispute' ? (m.disputeEndsAt || m.deadline || 0) : (m.deadline || 0);
+    const anchorTs = m.reviewType === 'dispute'
+      ? (m.disputeEndsAt || m.deadline || 0)
+      : (m.expectedResultAt || m.deadline || 0);
     const remainingMs = anchorTs - nowTs;
     const urgency = m.reviewType === 'dispute'
       ? 'normal'
       : (remainingMs < 0 ? 'urgent' : (remainingMs <= SOON_MS ? 'soon' : 'normal'));
-    return Object.assign({}, m, { remainingMs, urgency, anchorTs });
+    return Object.assign({}, m, { remainingMs, urgency, anchorTs, expectedResultAt: m.expectedResultAt || 0 });
   });
   // 紧急度优先：urgent > soon > normal，同级按实际锚点时间（截止/昭示结束）升序
   const order = { urgent: 0, soon: 1, normal: 2 };
