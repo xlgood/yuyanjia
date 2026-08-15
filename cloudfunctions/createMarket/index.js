@@ -161,11 +161,25 @@ async function handle(event) {
   }
 
   // 可选：预期结果揭晓时刻（管理端复核队列排序/展示用；不影响判定逻辑）
+  // 分类最小封盘提前量：截止必须至少提前于预期结果时刻（防中途数据泄露套利）
+  const CATEGORY_MIN_GAP_MS = {
+    '影视娱乐': 60 * 60 * 1000,  // 1 小时（奖项类放宽；票房类建议提前一晚由 AI/表单引导）
+    '科技数码': 15 * 60 * 1000,  // 15 分钟（发布会开始前）
+    '游戏电竞': 5 * 60 * 1000,   // 5 分钟（开赛前）
+    '体育竞技': 5 * 60 * 1000,   // 5 分钟（开赛前）
+    '趣味民生': 5 * 60 * 1000,   // 5 分钟
+    '财经宏观': 15 * 60 * 1000   // 15 分钟（官方发布前）
+  };
   let expectedResultAt = 0;
   if (event.expectedResultAt !== undefined && event.expectedResultAt !== null && event.expectedResultAt !== '') {
     expectedResultAt = Number(event.expectedResultAt);
     if (!expectedResultAt || isNaN(expectedResultAt) || expectedResultAt <= deadline) {
       return { ok: false, err: 'expectedResultAt 必须晚于截止时间' };
+    }
+    const minGap = CATEGORY_MIN_GAP_MS[category] || 60 * 1000;
+    if (expectedResultAt - deadline < minGap) {
+      const mins = Math.round(minGap / 60000);
+      return { ok: false, err: `分类「${category}」要求截止至少提前 ${mins} 分钟于预期结果时刻（防止数据泄露套利），请调整截止或预期结果时间` };
     }
   }
 

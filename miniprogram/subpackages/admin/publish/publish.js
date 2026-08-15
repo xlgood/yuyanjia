@@ -20,6 +20,8 @@ Page({
     title: '',
     deadlineDate: defaultDate(),
     deadlineTime: '20:00',
+    expectedResultAtDate: '',
+    expectedResultAtTime: '',
     modes: ['数值型（API 自动判定）', '事实型（人工录入 + 铁证）', '网页型（官方页面自动判定）'],
     modeIndex: 0,
     sources: [],
@@ -67,6 +69,8 @@ Page({
   onMode(e) { this.setData({ modeIndex: Number(e.detail.value) }); },
   onDate(e) { this.setData({ deadlineDate: e.detail.value }); },
   onTime(e) { this.setData({ deadlineTime: e.detail.value }); },
+  onExpectedDate(e) { this.setData({ expectedResultAtDate: e.detail.value }); },
+  onExpectedTime(e) { this.setData({ expectedResultAtTime: e.detail.value }); },
   onSource(e) { this.setData({ sourceIndex: Number(e.detail.value) }); },
   onField(e) { this.setData({ field: e.detail.value }); },
   onPageName(e) { this.setData({ pageName: e.detail.value }); },
@@ -225,6 +229,15 @@ Page({
       wx.showToast({ title: '截止时间必须晚于当前时间', icon: 'none' });
       return;
     }
+    // 预期结果时刻（可选）：填了则服务端按分类校验最小封盘提前量
+    let expectedResultAt = 0;
+    if (this.data.expectedResultAtDate && this.data.expectedResultAtTime) {
+      expectedResultAt = new Date(`${this.data.expectedResultAtDate} ${this.data.expectedResultAtTime}:00`.replace(/-/g, '/')).getTime();
+      if (!expectedResultAt || expectedResultAt <= deadline) {
+        wx.showToast({ title: '预期结果时刻必须晚于截止时间', icon: 'none' });
+        return;
+      }
+    }
     const spec = this.buildSpec();
     if (!spec) {
       wx.showToast({ title: '判定条件不完整，请先预览', icon: 'none' });
@@ -237,6 +250,7 @@ Page({
       title,
       sourceOfTruth: spec.humanReadable,
       deadline,
+      expectedResultAt,
       resolutionSpec: spec
     })
       .then(res => {

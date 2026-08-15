@@ -362,16 +362,33 @@ exports.main = async () => {
     return { ok: false, err: '无权限操作' };
   }
   const now = Date.now();
-  const res = await db.collection('markets')
+  // 提前达成熔断：先探测 open 数值合约（提前揭晓 → 锁定）
+  let earlyTriggeredCount = 0;
+  try {
+    earlyTriggeredCount = await detectEarlyResolution();
+  } catch (e) {
+    console.error('提前达成探测异常', e.message || e);
+  }
+
+  // 主判定扫描：
+  //  - 正常到期：locked + deadline 已过宽限期（earlyTriggered 除外）
+  //  - 提前熔断：locked + earlyTriggered=true（立即裁决，不再等 deadline）
+  const normalRes = await db.collection('markets')
     .where({
       status: 'locked',
+      earlyTriggered: _.neq(true),
       deadline: _.lte(now - GRACE_MS),
       resolutionSpec: _.exists(true)
     })
     .limit(20)
     .get();
+  const earlyRes = await db.collection('markets')
+    .where({ status: 'locked', earlyTriggered: true })
+    .limit(20)
+    .get();
+  const res = { data: normalRes.data.concat(earlyRes.data) };
 
-  const summary = { scanned: res.data.length, resolved: [], retrying: [], manual: [] };
+  const summary = { scanned: res.data.length, resolved: [], retrying: [], manual: [], earlyTriggered: earlyTriggeredCount };
 
   for (const m of res.data) {
     // 已转人工或已超过重试上限的跳过（查询条件无法表达 exists，这里显式过滤）
@@ -392,8 +409,9 @@ exports.main = async () => {
     try {
       const r = await adapter(spec);
 
-      // 防信息套利：结果时间早于截止时间 → 疑似提前揭晓，转人工复核
-      const tsIssue = await checkResultTimestamp(m, spec, r);
+      // 防信息套利：结果时间早于截止时间 → 疑似提前揭晓，转人工复核。
+      // 提前熔断（earlyTriggered）的市场跳过该检查：提前达成已由熔断流程验证并告警
+      const tsIssue = m.earlyTriggered ? null : await checkResultTimestamp(m, spec, r);
       if (tsIssue) {
         await log(m._id, methodOf(spec), { status: 'timestamp_conflict', error: tsIssue, value: r.value });
         await flagManual(m._id, attempts, tsIssue);
@@ -462,6 +480,64 @@ exports.main = async () => {
 // 判定方法名：webpage → auto_webpage，其余 → auto_api（看板按此统计）
 function methodOf(spec) {
   return spec && spec.dataSource && spec.dataSource.type === 'webpage' ? 'auto_webpage' : 'auto_api';
+}
+
+// 提前达成熔断（P2）：探测 open 且配置了 timestampField 的数值合约——
+// 若数据源当前值已达成 YES 判定条件、且结果时间戳早于截止时间（提前揭晓），
+// 立即锁定市场（earlyTriggered），由主判定流程即时裁决。
+// 只对运营显式配置 timestampField 的合约生效（保守，避免误锁）。
+async function detectEarlyResolution() {
+  let triggered = 0;
+  let res;
+  try {
+    res = await db.collection('markets')
+      .where({
+        status: 'open',
+        earlyTriggered: _.neq(true),
+        'resolutionSpec.dataSource.timestampField': _.exists(true)
+      })
+      .limit(20)
+      .get();
+  } catch (e) {
+    console.error('提前达成探测查询失败', e.message || e);
+    return 0;
+  }
+  const nowTs = Date.now();
+  for (const m of res.data) {
+    const spec = m.resolutionSpec;
+    if (!spec || !spec.dataSource) continue;
+    const type = spec.dataSource.type;
+    if (type === 'manual' || type === 'webpage') continue; // 仅数值类（api/weather）支持
+    if (m.deadline && Number(m.deadline) <= nowTs) continue; // 已到期走正常判定
+    try {
+      const r = await ADAPTERS[type](spec);
+      if (r.result !== 'YES') continue; // 未提前达成
+      // 读结果时间戳，确认「结果已正式定局且早于截止」→ 提前达成
+      const ts = toNumber(getPath(r.json || {}, spec.dataSource.timestampField));
+      if (!ts || !m.deadline || ts >= Number(m.deadline)) continue;
+      await db.collection('markets').doc(m._id).update({
+        data: {
+          status: 'locked',
+          earlyTriggered: true,
+          earlyTriggeredAt: nowTs,
+          lockedAt: nowTs,
+          updatedAt: db.serverDate()
+        }
+      });
+      await log(m._id, methodOf(spec), {
+        status: 'early_trigger',
+        value: r.value,
+        result: r.result,
+        resultTs: ts,
+        fetchedAt: r.fetchedAt
+      });
+      await postWebhook(`【预测卦局·提前达成熔断】卦题「${String(m.title || m._id).slice(0, 30)}」已在截止前达成（结果时间 ${new Date(ts).toISOString()}），已自动锁定，进入判定流程`);
+      triggered += 1;
+    } catch (e) {
+      console.error('提前达成探测失败', m._id, e.message || e);
+    }
+  }
+  return triggered;
 }
 
 async function log(marketId, method, data) {

@@ -26,6 +26,19 @@
       </view>
     </view>
 
+    <view class="field">
+      <text class="field-label">预期结果时刻（可选；官方揭晓时点，须晚于截止）</text>
+      <view class="row">
+        <picker class="half" mode="date" value="{{expectedResultAtDate}}" bindchange="onExpectedDate">
+          <view class="picker">{{expectedResultAtDate || '选择日期'}}</view>
+        </picker>
+        <picker class="half" mode="time" value="{{expectedResultAtTime}}" bindchange="onExpectedTime">
+          <view class="picker">{{expectedResultAtTime || '选择时间'}}</view>
+        </picker>
+      </view>
+      <view class="ai-tip">建议按分类封盘规范：票房→结算前一晚、体育/电竞→开赛前 5 分钟、财经→发布前 15 分钟、发布会→开始前 15 分钟。服务端会校验截止与预期结果的间隔。</view>
+    </view>
+
     <button class="ai-btn" bindtap="onAiDraft" disabled="{{aiDrafting || publishing}}">
       {{aiDrafting ? 'AI 起草中...' : '🤖 AI 起草判定条件'}}
     </button>
